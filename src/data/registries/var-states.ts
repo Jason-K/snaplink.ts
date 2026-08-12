@@ -1,4 +1,5 @@
 import type { VarSpec, VarValueSpec } from "../primitives/vars";
+import { PW_IDS } from "./apps";
 import { VARS } from "./vars";
 
 /** Reusable string/number state constants for Karabiner variable condition checks */
@@ -66,7 +67,7 @@ export const STATES = {
   ),
   isSecureInputSubrole: varState(
     VARS.elementSubtype,
-    "AXSecureTextField",
+    "AXSecureTextField*",
     "Focused element is a secure text field",
   ),
   isButton: varState(
@@ -99,3 +100,15 @@ export const STATES = {
     "Left+right first tap",
   ),
 } as const satisfies Record<string, VarValueSpec>;
+
+// ---------------------------------------------------------
+// STATE GROUPS Registry
+// ---------------------------------------------------------
+
+/**
+ * Reusable groups of state conditions.
+ */
+export const STATE_GROUPS = {
+  isPasswordEdit: [PW_IDS, STATES.isTextField, STATES.isSecureInputSubrole],
+  isUserEdit: [PW_IDS, STATES.isTextField, [STATES.isSecureInputSubrole, false]],
+} as const;

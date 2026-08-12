@@ -503,8 +503,8 @@ test("an adopted multi-tap gets its own pending-tap variable", () => {
   );
   const pending = allFor(adopting(source), "a", null)
     .flatMap((m) => m.conditions ?? [])
-    .filter((c) => c.type === "variable_if" && c.name !== PRESSED.name)
-    .map((c) => (c as { name: string }).name);
+    .filter((c) => c.type === "variable_if" && (c as any).name !== PRESSED.name)
+    .map((c) => (c as { expression: string }).name as string);
 
   assert.deepEqual(
     [...new Set(pending)],

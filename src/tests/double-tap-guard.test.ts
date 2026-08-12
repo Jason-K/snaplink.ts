@@ -19,16 +19,15 @@ test("globalGuardBinding uses the guard_cmd_q variable and fires the combo on th
   const [rule] = defineBindings([globalGuardBinding]).map(toRule);
   const [secondPress, firstPress]: any[] = rule.manipulators;
   // var name derived from trigger q + left_command
-  assert.equal(secondPress.conditions[0].name, "guard_cmd_q");
-  assert.equal(secondPress.conditions[0].value, 1);
+  assert.deepEqual(secondPress.conditions[0], { type: "variable_if", name: "guard_cmd_q", value: 1 });
   // second press fires the real combo in `to` (not to_if_alone), then resets
   assert.equal(secondPress.to[0].key_code, "q");
   assert.deepEqual(secondPress.to[0].modifiers, ["left_command"]);
   assert.equal(secondPress.to[1].set_variable.name, "guard_cmd_q");
   assert.equal(secondPress.to[1].set_variable.value, 0);
   // first press arms the var, delayed-action disarms
-  assert.equal(firstPress.conditions[0].name, "guard_cmd_q");
-  assert.equal(firstPress.conditions[0].value, 0);
+  const firstPressCond = firstPress.conditions[0];
+  assert.deepEqual(firstPressCond, { type: "variable_if", name: "guard_cmd_q", value: 0 });
   assert.equal(firstPress.to[0].set_variable.name, "guard_cmd_q");
   assert.equal(firstPress.to[0].set_variable.value, 1);
   assert.equal(firstPress.to_delayed_action.to_if_invoked[0].set_variable.value, 0);

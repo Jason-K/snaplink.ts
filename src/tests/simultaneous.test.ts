@@ -74,7 +74,7 @@ test("multi-tap: second manipulator has sim_tap_{label} variable condition", () 
   );
   const secondManipulator = toRule(rules[0]).manipulators[0]; // [0] = secondTap (varTapTapHoldFrom returns [secondTap, firstTap])
   assert.ok(
-    secondManipulator?.conditions?.some((c: any) => c.name === "sim_tap_jk"),
+    secondManipulator?.conditions?.some((c: any) => c.type === "variable_if" && c.name.startsWith("sim_tap_jk")),
     "Expected sim_tap_jk variable condition on second manipulator",
   );
 });

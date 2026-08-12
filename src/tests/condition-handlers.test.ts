@@ -89,7 +89,8 @@ test("bare strings are routed by shape: paths to file_paths, else bundle ids", (
 });
 
 test("var condition compiles to variable_if / variable_unless", () => {
-  assert.deepEqual(resolveCondition({ var: flag, equals: 1 }), {
+  const resolved = resolveCondition({ var: flag, equals: 1 });
+  assert.deepEqual(resolved, {
     type: "variable_if",
     name: "flag",
     value: 1,

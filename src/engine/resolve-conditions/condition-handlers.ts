@@ -132,11 +132,19 @@ export const CONDITION_HANDLERS = {
   },
 
   var: {
-    toKarabiner: (c) => ({
-      type: c.unless ? "variable_unless" : "variable_if",
-      name: c.var.name,
-      value: c.equals,
-    }),
+    toKarabiner: (c) => {
+      if (typeof c.equals === "string" && (c.equals.includes("*") || c.equals.includes("?"))) {
+        return {
+          type: c.unless ? "expression_unless" : "expression_if",
+          expression: `${c.var.name} ilike '${c.equals}'`,
+        };
+      }
+      return {
+        type: c.unless ? "variable_unless" : "variable_if",
+        name: c.var.name,
+        value: c.equals,
+      } as any;
+    },
     describe: (c) => (c.unless ? `not ${c.var.varDesc}` : c.var.varDesc),
     targetKey: (c) => `${c.var.name}=${String(c.equals)}`,
     contradicts: (a, b) => {

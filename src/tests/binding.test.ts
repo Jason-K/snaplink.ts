@@ -553,7 +553,7 @@ test("buildGuard: double-tap guard emits two-manipulator arm/fire pattern", () =
   // var name derived: guard_cmd_q
   const varName = "guard_cmd_q";
   // SECOND press: var=1, fires the real combo in `to`, resets var
-  assert.deepEqual(secondPress.conditions[0], { type: "variable_if", name: varName, value: 1 });
+  assert.deepEqual(secondPress.conditions[0], { type: "variable_if", name: varName, value: 1 } as any);
   // toSetVar emits extra undefined keys; check name/value directly.
   assert.equal(secondPress.to[0].key_code, "q");
   assert.equal(secondPress.to[1].set_variable.name, varName);
@@ -561,7 +561,7 @@ test("buildGuard: double-tap guard emits two-manipulator arm/fire pattern", () =
   // mandatory from-modifiers
   assert.deepEqual(secondPress.from.modifiers, { mandatory: ["left_command"] });
   // FIRST press: var=0, arms guard, delayed-action disarms
-  assert.deepEqual(firstPress.conditions[0], { type: "variable_if", name: varName, value: 0 });
+  assert.deepEqual(firstPress.conditions[0], { type: "variable_if", name: varName, value: 0 } as any);
   assert.equal(firstPress.to[0].set_variable.name, varName);
   assert.equal(firstPress.to[0].set_variable.value, 1);
   assert.deepEqual(firstPress.parameters, { "basic.to_delayed_action_delay_milliseconds": 300 });
@@ -591,8 +591,8 @@ test("buildGuard: guardVar/guardMs overrides flow through", () => {
   const built = rules[0] as any;
   const [secondPress, firstPress] = built.manipulators;
   // override var name used on both manipulators
-  assert.equal(secondPress.conditions[0].name, "custom_guard");
-  assert.equal(firstPress.conditions[0].name, "custom_guard");
+  assert.equal((secondPress.conditions[0] as any).name, "custom_guard");
+  assert.equal((firstPress.conditions[0] as any).name, "custom_guard");
   // override timeout emitted as the first-press delayed-action delay
   assert.deepEqual(firstPress.parameters, {
     "basic.to_delayed_action_delay_milliseconds": 500,

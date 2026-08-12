@@ -142,7 +142,12 @@ test("every variable read by a condition is written somewhere in the config", ()
     if (!isBasic(manipulator)) continue;
     for (const condition of manipulator.conditions ?? []) {
       if (condition.type === "variable_if" || condition.type === "variable_unless") {
-        if (!read.has(condition.name)) read.set(condition.name, label(rule));
+        const name = (condition as any).name;
+        if (!read.has(name)) read.set(name, label(rule));
+      }
+      if (condition.type === "expression_if" || condition.type === "expression_unless") {
+        const name = (condition as any).expression.split(" ")[0];
+        if (!read.has(name)) read.set(name, label(rule));
       }
     }
   }

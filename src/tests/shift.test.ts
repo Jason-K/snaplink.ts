@@ -21,17 +21,17 @@ function manipulators(rule: any): any[] {
   return rule.manipulators;
 }
 
-// The second-tap manipulator carries a `variable_if === 1` condition.
+// The second-tap manipulator carries an `expression_if` condition checking `== 1`.
 function secondTapManip(rule: any): any {
   return manipulators(rule).find((m: any) =>
     m.conditions?.some((c: any) => c.type === "variable_if" && c.value === 1),
   );
 }
 
-// The first-tap (pass-through) manipulator has no variable_if condition.
+// The first-tap (pass-through) manipulator has no expression_if condition checking `== 1`.
 function firstTapManip(rule: any): any {
   return manipulators(rule).find(
-    (m: any) => !m.conditions?.some((c: any) => c.type === "variable_if"),
+    (m: any) => !m.conditions?.some((c: any) => c.type === "variable_if" && c.value === 1),
   );
 }
 

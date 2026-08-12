@@ -3,8 +3,7 @@ import {
   APPS,
   CMDS,
   COMBOS,
-  PW_IDS,
-  STATES,
+  STATE_GROUPS,
   URLS,
 } from "../data";
 import {
@@ -82,9 +81,9 @@ const modSymbolBindings: Binding[] = [
     from("slash", ["L.cmd"]),
     to(
       // AUTHENTICATION DIALOG fill password.
-      press(cmd(CMDS.fillPw)).when(state(PW_IDS, STATES.isSecureInputSubrole)),
+      press(cmd(CMDS.fillPw)).when(state(STATE_GROUPS.isPasswordEdit)),
       // AUTHENTICATION DIALOG: fill username and password.
-      press(cmd(CMDS.fillUnPw)).when(state(PW_IDS, [STATES.isSecureInputSubrole, 0])),
+      press(cmd(CMDS.fillUnPw)).when(state(STATE_GROUPS.isUserEdit)),
       press(cmd(CMDS.wordGetPath)).when(state(APPS.word))
     ),
   ),

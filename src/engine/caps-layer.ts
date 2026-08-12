@@ -279,7 +279,7 @@ function layerKeyBinding(
     key_code: resolveKeyAlias(config.tapKey),
     modifiers: [...HYPER],
     conditions: [
-      { type: "variable_if", name: config.usedVar.name, value: 0 },
+      { type: "variable_if", name: config.usedVar.name, value: 0 } as any,
     ] satisfies KarabinerCondition[],
   };
 

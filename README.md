@@ -310,6 +310,7 @@ without stating how conflict analysis should treat it.
 
 - `docs/TS_BEST_PRACTICES_REVIEW.md` — architecture review and improvement plan
 - `docs/karabiner_docs/` — mirrored Karabiner-Elements JSON reference
+- `docs/exprtk/expressions_ref.md` — reference for using expressions as a more flexible alternative to `variable_if`/`variable_unless` conditions, based on the ExprTk library
 - `docs/INSIGHTS.md` — manipulator pattern notes (variable conditions,
   evaluation order, timing parameters)
 - `docs/FUTURE_FEATURES.md` — tracked unimplemented Karabiner capabilities

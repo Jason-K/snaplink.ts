@@ -24659,7 +24659,7 @@
         ]
       },
       {
-        "description": "[⌘]+[/]:\n---\n\tOn Tap:\n\t\tIn Security Agent and UI element subrole is:\tRun command 'Fill password'\n\t\tIn Security Agent and UI element subrole is:\tRun command 'Fill username and password'\n\t\tIn Word:\tRun command 'get file path in word'",
+        "description": "[⌘]+[/]:\n---\n\tOn Tap:\n\t\tIn Security Agent/System Settings/System Settings, security/Brew auto-updater/Taphouse and UI element role is and UI element subrole is:\tRun command 'Fill password'\n\t\tIn Security Agent/System Settings/System Settings, security/Brew auto-updater/Taphouse and UI element role is and not UI element subrole is:\tRun command 'Fill username and password'\n\t\tIn Word:\tRun command 'get file path in word'",
         "manipulators": [
           {
             "type": "basic",
@@ -24671,18 +24671,26 @@
                 ]
               }
             },
-            "description": "In Security Agent and UI element subrole is",
+            "description": "In Security Agent/System Settings/System Settings, security/Brew auto-updater/Taphouse and UI element role is and UI element subrole is",
             "conditions": [
               {
                 "type": "frontmost_application_if",
                 "bundle_identifiers": [
-                  "com.apple.SecurityAgent"
+                  "com.apple.SecurityAgent",
+                  "com.apple.systempreferences",
+                  "com.apple.settings.PrivacySecurity",
+                  "org.gpgtools.pinentry-mac",
+                  "com.multimodalsolutions.taphouse"
                 ]
               },
               {
                 "type": "variable_if",
-                "name": "accessibility.focused_ui_element.subrole_string",
-                "value": "AXSecureTextField"
+                "name": "accessibility.focused_ui_element.role_string",
+                "value": "AXTextField"
+              },
+              {
+                "type": "expression_if",
+                "expression": "accessibility.focused_ui_element.subrole_string ilike 'AXSecureTextField*'"
               }
             ],
             "to": [
@@ -24701,18 +24709,26 @@
                 ]
               }
             },
-            "description": "In Security Agent and UI element subrole is",
+            "description": "In Security Agent/System Settings/System Settings, security/Brew auto-updater/Taphouse and UI element role is and not UI element subrole is",
             "conditions": [
               {
                 "type": "frontmost_application_if",
                 "bundle_identifiers": [
-                  "com.apple.SecurityAgent"
+                  "com.apple.SecurityAgent",
+                  "com.apple.systempreferences",
+                  "com.apple.settings.PrivacySecurity",
+                  "org.gpgtools.pinentry-mac",
+                  "com.multimodalsolutions.taphouse"
                 ]
               },
               {
                 "type": "variable_if",
-                "name": "accessibility.focused_ui_element.subrole_string",
-                "value": 0
+                "name": "accessibility.focused_ui_element.role_string",
+                "value": "AXTextField"
+              },
+              {
+                "type": "expression_unless",
+                "expression": "accessibility.focused_ui_element.subrole_string ilike 'AXSecureTextField*'"
               }
             ],
             "to": [

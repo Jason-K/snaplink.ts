@@ -173,10 +173,16 @@ export function ifVar(
   value: number | boolean | string = 1,
   description?: string,
 ): ConditionBuilder {
+  let expression: string;
+  if (typeof value === "string") {
+    const op = value.includes("*") || value.includes("?") ? "ilike" : "==";
+    expression = `${name} ${op} '${value}'`;
+  } else {
+    expression = `${name} == ${Number(value)}`;
+  }
   return new ConditionBuilder({
-    type: 'variable_if',
-    name,
-    value,
+    type: "expression_if",
+    expression,
     ...withDescription(description),
   });
 }

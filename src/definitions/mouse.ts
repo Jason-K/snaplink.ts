@@ -218,7 +218,7 @@ export const mouseBindings: Binding[] = [
   bind(
     from("left"),
     to(
-      release(key("return_or_enter")).when(state(APPS.onePiece, [APPS.onePiecePreferences, false])),
+      release(key("return_or_enter")).when(state(APPS.onePiece, [APPS.onePiecePrefs, false])),
       hold([toTrigger()]),
     ),
     when(state(DEVICES.g502X, [VARS.rButtonDown, false])),

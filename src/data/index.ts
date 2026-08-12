@@ -71,6 +71,7 @@ export {
   ACCESSIBILITY_ROLES,
   INPUT_SOURCES,
   STATES,
+  STATE_GROUPS,
   VAR_STATE,
   varState,
   type AccessibilityRole,

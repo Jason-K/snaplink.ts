@@ -275,7 +275,7 @@ export function varTapTapHoldFrom({
       ...cloneFromEvent(from),
       modifiers,
     },
-    conditions: [{ type: "variable_if", name: firstTapPendingVar, value: 1 }],
+    conditions: [{ type: "variable_if", name: firstTapPendingVar, value: 1 } as any],
     parameters: secondTapParams,
     description:
       description ||

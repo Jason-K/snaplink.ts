@@ -7,6 +7,7 @@
  * @see {@link PathSpec}
  * @see {@link UrlSpec}
  * @see {@link MapSpec}
+ * @see {@link ExprSpec}
  */
 export interface BaseSpec {
   /**

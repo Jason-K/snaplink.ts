@@ -39,7 +39,7 @@ export const APPS = {
   messages: app("com.apple.MobileSMS", "Messages"),
   numi: app("com.nikolaeu.numi-setapp", "Numi"),
   onePiece: app("jp.fuji.1Piece", "1Piece"),
-  onePiecePreferences: app("jp.fuji.1PiecePreferences", "1Piece Preferences"),
+  onePiecePrefs: app("jp.fuji.1PiecePreferences", "1Piece Preferences"),
   outlook: app("com.microsoft.Outlook", "Microsoft Outlook"),
   processSpy: app("com.itone.ProcessSpy", "Process Spy"),
   protonMail: app("ch.protonmail.desktop", "Proton Mail"),
@@ -48,8 +48,8 @@ export const APPS = {
   ringCentral: app("com.ringcentral.glip", "RingCentral"),
   securityAgent: app("com.apple.SecurityAgent", "Security Agent"),
   settings: app("com.apple.systempreferences", "System Settings"),
-  settingsPrivacySecurityExtension: app(
-    "com.apple.settings.PrivacySecurity.extension",
+  settingsPrivacy: app(
+    "com.apple.settings.PrivacySecurity",
     "System Settings, security",
   ),
   sidenotes: app("com.apptorium.SideNotes-setapp", "Sidenotes"),
@@ -68,7 +68,7 @@ export type { AppSpec };
 export const PW_IDS: AppSpec[] = [
   APPS.securityAgent,
   APPS.settings,
-  APPS.settingsPrivacySecurityExtension,
+  APPS.settingsPrivacy,
   APPS.brewUpdater,
   APPS.taphouse,
 ];

@@ -60,6 +60,22 @@ function isDeviceSpec(val: unknown): val is DeviceSpec {
   );
 }
 
+function isAppSpecArray(val: unknown): val is (AppSpec | PathSpec | string)[] {
+  if (!Array.isArray(val)) return false;
+  return val.length > 0 && val.every(
+    (v) =>
+      isAppSpec(v) ||
+      typeof v === "string" ||
+      (typeof v === "object" && v !== null && "path" in v)
+  );
+}
+
+function isDeviceSpecArray(val: unknown): val is DeviceSpec[] {
+  if (!Array.isArray(val)) return false;
+  return val.length > 0 && val.every((v) => isDeviceSpec(v));
+}
+
+
 function isVarValueSpec(val: unknown): val is VarValueSpec {
   return (
     typeof val === "object" &&
@@ -315,14 +331,14 @@ function resolveSingleState(target: unknown, valOverride?: unknown): Condition {
     valOverride === false ||
     (typeof valOverride === "object" && valOverride !== null && Boolean((valOverride as { unless?: boolean }).unless));
 
-  if (isAppSpec(target)) {
+  if (isAppSpec(target) || isAppSpecArray(target)) {
     const isForemost = !(valOverride === false || valOverride === 0 || isBoolNegated);
-    return condApp(target, isForemost);
+    return condApp(target as any, isForemost);
   }
 
-  if (isDeviceSpec(target)) {
+  if (isDeviceSpec(target) || isDeviceSpecArray(target)) {
     const unless = valOverride === false || valOverride === 0 || isBoolNegated;
-    return condDevice(target, unless);
+    return condDevice(target as any, unless);
   }
 
   if (isCondition(target)) {
@@ -377,6 +393,9 @@ function resolveSingleState(target: unknown, valOverride?: unknown): Condition {
 
 function resolveStateItem(item: unknown): Condition {
   if (Array.isArray(item)) {
+    if (isAppSpecArray(item) || isDeviceSpecArray(item)) {
+      return resolveSingleState(item, undefined);
+    }
     const [target, valOverride] = item;
     return resolveSingleState(target, valOverride);
   }
@@ -487,7 +506,7 @@ export function state(
  * ```
  */
 export function state(
-  items: (StateItem | [StateSpecInput, string | number | boolean])[],
+  items: readonly (StateItem | [StateSpecInput, string | number | boolean])[],
 ): Condition[];
 /**
  * Evaluates multiple state specifications as rest parameters.
@@ -551,7 +570,7 @@ export const ifState = state;
  * ```
  */
 export function unless(
-  items: (StateItem | [StateSpecInput, string | number | boolean])[],
+  items: readonly (StateItem | [StateSpecInput, string | number | boolean])[],
 ): Condition[];
 /**
  * Enforces multiple state specifications to be false/inactive/negated as rest parameters.

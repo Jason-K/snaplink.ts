@@ -184,7 +184,7 @@ test("the whole caps lock layer occupies a single rule", () => {
     assert.ok(
       isBasic(m) &&
         m.conditions?.some(
-          (c) => c.type === "variable_if" && c.name === "caps_lock_pressed",
+          (c) => c.type === "variable_if" && (c as any).name === "caps_lock_pressed"
         ),
       `manipulator ${JSON.stringify(isBasic(m) ? m.from : m)} is in the caps rule but not gated on the layer`,
     );
