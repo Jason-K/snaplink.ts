@@ -134,6 +134,57 @@ are unsupported: the value is read from the first button pressed, so Left+Middle
 No action until such a device is in use. The AST type exists; only DSL access is
 missing.
 
+### 9. Modal layers (leader keys)
+
+Not a schema feature — Karabiner has no notion of a layer. A leader layer is a
+*composition* of features the DSL already has (`set_variable`, `variable_if`,
+`from.any`, `to_if_held_down`), which is why it does not appear in the
+`npm run coverage` count.
+
+Wanted shape, roughly:
+
+```ts
+binding(from("space_bar"), to(layer(
+  layerKey("d", to(folder(FOLDERS.downloads))),
+  layerKey("w", to(app(APPS.slack))),
+)))
+```
+
+An implementation lived under `engine/leader/` and was removed on 2026-08-12:
+384 lines, called by nothing, pre-dating the `Binding` surface — 11 `as any`
+casts, direct `map()`/`rule()` construction bypassing the resolve pipeline, a
+seven-way bespoke config union duplicating `ActionSpec`, and `{{ mustache }}`
+braces in exprtk expression fields that would have emitted invalid JSON had
+anything ever run it. Rebuilding against the current pipeline is less work than
+adapting it. `src/engine/caps-layer.ts` is the in-architecture precedent: it
+produces `Binding[]` and participates in conflict analysis.
+
+The variable choreography is the part worth keeping, and it is not obvious:
+
+| Step | Mechanism |
+|---|---|
+| Activate | `to_if_held_down` sets `<prefix>_mod = 1`. `to_if_alone` emits the leader key itself with `halt: true` and clears every layer variable, so a tap still types the key. |
+| Tap past the timeout | `to_delayed_action.to_if_canceled` repeats the emit-and-clear, covering a hold that never reached the threshold. Both `to_if_alone_timeout` and `to_if_held_down_threshold` are set to the same value. |
+| Enter a sublayer | The sublayer key, gated on `<prefix>_mod == 1`, sets `<prefix>_<key>_sublayer = 1` **and clears `<prefix>_mod` in the same `to` array** — a hand-off, so the two are never both live. |
+| Fire a mapping | Gated on the sublayer variable. One-shot layers clear it after the action; a sticky-modifier toggle deliberately does not. |
+| Leave | `to_after_key_up` clears every layer variable and turns all four sticky modifiers off. |
+| Escape | `escape`, gated on each layer variable, emits escape and performs the same full reset. |
+| Nesting | One more variable level: `<prefix>_<key>_<nested>_sublayer`. |
+
+Two ordering constraints do the real work, both following from gotcha 2.1
+(first match wins) and 2.3 (a modified event is exempt from later rules):
+
+1. **The unmapped-key guard must come last.** A `from.any: key_code` catch-all
+   with `optional: ["any"]`, conditioned on each layer variable and emitting
+   nothing, is what stops stray keys leaking into the frontmost app while a
+   layer is active. Placed anywhere but last, it eats the layer's own mappings.
+2. **Every other rule family needs suppression.** Rules outside the layer must
+   carry `variable_unless` on the leader variable and every sublayer variable,
+   or they fire while the layer is active. `src/config.ts` solves the equivalent
+   problem for the caps layer by *ordering* — emitting it first, conditioned on
+   `caps_lock_pressed`. A leader layer needs the suppression pass too, because
+   unlike caps it stays active after its key is released.
+
 ### Deliberately unwired
 
 `to.held_down_milliseconds` is an undocumented parser alias of
@@ -202,6 +253,27 @@ Two safety requirements before any of this ships:
 Test these with a second pointing device connected, or with a Karabiner-free
 login path available.
 
+### Shape D — a modal layer
+
+Covers item 9 only, and is the largest of the four.
+
+A layer is not one binding; it is a family of rules plus an ordering constraint
+on everything else. `buildCapsLockBindings()` in `src/engine/caps-layer.ts` is
+the working example — it takes every other binding as input, returns
+`Binding[]`, and is planned separately in `src/config.ts` so it is emitted
+first.
+
+A leader layer needs the same three parts:
+
+1. A builder in `src/engine/` returning `Binding[]`: the activation binding, one
+   per sublayer, one per mapping, the escape reset, and the catch-all guard last.
+2. A `CAPS_LAYER_SET`-style entry in `src/config.ts` so `planRules()` places the
+   family ahead of the plain rules for the same keys.
+3. A suppression pass adding `variable_unless` for the layer variables to every
+   binding outside the family.
+
+Start from `src/engine/caps-layer.ts` and the choreography table in item 9.
+
 ### Suggested order
 
 | phase | items | rationale |
@@ -213,6 +285,7 @@ login path available.
 | 5 | mouse cluster | Shape C plus `mouse_key`. Needs the safety work and careful testing. |
 | 6 | `input_source_*`, `select_input_source` | Shape A + B; no current use case. |
 | 7 | alternate namespaces, `integer_value` | On demand. Wire when a specific key or device needs it. |
+| — | modal layers (Shape D) | Independent of the phases above: a feature, not a gap. Size it against `caps-layer.ts`. |
 
 ---
 
@@ -221,8 +294,9 @@ login path available.
 Resolved, and removed from this document:
 
 - **`to.send_user_command`** — wired as `toUserCommand()` / `toLayerIndicator()`
-  in `src/engine/resolve-to-action/resolve-script.ts`, called from
-  `src/engine/leader/build.ts`. Reachable; unused in the current build.
+  in `src/engine/resolve-to-action/resolve-script.ts`. Reachable, but as of
+  2026-08-12 nothing calls either helper: their only caller was the leader
+  layer. See *Orphaned* below.
 - **`to.from_event`** — wired as `toTrigger()`. Emitted 12×.
 - **`expression_if` / `expression_unless`** — wired and emitted. The
   previously-tracked "add a real expression-based rule" is done.
@@ -237,6 +311,20 @@ the seven API names in those examples (`toSendUserCommand`, `toFromEvent`,
 `toIfOtherKeyPressed`, `layerIndicatorCommand`, `setVarExpr`, `exprIf`) do not
 exist in this codebase. That is the failure mode this document is now built to
 avoid: every claim here is checked by `npm run coverage` on every `npm run check`.
+
+### Orphaned
+
+Removing the leader layer left the user-command server with no callers.
+`toUserCommand()` and `toLayerIndicator()` still exist and still typecheck, but
+nothing in the build invokes them, which orphans the whole chain behind them:
+the Hammerspoon receiver module, the launch agent, the UNIX socket, the endpoint
+file under `scripts/layer-indicator/`, and
+[COMMAND_SERVER_GUIDE.md](./COMMAND_SERVER_GUIDE.md).
+
+It is kept rather than deleted because the mechanism is sound and a modal layer
+is the obvious consumer — but if layers are not coming back, this is the next
+thing to retire, and `to.set_notification_message` (item 3) would be the
+native replacement.
 
 Ideas that were tracked here but are configuration work rather than missing
 capability — auto-clearing an idle leader layer, adding a second leader layer —

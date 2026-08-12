@@ -104,9 +104,8 @@ Three behaviours do not decompose into cases and build their own manipulators:
 
 | Shape | Where | Why it is special |
 |-------|-------|-------------------|
-| caps-lock layer | `src/engine/caps-layer.ts` | Variants change the *trigger*, not the action. Adopts bindings whose mandatory modifiers match what a layer state emits. |
+| caps-lock layer | `src/engine/caps-layer.ts` | Variants change the *trigger*, not the action. Adopts bindings whose mandatory modifiers match what a layer state emits. It takes every other binding as input and returns `Binding[]`, which is the model to copy for any future layer. |
 | double-tap guard | `buildGuard()` in `src/engine/emit-manipulators/binding/builders.ts` | The second tap fires on press, not release. |
-| leader layers | `src/engine/leader/` | A generic layer compiler; any key can be a leader. |
 
 ## Adding a behaviour
 

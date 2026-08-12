@@ -10,6 +10,5 @@ export * from "./resolve-conditions";
 export * from "./resolve-cases";
 export * from "./emit-manipulators";
 export * from "./emit-rules";
-export * from "./leader";
 export * from "./wrappers";
 export * from "./caps-layer";

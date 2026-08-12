@@ -152,12 +152,15 @@ Two validation checks run before generating rules:
 
 2. **Tap-hold overlap**: Any key appearing in a simultaneous chord that also appears as a bare (no-modifier) tap-hold key throws an error. Modifier-prefixed tap-hold entries like `"cmd+j"` are not flagged.
 
-### Leader suppression
+### Layer suppression
 
-Simultaneous manipulators receive `variable_unless` conditions for the leader
-variable and every sublayer variable (`leaderSuppressionVars()`), so chords do
-not fire while a leader layer is active. Injection happens post-build by
-mutating the raw manipulators. Inert while the leader subsystem is dormant.
+A chord and a layer claim the same physical keys, so any layer that stays active
+after its trigger is released needs every other rule family to carry
+`variable_unless` on its layer variables. Nothing does this today: the caps
+layer solves the same problem by ordering rather than suppression, being emitted
+ahead of everything and conditioned on `caps_lock_pressed`. See
+[MISSING_FEATURES.md](./MISSING_FEATURES.md) — *Modal layers* — for why a leader
+layer would need the suppression pass as well.
 
 ### Adding a Chord
 
@@ -188,67 +191,16 @@ that dependency.
 - [Complex modifications manipulator definition](https://karabiner-elements.pqrs.org/docs/json/complex-modifications-manipulator-definition/)
 - [`to_delayed_action` reference](https://karabiner-elements.pqrs.org/docs/json/complex-modifications-manipulator-definition/to-delayed-action/)
 
-## Leader Layer Architecture
+## Modal layers
 
-> **Dormant.** `generateLayerRules` is exported from `src/engine/` and covered by
-> `src/tests/leader-runtime.test.ts`, but nothing in the build calls it and no
-> layer definitions exist. The caps-lock layer (`src/engine/caps-layer.ts`) is a
-> separate implementation and is the only layer currently emitted. What follows
-> describes the module as built, for whenever it is wired up.
+The caps-lock layer (`src/engine/caps-layer.ts`) is the only layer this
+configuration emits, and the only one implemented inside the `Binding` pipeline
+— it takes every other binding as input, returns `Binding[]`, and is planned
+separately in `src/config.ts` so it is emitted ahead of the plain rules for the
+same keys.
 
-`generateLayerRules` (`src/engine/leader/build.ts`) is fully generic — the
-activating key is just the `leaderKey` option, and the builder has no knowledge
-of which key that is.
-
-`generateLayerRules(layerConfigs, options)` accepts:
-
-| Option              | What it controls                                                       |
-| ------------------- | ---------------------------------------------------------------------- |
-| `leaderKey`         | The key that activates the leader layer                                 |
-| `layerPrefix`       | Prefix for Karabiner variable names (e.g. `space_`)                    |
-| `leaderLabel`       | Display label for the Hammerspoon layer indicator                       |
-| `indicatorRootLayer`| Hammerspoon indicator root layer name                                  |
-| `leaderHoldEvents`  | Events emitted while the leader is held without a sublayer selection   |
-| `debugSwallowedKeys`| Whether to log swallowed keys to a file                                |
-| `debugLogPath`      | Path for the debug log                                                 |
-
-All layer-specific values are supplied at the call site; the leader internals
-are unaware of them.
-
-### Adding a Second Leader Layer
-
-Because the builder is fully generic, a second leader layer requires nothing more than a second call with different options:
-
-```typescript
-// Space leader (existing)
-const spaceLayers = generateLayerRules(spaceLayerConfigs, {
-  leaderKey: "space_bar",
-  layerPrefix: "space_",
-  leaderLabel: "SPACE",
-  indicatorRootLayer: "space_root",
-});
-
-// Tab leader (example — system/media actions)
-const tabLayers = generateLayerRules(tabLayerConfigs, {
-  leaderKey: "tab",
-  layerPrefix: "tab_",
-  leaderLabel: "TAB",
-  indicatorRootLayer: "tab_root",
-});
-```
-
-Both can coexist in the same rule list. Variable namespacing via `layerPrefix`
-is what keeps two leader layers from colliding.
-
-### Module Structure
-
-```text
-src/engine/leader/
-├── types.ts    — LayerMappingConfig, NestedLayerConfig, SubLayerConfig, LayerRuleOptions
-├── runtime.ts  — Variable naming helpers, escape reset construction, all-sublayer-var derivation
-├── build.ts    — generateLayerRules() — the single assembly entry point
-└── index.ts    — Barrel exports
-```
-
-Layer-specific values belong in `src/data/` or `src/definitions/`, not in the
-leader module.
+A leader-key layer (tap to enter a mode, then select) is a different mechanism
+and does not exist here. A pre-`Binding` implementation was removed on
+2026-08-12; the variable choreography and the two ordering constraints that make
+it work are recorded in
+[MISSING_FEATURES.md](./MISSING_FEATURES.md) under *Modal layers (leader keys)*.
