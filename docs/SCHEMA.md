@@ -1,24 +1,30 @@
-# Karabiner-Elements rule schema and gotchas
+# Karabiner rule schema
 
 Machine-readable reference for authoring and validating Karabiner-Elements
-complex modifications. Built for agent consumption: load `karabiner-rule.schema.json`
-to constrain generation, `../docs/karabiner_docs/karabiner-gotchas.md` to avoid known traps, and run
-`validate_karabiner.py` before writing any rule to disk.
+complex modifications. Built for agent consumption: load
+`schema/karabiner-rule.schema.json` to constrain generation,
+[karabiner-gotchas.md](./karabiner_docs/karabiner-gotchas.md) to avoid known
+traps, and run `schema/validate_karabiner.py` before writing any rule to disk.
+
+The artifacts live in `schema/` at the repo root; the shell examples below are
+written from that directory. What the DSL cannot yet reach is tracked separately
+in [MISSING_FEATURES.md](./MISSING_FEATURES.md).
 
 ## Files
 
 | File | Purpose |
 |------|---------|
-| `karabiner-rule.schema.json` | JSON Schema draft 2020-12 for a complex-modifications asset file, rule, manipulator, `from`/`to` event definition, condition, and parameters. Self-contained (key-code enums inlined). |
-| `karabiner-keycodes.json` | The six key-name tables, extracted separately for lookup/completion: `key_code` (207), `consumer_key_code` (130), `pointing_button` (255), `apple_vendor_keyboard_key_code` (10), `apple_vendor_top_case_key_code` (7), `generic_desktop` (7). |
-| `../docs/karabiner_docs/karabiner-gotchas.md` | 80+ documented and undocumented behaviors, each cited to a doc path or source file. Undocumented items are tagged `[UNDOCUMENTED]`. |
-| `validate_karabiner.py` | CLI validator. |
-| `Makefile` | Validation, dry-run build, and hook install targets. |
-| `hooks/pre-commit` | Git hook that validates staged output against the schema. |
+| `schema/karabiner-rule.schema.json` | JSON Schema draft 2020-12 for a complex-modifications asset file, rule, manipulator, `from`/`to` event definition, condition, and parameters. Self-contained (key-code enums inlined). |
+| `schema/karabiner-keycodes.json` | The six key-name tables, extracted separately for lookup/completion: `key_code` (207), `consumer_key_code` (130), `pointing_button` (255), `apple_vendor_keyboard_key_code` (10), `apple_vendor_top_case_key_code` (7), `generic_desktop` (7). |
+| [`docs/karabiner_docs/karabiner-gotchas.md`](./karabiner_docs/karabiner-gotchas.md) | 80+ documented and undocumented behaviors, each cited to a doc path or source file. Undocumented items are tagged `[UNDOCUMENTED]`. |
+| `schema/validate_karabiner.py` | CLI validator. |
+| `schema/Makefile` | Validation, dry-run build, and hook install targets. |
+| `schema/hooks/pre-commit` | Git hook that validates staged output against the schema. |
 
 ## Usage
 
 ```bash
+cd schema
 pip3 install jsonschema
 
 # whole asset file (default)
@@ -42,7 +48,7 @@ Editor integration — add to VS Code `settings.json`:
 "json.schemas": [
   {
     "fileMatch": ["**/karabiner/assets/complex_modifications/*.json"],
-    "url": "/absolute/path/to/karabiner-rule.schema.json"
+    "url": "/absolute/path/to/snaplink.ts/schema/karabiner-rule.schema.json"
   }
 ]
 ```
@@ -93,28 +99,49 @@ add metadata (`version`, `repo`, `maintainer`, `enabled`, `_comment`).
 ## Provenance
 
 - Structure and prose: `pqrs-org/pqrs.org`, `sites/karabiner-elements/content/en/docs/json/`
-- Key-name tables: `pqrs-org/Karabiner-Elements`, `src/share/types/momentary_switch_event_details/*.hpp`
+- Key-name tables: `pqrs-org/Karabiner-Elements` at `src/share/types/momentary_switch_event_details/*.hpp` (paths in that repository, not this one)
   (the parser's own tables — broader than the UI's `simple_modifications.json`, which
   omits `key_code: eject`, `consumer_key_code: power`/`voice_command`, and
   `apple_vendor_keyboard_key_code: expose_all`)
-- Accepted keys, aliases, defaults and clamps: `src/share/manipulator/**`,
-  `src/share/core_configuration/details/profile/complex_modifications_parameters.hpp`
+- Accepted keys, aliases, defaults and clamps: same repository, `src/share/manipulator/**`
+  and `src/share/core_configuration/details/profile/complex_modifications_parameters.hpp`
 
 Both repositories were read at `main` on 2026-08-12. Regenerate the schema by re-running
 the extraction against a newer checkout if Karabiner adds key names or parameters.
 
-## Build integration (snaplink.ts)
+## Build integration
+
+The schema is a build input, not documentation — three code paths read it:
+
+| reader | reads |
+|--------|-------|
+| `scripts/gen-key-types.ts` | the key-name tables and the modifier enum, to generate `src/types/keys.generated.ts` |
+| `src/coverage.ts` | the capability surface, to report what the DSL cannot emit |
+| `src/tests/schema-conformance.test.ts` | `$defs.manipulatorBasic` and `$defs.parameters`, to reject keys Karabiner would hard-error on |
+
+plus `schema/validate_karabiner.py`, which runs the whole schema against the
+build output. That is why it lives in `schema/` rather than here.
 
 The TypeScript config compiles to two artifacts: `karabiner-output.json` in the repo
 (shape `{"complex_modifications": {"rules": [...]}}`) and the live
 `~/.config/karabiner/karabiner.json`. Each has its own schema node.
 
 ```bash
-make deps                 # one-time: jsonschema into the shared venv
-make validate             # build output + live config
-make check                # npm run check -> dry-run generate -> validate
-make install-hooks        # symlink hooks/pre-commit into the config repo
+make -C schema deps            # one-time: jsonschema into the shared venv
+make -C schema validate        # build output + live config
+make -C schema install-hooks   # symlink hooks/pre-commit into the config repo
 ```
+
+Day to day you do not call these directly — the npm scripts wrap them:
+
+| script | does |
+|--------|------|
+| `npm run codegen` | regenerate `src/types/keys.generated.ts` from the key tables |
+| `npm run codegen:check` | fail if that generated file is stale |
+| `npm run validate` | `make -C schema validate-output` |
+| `npm run verify` | dry-run generate, then validate |
+| `npm run coverage` | schema capabilities vs. what the DSL can emit |
+| `npm run check` | codegen:check -> typecheck -> lint -> test -> verify |
 
 `make generate` and the hook's drift check both run the build with `CI=true`, which
 forces `src/index.ts` down its dry-run path — `karabiner.json` is never written, only

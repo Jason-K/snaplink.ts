@@ -274,57 +274,11 @@ Most use cases work well with fire-and-forget (the current model).
 
 The declarative mouse infrastructure lives in:
 
-- `src/data/mouse.ts` — button alias tables and device IDs
-- `src/definitions/mouse.ts` — alias resolution (e.g. `g502xButtons`) and generic tap-hold/double-tap helpers
+- `src/data/constants/mouse.ts` — button alias tables and device IDs
 - `src/definitions/mouse.ts` — per-device tap-hold and double-tap mappings (the user edit surface)
-- `src/engine/mouse-rules.ts` — `generateMouseRules` compiles those mappings into device-guarded Karabiner rules
+- `src/definitions/mouse.ts` — per-device tap-hold and double-tap mappings, compiled by the standard pipeline
 
 Button tap-hold and double-tap mappings are fully supported there. Scroll-up/down chord triggers are not expressible as basic `from` events in Karabiner-Elements, so they live outside the rule pipeline. Use the command server or a Hammerspoon-side bridge for scroll-chord behaviours until a native declarative trigger path is available.
-
----
-
-## Migration Guide: `shell_command` → Command Server
-
-### When to migrate
-
-✅ **Good candidates:**
-
-- `open -g 'hammerspoon://...'` calls → Hammerspoon endpoint
-- High-frequency operations (layer indicator, notifications)
-- Operations that benefit from daemon session state
-
-❌ **Don't migrate:**
-
-- Complex shell pipelines
-- Operations needing error handling and feedback
-- One-off operations called <5 times/session
-
-### Migration pattern
-
-**Before (`shell_command`):**
-
-```typescript
-rule("Example").manipulators([
-  map("key_x").to(cmd("open -g 'hammerspoon://action?param=value'")).build(),
-]);
-```
-
-**After (command server):**
-
-```typescript
-import { userCommand } from "../core/scripts";
-
-rule("Example").manipulators([
-  map("key_x")
-    .to(
-      userCommand("hammerspoon", {
-        function: "action",
-        args: { param: "value" },
-      }),
-    )
-    .build(),
-]);
-```
 
 ---
 
@@ -388,13 +342,13 @@ Manually test with:
 
 ```bash
 # 1. Start command server in background
-bash scripts/install-layer-indicator-user-command-server.sh install
+bash scripts/layer-indicator/install-layer-indicator-user-command-server.sh install
 
 # 2. Test individual commands
-bash scripts/install-layer-indicator-user-command-server.sh status
+bash scripts/layer-indicator/install-layer-indicator-user-command-server.sh status
 
 # 3. Test with bundled diagnostics
-bash scripts/install-layer-indicator-user-command-server.sh observability-bundle
+bash scripts/layer-indicator/install-layer-indicator-user-command-server.sh observability-bundle
 ```
 
 ### Logging
@@ -446,10 +400,10 @@ To ensure reliability:
 
 ```bash
 # Check status
-bash scripts/install-layer-indicator-user-command-server.sh status
+bash scripts/layer-indicator/install-layer-indicator-user-command-server.sh status
 
 # Restart service
-bash scripts/install-layer-indicator-user-command-server.sh restart
+bash scripts/layer-indicator/install-layer-indicator-user-command-server.sh restart
 
 # View recent logs
 tail -f ~/.config/karabiner/logs/layer-indicator-user-command-server.log
@@ -459,10 +413,10 @@ tail -f ~/.config/karabiner/logs/layer-indicator-user-command-server.log
 
 ```bash
 # Run periodic auto-rotate to keep logs manageable
-bash scripts/install-layer-indicator-user-command-server.sh enable-auto-rotate
+bash scripts/layer-indicator/ install-layer-indicator-user-command-server.sh enable-auto-rotate
 
 # Benchmark current state
-bash scripts/install-layer-indicator-user-command-server.sh smoke-check
+bash scripts/layer-indicator/install-layer-indicator-user-command-server.sh smoke-check
 
 # Check Hammerspoon responsiveness separately:
 open -g 'hammerspoon://layer_indicator?action=show&layer=test'

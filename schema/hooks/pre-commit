@@ -19,7 +19,7 @@ set -euo pipefail
 SCHEMA_DIR="${KARABINER_SCHEMA_DIR:-$HOME/Scripts/apps/karabiner/snaplink.ts/schema}"
 VALIDATOR="$SCHEMA_DIR/validate_karabiner.py"
 VENV_PY="$HOME/Scripts/.venv/shared_venv/bin/python3"
-LOG_DIR="$HOME/Library/Logs/Scripts/karabiner-schema"
+LOG_DIR="$HOME/.local/state/karabiner/snaplink.ts/schema"
 LOG_FILE="$LOG_DIR/log.txt"
 OUTPUT_FILE="karabiner-output.json"
 

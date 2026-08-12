@@ -38,7 +38,7 @@ function readLayerIndicatorUserCommandEndpoint(): string {
     const currentDir = dirname(fileURLToPath(import.meta.url));
     const endpointPath = resolve(
       currentDir,
-      "../../../scripts/layer-indicator-user-command-endpoint.txt",
+      "../../../scripts/layer-indicator/layer-indicator-user-command-endpoint.txt",
     );
     const endpoint = readFileSync(endpointPath, "utf8").trim();
     return endpoint || DEFAULT_LAYER_INDICATOR_USER_COMMAND_ENDPOINT;

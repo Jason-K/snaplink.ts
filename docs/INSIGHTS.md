@@ -1,13 +1,26 @@
-# Karabiner Pattern Notes
+# Karabiner Patterns
 
-Generic lessons about Karabiner-Elements manipulator semantics. These rules apply whenever you reach for a raw manipulator — usually when adding a new engine function in `src/engine/`. Day-to-day work in `src/definitions/` should not need any of this: pick the engine function whose config shape matches and write data.
+Manipulator semantics as they bear on *this* engine — why the pipeline is
+shaped the way it is, and the failure modes it exists to prevent.
+
+General Karabiner behaviour with upstream citations lives in
+[karabiner-gotchas.md](./karabiner_docs/karabiner-gotchas.md); where the two
+overlap, that file is authoritative because its claims are sourced. This file
+keeps only what is specific to the code here.
+
+Day-to-day work in `src/definitions/` should need none of it: write data and let
+the engine compile it.
 
 ## Variable Conditions Are Manipulator Gates
 
 `variable_if` and `variable_unless` prevent the **entire** manipulator from firing when their predicate fails. They are not filters on individual `to` events.
 
 - Don't use `variable_unless` to "stop a manipulator from setting a variable twice" — that prevents the manipulator from running at all, and on the second press the variable will never be re-asserted.
-- For per-event branching, attach a condition to the individual `to` event (`toKeyCond("left_command", [], {}, [{ type: "variable_if", name: "x", value: 1 }])`), not to the manipulator.
+- For per-event branching, attach `conditions` to the individual `to` event
+  (`ToEventOptions.conditions`, KE 15.3.7+) rather than to the manipulator. Those
+  are evaluated once, before the first event of the array is processed — so a
+  `set_variable` earlier in the same array is not visible to a later entry
+  (gotcha 5.10).
 
 ## Manipulators Are Evaluated Top-to-Bottom, and Only One Ever Fires
 
@@ -94,10 +107,6 @@ For "press to emit X-down, release to emit X-up" patterns:
 
 Without the variable guard, `to_after_key_up` would fire on every release — including taps that never triggered the hold.
 
-## Always Check Karabiner's Official Examples First
-
-The [typical complex modifications examples](https://karabiner-elements.pqrs.org/docs/json/typical-complex-modifications-examples/) encode patterns that have been validated against Karabiner's evaluation model. When a custom builder produces unexpected behaviour, expand back to raw JSON, compare against the closest official example, and fix the divergence.
-
 ## Debug with EventViewer
 
 Karabiner's EventViewer shows variable state changes in real time.
@@ -110,12 +119,15 @@ Karabiner's EventViewer shows variable state changes in real time.
 
 Each additional variable widens the state space and makes failure modes harder to enumerate.
 
-- Prefer engine functions that auto-derive variable names from the trigger key (`generateDoubleTapGuardRule`, `generateMultiTapRule`) so two rules cannot accidentally collide.
+- Prefer the framework paths that auto-derive variable names from the trigger key
+  (`Binding.multiTap`, and `buildGuard()` in
+  `src/engine/emit-manipulators/binding/builders.ts`) so two rules cannot collide
+  on a name.
 - Reserve `trackVar` (and similar explicit fields) for cases where the variable is observed elsewhere — for example a `vmCOC_` chord whose state another rule reads.
 
 ## Simultaneous Chord Framework
 
-`generateSimultaneousRules` (`src/engine/simultaneous-rules.ts`) handles rules triggered by pressing two or more keys within Karabiner's simultaneous threshold (default 50 ms).
+`generateSimultaneousRules` (`src/engine/resolve-trigger/simultaneous-rules.ts`) handles rules triggered by pressing two or more keys within Karabiner's simultaneous threshold (default 50 ms).
 
 ### Tier Routing
 
@@ -126,7 +138,7 @@ The engine routes each chord to one of two paths:
 | `tapTap` or `tapTapHold` absent | tap-hold | `simultaneousTapHold` → `mapSimultaneous` builder |
 | `tapTap` or `tapTapHold` present | multi-tap | `simultaneousMultiTap` → `varTapTapHoldFrom` |
 
-The tap-hold path uses `mapSimultaneous` from the upstream library (which handles simultaneous from-event construction internally). The multi-tap path manually builds a raw `FromEvent` via `buildSimultaneousFromEvent` and passes it to `varTapTapHoldFrom`, which treats it like any other raw from event.
+The tap-hold path uses `mapSimultaneous` (`src/engine/karabiner-helpers.ts`), which builds the simultaneous from-event internally. The multi-tap path manually builds a raw `FromEvent` via `buildSimultaneousFromEvent` and passes it to `varTapTapHoldFrom`, which treats it like any other raw from event.
 
 ### State Variable Naming
 
@@ -140,9 +152,12 @@ Two validation checks run before generating rules:
 
 2. **Tap-hold overlap**: Any key appearing in a simultaneous chord that also appears as a bare (no-modifier) tap-hold key throws an error. Modifier-prefixed tap-hold entries like `"cmd+j"` are not flagged.
 
-### Space-Layer Conditions
+### Leader suppression
 
-Like tap-hold rules, simultaneous manipulators receive `variable_unless` conditions for `space_mod` and all sublayer variables. This prevents chord rules from firing when a space leader layer is active. Injection happens post-build by mutating the raw manipulator objects.
+Simultaneous manipulators receive `variable_unless` conditions for the leader
+variable and every sublayer variable (`leaderSuppressionVars()`), so chords do
+not fire while a leader layer is active. Injection happens post-build by
+mutating the raw manipulators. Inert while the leader subsystem is dormant.
 
 ### Adding a Chord
 
@@ -159,7 +174,12 @@ export const simultaneousMappings: Record<string, SimultaneousConfig> = {
 };
 ```
 
-The record key is the label — used for rule descriptions and variable naming. No other files need changes; `src/index.ts` already includes `simultaneousMappings` in the generation pipeline, and simultaneous rules are placed before tap-hold rules so Karabiner evaluates chord patterns first.
+The record key is the label — used for rule descriptions and variable naming. No
+other files need changes: `buildRules()` in `src/config.ts` already passes
+`simultaneousMappings` through `generateSimultaneousRules`, and emits chords
+ahead of everything else. A single-key rule for one of a chord's members can
+otherwise consume the chord's first key-down, and trigger order cannot express
+that dependency.
 
 ## References
 
@@ -170,13 +190,21 @@ The record key is the label — used for rule descriptions and variable naming. 
 
 ## Leader Layer Architecture
 
-`generateLayerRules` (`src/engine/leader/build.ts`) is fully generic. Space is not a special case — it is simply the `leaderKey` wired at the call site in `src/index.ts`. The builder has no knowledge of space.
+> **Dormant.** `generateLayerRules` is exported from `src/engine/` and covered by
+> `src/tests/leader-runtime.test.ts`, but nothing in the build calls it and no
+> layer definitions exist. The caps-lock layer (`src/engine/caps-layer.ts`) is a
+> separate implementation and is the only layer currently emitted. What follows
+> describes the module as built, for whenever it is wired up.
+
+`generateLayerRules` (`src/engine/leader/build.ts`) is fully generic — the
+activating key is just the `leaderKey` option, and the builder has no knowledge
+of which key that is.
 
 `generateLayerRules(layerConfigs, options)` accepts:
 
 | Option              | What it controls                                                       |
 | ------------------- | ---------------------------------------------------------------------- |
-| `leaderKey`         | The key that activates the leader layer (`space_bar` in current config) |
+| `leaderKey`         | The key that activates the leader layer                                 |
 | `layerPrefix`       | Prefix for Karabiner variable names (e.g. `space_`)                    |
 | `leaderLabel`       | Display label for the Hammerspoon layer indicator                       |
 | `indicatorRootLayer`| Hammerspoon indicator root layer name                                  |
@@ -184,7 +212,8 @@ The record key is the label — used for rule descriptions and variable naming. 
 | `debugSwallowedKeys`| Whether to log swallowed keys to a file                                |
 | `debugLogPath`      | Path for the debug log                                                 |
 
-`src/index.ts` provides all space-specific values at the call site. The leader internals are unaware of them.
+All layer-specific values are supplied at the call site; the leader internals
+are unaware of them.
 
 ### Adding a Second Leader Layer
 
@@ -208,7 +237,8 @@ const tabLayers = generateLayerRules(tabLayerConfigs, {
 });
 ```
 
-Both can coexist in the same `rules` array in `src/index.ts`. Variable namespacing (via `layerPrefix`) ensures no collisions between leader layers.
+Both can coexist in the same rule list. Variable namespacing via `layerPrefix`
+is what keeps two leader layers from colliding.
 
 ### Module Structure
 
@@ -220,4 +250,5 @@ src/engine/leader/
 └── index.ts    — Barrel exports
 ```
 
-The space-specific values (`SPACE_LAYER_LEADER_KEY`, `SPACE_LAYER_PREFIX`, etc.) live in `src/data/space-layer.ts` and are imported by `src/index.ts`. They are not part of the leader module.
+Layer-specific values belong in `src/data/` or `src/definitions/`, not in the
+leader module.

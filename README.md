@@ -308,11 +308,17 @@ without stating how conflict analysis should treat it.
 
 ## Documentation
 
-- `docs/TS_BEST_PRACTICES_REVIEW.md` — architecture review and improvement plan
-- `docs/karabiner_docs/` — mirrored Karabiner-Elements JSON reference
-- `docs/exprtk/expressions_ref.md` — reference for using expressions as a more flexible alternative to `variable_if`/`variable_unless` conditions, based on the ExprTk library
-- `docs/INSIGHTS.md` — manipulator pattern notes (variable conditions,
-  evaluation order, timing parameters)
-- `docs/FUTURE_FEATURES.md` — tracked unimplemented Karabiner capabilities
-- `docs/COMMAND_SERVER_GUIDE.md` — user command server vs shell commands
-- `docs/superpowers/` — design specs and execution plans
+| Document | Answers |
+|----------|---------|
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How a `Binding` becomes a Karabiner rule; what each layer may and may not do |
+| [docs/CONVENTIONS.md](docs/CONVENTIONS.md) | The rules for changing the code, and the byte-identical gate every refactor must pass |
+| [docs/INSIGHTS.md](docs/INSIGHTS.md) | Karabiner manipulator semantics as they bear on this engine |
+| [docs/MISSING_FEATURES.md](docs/MISSING_FEATURES.md) | What Karabiner can do that this config cannot yet emit, and how to wire each one |
+| [docs/SCHEMA.md](docs/SCHEMA.md) | The rule schema, the validator, and how both hook into the build |
+| [docs/COMMAND_SERVER_GUIDE.md](docs/COMMAND_SERVER_GUIDE.md) | The user-command IPC subsystem |
+| [docs/karabiner_docs/](docs/karabiner_docs/) | Mirrored upstream documentation, plus `karabiner-gotchas.md` — 80+ behaviours, each cited |
+
+Two checks keep these honest, both in `npm run check`:
+`src/tests/docs-paths.test.ts` fails on a stale `src/` path or a broken link, and
+`src/tests/schema-coverage.test.ts` fails when MISSING_FEATURES.md disagrees with
+what the DSL can actually emit.
