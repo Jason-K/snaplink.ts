@@ -3,13 +3,13 @@ import test from "node:test";
 
 import { analyzeConflicts } from "../engine";
 import { resolveButton } from "../engine/utils/input-devices";
-import type { Binding } from "../data";
+import type { ActionKeyModifier, Binding, TriggerKey } from "../data";
 
-function bareHold(key: string): Binding {
+function bareHold(key: TriggerKey): Binding {
   return { trigger: { keys: [key] }, cases: [{ phase: "hold", do: [{ type: "noop" }] }] };
 }
 
-function moddedTapHold(key: string, mod: string): Binding {
+function moddedTapHold(key: TriggerKey, mod: ActionKeyModifier): Binding {
   return {
     trigger: { keys: [key], modifiers: [mod] },
     cases: [{ phase: "hold", do: [{ type: "noop" }] }],

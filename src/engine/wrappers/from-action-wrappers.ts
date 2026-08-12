@@ -1,32 +1,14 @@
 import {
-  BUTTONS,
   type KeyCode,
   type PointerButtonAlias,
+  type TriggerKey,
   type SimOrder,
   type Trigger,
   type TriggerModifiers,
 } from "../../data";
-import { resolveKeyAlias } from "../utils";
+import { isPointerButton, resolveKeyAlias } from "../utils";
 
-function isPointerButton(input: string): boolean {
-  return (
-    input in BUTTONS ||
-    /^button\d+$/.test(input) ||
-    [
-      "shift_button",
-      "wheel",
-      "wheelLeft",
-      "wheelRight",
-      "leftBack",
-      "leftForward",
-      "middleBack",
-      "left",
-      "right",
-      "back",
-      "forward",
-    ].includes(input)
-  );
-}
+export type { TriggerKey };
 
 
 /**
@@ -44,7 +26,7 @@ function isPointerButton(input: string): boolean {
  * ```
  */
 export function trigger(
-  input: KeyCode | KeyCode[] | PointerButtonAlias,
+  input: TriggerKey | TriggerKey[],
   modifiers?: TriggerModifiers,
   order?: SimOrder,
 ): Trigger {
@@ -78,7 +60,7 @@ export function trigger(
  * ```
  */
 export function triggerKeys(
-  keys: KeyCode | KeyCode[],
+  keys: TriggerKey | TriggerKey[],
   modifiers?: TriggerModifiers,
   order?: SimOrder,
 ): Trigger {
@@ -143,11 +125,10 @@ export function anyInput(
  */
 export type FromInput =
   | Trigger
-  | KeyCode
-  | PointerButtonAlias
-  | (KeyCode | PointerButtonAlias)[]
-  | { key: KeyCode; modifiers?: TriggerModifiers }
-  | { keys: KeyCode | KeyCode[]; modifiers?: TriggerModifiers; order?: SimOrder }
+  | TriggerKey
+  | TriggerKey[]
+  | { key: TriggerKey; modifiers?: TriggerModifiers }
+  | { keys: TriggerKey | TriggerKey[]; modifiers?: TriggerModifiers; order?: SimOrder }
   | { pointer: PointerButtonAlias; modifiers?: TriggerModifiers };
 
 /**
@@ -170,7 +151,7 @@ export function from(
   order?: SimOrder,
 ): Trigger {
   if (typeof input === "string" || Array.isArray(input)) {
-    return trigger(input as KeyCode | KeyCode[] | PointerButtonAlias, modifiers, order);
+    return trigger(input as TriggerKey | TriggerKey[], modifiers, order);
   }
 
   if (typeof input === "object" && input !== null) {
@@ -182,7 +163,7 @@ export function from(
     }
     if ("keys" in input) {
       return triggerKeys(
-        input.keys as KeyCode | KeyCode[],
+        input.keys as TriggerKey | TriggerKey[],
         input.modifiers ?? modifiers,
         input.order ?? order,
       );

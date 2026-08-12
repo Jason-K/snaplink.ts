@@ -88,7 +88,7 @@ test("at equal modifier count, ⌘ outranks ⌥ outranks ⌃ outranks ⇧", () =
 });
 
 test("numbered keys sort numerically, not lexically", () => {
-  const declared = ["f10", "f2", "f1"].map((k) => bind(from(k), tap()));
+  const declared = (["f10", "f2", "f1"] as const).map((k) => bind(from(k), tap()));
   assert.deepEqual(order(declared), ["[F1]:", "[F2]:", "[F10]:"]);
 });
 

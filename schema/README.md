@@ -155,4 +155,4 @@ repos:
         pass_filenames: true
 ```
 
-Logs (ISO 8601, UTC) go to `~/Library/Logs/Scripts/karabiner-schema/log.txt`.
+Logs (ISO 8601, UTC) go to `~/.local/state/karabiner/snaplink.ts/schema/log.txt`.

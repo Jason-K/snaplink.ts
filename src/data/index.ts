@@ -53,6 +53,7 @@ export {
   type KeyCode,
   type ModComboAlias,
   type ModKey,
+  type TriggerKey,
   type StandardKeyCode,
 } from "./constants/keys";
 export {
@@ -60,6 +61,7 @@ export {
   BUTTON_DESCS,
   type ButtonSpec,
   type DeviceName,
+  type ButtonAlias,
   type KnownPointerButton,
   type PointerButtonAlias,
 } from "./constants/mouse";

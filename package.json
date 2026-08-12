@@ -11,6 +11,7 @@
     "build": "tsx src/index.ts && hs -c \"hs.reload()\"",
     "generate": "tsx src/index.ts",
     "explain": "tsx src/explain.ts",
+    "coverage": "tsx src/coverage.ts",
     "codegen": "tsx scripts/gen-key-types.ts",
     "codegen:check": "tsx scripts/gen-key-types.ts --check",
     "typecheck": "tsc -p tsconfig.json",

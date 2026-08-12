@@ -1,5 +1,6 @@
 import type { Trigger } from "../../data";
 import type { PointingButton } from "../../types/karabiner";
+import type { PointerButtonAlias } from "../../data/constants/mouse";
 import { BUTTONS, BUTTON_DESCS, type ButtonSpec } from "../../data/constants/mouse";
 import { resolveModifiers } from "./modifier-utils";
 
@@ -36,9 +37,10 @@ export function resolveButton(pointer: string): {
   if (spec)
     return { button: spec.button, nameScope: spec.nameScope, desc: spec.desc };
   // `button1`..`button255` only; anything else fails schema validation.
-  return { button: pointer as PointingButton, desc: BUTTON_DESCS[pointer] ?? pointer };
+  const button = pointer as PointingButton;
+  return { button, desc: BUTTON_DESCS[button] ?? pointer };
 }
 
-export function isPointerButton(pointer: string): boolean {
+export function isPointerButton(pointer: string): pointer is PointerButtonAlias {
   return pointer in BUTTONS || /^button\d+$/.test(pointer);
 }

@@ -24,7 +24,7 @@ VENV_PY     ?= $(HOME)/Scripts/.venv/shared_venv/bin/python3
 PYTHON      := $(shell [ -x "$(VENV_PY)" ] && echo "$(VENV_PY)" || command -v python3)
 VALIDATE    := $(PYTHON) $(HERE)/validate_karabiner.py
 
-LOG_DIR     := $(HOME)/Library/Logs/Scripts/karabiner-schema
+LOG_DIR     := $(HOME)/.local/state/karabiner/snaplink.ts/schema
 LOG_FILE    := $(LOG_DIR)/log.txt
 
 .PHONY: help deps schema keycodes validate validate-output validate-config \

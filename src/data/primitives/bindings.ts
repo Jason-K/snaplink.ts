@@ -1,3 +1,6 @@
+import type { AnyEventType } from "../../types/karabiner";
+import type { TriggerKey } from "../constants/keys";
+import type { PointerButtonAlias } from "../constants/mouse";
 import type { Action } from "./actions";
 import type { AppSpec } from "./apps";
 import type { DeviceSpec } from "./devices";
@@ -74,8 +77,9 @@ export type TriggerModifiers =
  * 1 key = single key trigger; 2+ keys = simultaneous chord trigger.
  */
 export type Trigger =
-  | { keys: string[]; modifiers?: TriggerModifiers; order?: SimOrder }
-  | { pointer: string; modifiers?: TriggerModifiers }
+  /** Names may still be unresolved aliases; `buildManipulators()` resolves them. */
+  | { keys: TriggerKey[]; modifiers?: TriggerModifiers; order?: SimOrder }
+  | { pointer: PointerButtonAlias; modifiers?: TriggerModifiers }
   /**
    * Every event of one kind — Karabiner's `from.any`.
    *
@@ -84,7 +88,12 @@ export type Trigger =
    * notice that a key went through the layer without being translated.
    */
   | {
-    any: "key_code" | "consumer_key_code" | "pointing_button";
+    /**
+     * Generated from the schema, so this stays in step with the parser — the
+     * hand-written version here listed three of the five families Karabiner
+     * accepts, omitting both `apple_vendor_*` kinds.
+     */
+    any: AnyEventType;
     modifiers?: TriggerModifiers;
   };
 

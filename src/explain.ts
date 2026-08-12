@@ -23,6 +23,7 @@ import {
   from,
   rulesMatching,
   type AnalyzedBinding,
+  type TriggerKey,
 } from "./engine";
 import type { Trigger } from "./data";
 
@@ -32,7 +33,9 @@ export function parseTriggerQuery(query: string): Trigger {
 
   // Comma-separated means a chord: every part is a key, none is a modifier.
   if (trimmed.includes(",")) {
-    return from(trimmed.split(",").map((k) => k.trim()).filter(Boolean));
+    // argv is untyped input; `from()` resolves aliases and the schema rejects
+    // anything Karabiner does not know, so validation lives downstream.
+    return from(trimmed.split(",").map((k) => k.trim()).filter(Boolean) as TriggerKey[]);
   }
 
   const parts = trimmed.split("+").map((p) => p.trim()).filter(Boolean);
@@ -40,7 +43,7 @@ export function parseTriggerQuery(query: string): Trigger {
   if (!key) {
     throw new Error(`Could not parse trigger "${query}".`);
   }
-  return parts.length ? from(key, parts) : from(key);
+  return parts.length ? from(key as TriggerKey, parts) : from(key as TriggerKey);
 }
 
 function formatMatch(match: AnalyzedBinding, index: number): string {

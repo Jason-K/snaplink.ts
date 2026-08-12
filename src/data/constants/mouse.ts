@@ -57,19 +57,31 @@ export const BUTTONS = {
   },
 } as const satisfies Record<string, ButtonSpec>;
 
-export const BUTTON_DESCS: Record<string, string> = {
+/** Fallback descriptions for buttons no {@link BUTTONS} entry names. */
+export const BUTTON_DESCS: Partial<Record<PointingButton, string>> = {
   button1: "Left click",
   button2: "Right click",
   button3: "Middle click",
 };
 
-/** Known mouse button aliases for auto-completion. */
-export type KnownPointerButton =
-  | "button1" | "button2" | "button3" | "button4" | "button5"
-  | "shift_button" | "wheel" | "wheelLeft" | "wheelRight"
-  | "leftBack" | "leftForward" | "middleBack"
-  | "left" | "right" | "back" | "forward";
+/**
+ * The names *we* give buttons — derived from {@link BUTTONS} so the two cannot
+ * drift. The previous hand-written union stopped at `button5` while `BUTTONS`
+ * had already grown to `button11`.
+ */
+export type ButtonAlias = keyof typeof BUTTONS;
 
-/** Pointer button string type with IntelliSense auto-completion for known mouse button aliases. */
-export type PointerButtonAlias = KnownPointerButton | (string & {});
+/**
+ * Anything accepted where a pointer button is named: a Karabiner button name
+ * (`button1`..`button255`, generated) or one of our aliases (`back`,
+ * `wheelLeft`). `resolveButton()` maps the second onto the first.
+ *
+ * The `(string & {})` escape hatch this used to carry is gone: a button name
+ * Karabiner does not know is now a compile error rather than JSON that fails
+ * validation.
+ */
+export type PointerButtonAlias = PointingButton | ButtonAlias;
+
+/** @deprecated Use {@link PointerButtonAlias}, or {@link ButtonAlias} for just our names. */
+export type KnownPointerButton = PointerButtonAlias;
 

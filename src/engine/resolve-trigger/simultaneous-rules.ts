@@ -1,5 +1,5 @@
 import type { Rule, SimultaneousKeyOrder } from "../../types/karabiner";
-import type { ActionSpec, Binding, Case, SimOrder } from "../../data";
+import type { ActionSpec, Binding, Case, SimOrder, TriggerKey } from "../../data";
 import { defineBindings, resolveModifiers } from "../emit-manipulators/compile-binding";
 
 /**
@@ -19,7 +19,7 @@ export type SimultaneousOptions = {
 };
 
 export type SimultaneousConfig = {
-  keys: string[];
+  keys: TriggerKey[];
   description: string;
   alone?: ActionSpec[];
   hold?: ActionSpec[];

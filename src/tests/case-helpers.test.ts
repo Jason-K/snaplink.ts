@@ -239,8 +239,8 @@ test("Trigger and Bind wrappers create expected Binding and Trigger objects", ()
   const tk = triggerKeys("a", ["left_command"]);
   assert.deepEqual(tk, { keys: ["a"], modifiers: ["left_command"] });
 
-  const tp = triggerPointer("shift", ["left_command"]);
-  assert.deepEqual(tp, { pointer: "shift", modifiers: ["left_command"] });
+  const tp = triggerPointer("back", ["left_command"]);
+  assert.deepEqual(tp, { pointer: "back", modifiers: ["left_command"] });
 
   const b1 = bind(tk, press(noop()));
   assert.deepEqual(b1, {
