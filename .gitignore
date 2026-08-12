@@ -22,6 +22,7 @@ logs/
 # Backup files
 *.bak
 backups/
+_to_delete/
 
 # Temporary files
 *.swp

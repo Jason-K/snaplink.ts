@@ -1,6 +1,7 @@
 import type {
   FromEvent,
   FromKeyType,
+  KeyCode,
   Manipulator,
   SimultaneousOptions as KarSimultaneousOptions,
   ToEvent,
@@ -37,7 +38,7 @@ export function resolveSimKarOptions(b: Binding): KarSimultaneousOptions | undef
 
 
 /** `mapSimultaneous` accepts either a bare key-code string or a `FromKeyType`. */
-function mapSimKey(k: string): string | FromKeyType {
+function mapSimKey(k: string): KeyCode | FromKeyType {
   return isPointerButton(k)
     ? { pointing_button: resolveButton(k).button }
     : resolveKeyAlias(k);

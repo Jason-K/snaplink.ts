@@ -12,7 +12,7 @@
 import type { ToEvent } from "../../types/karabiner";
 import type { Action, ActionSpec } from "../../data";
 import { FINDER_REPLACEMENT } from "../../data/constants/global";
-import { expandModifiers, resolveKeyAlias } from "../utils";
+import { expandModifiers, resolveButton, resolveKeyAlias } from "../utils";
 import { keyTokenToLabel, modifierTokenToSymbols } from "../resolve-description/rule-descriptions";
 import { toKey, toPointingButton } from "../karabiner-helpers";
 
@@ -118,7 +118,8 @@ export const ACTION_HANDLERS = {
       const mods = a.modifiers?.length ? expandModifiers(a.modifiers) : undefined;
       return [
         toPointingButton(
-          a.button,
+          // Resolves aliases ("back") to real names; `buttonN` passes through.
+          resolveButton(a.button).button,
           mods?.length ? (mods as never) : undefined,
           nonEmpty(a.options),
         ),

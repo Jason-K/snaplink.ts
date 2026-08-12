@@ -50,7 +50,7 @@ import type {
   Binding,
   Case,
   Condition,
-  StandardKeyCode,
+  KeyCode,
   Trigger,
   TriggerModifiers,
   VarSpec,
@@ -119,8 +119,9 @@ export const CAPS_LAYER_STATES: readonly CapsLayerState[] = [
   emit: HYPER.filter((m) => m !== selector),
 }));
 
-const LETTERS = [..."abcdefghijklmnopqrstuvwxyz"];
-const DIGITS = [..."0123456789"];
+// Single characters: every one is its own key_code name.
+const LETTERS = [..."abcdefghijklmnopqrstuvwxyz"] as KeyCode[];
+const DIGITS = [..."0123456789"] as KeyCode[];
 
 // Hand-written lists are checked against the key-code union: a typo here would
 // otherwise reach Karabiner, which rejects the whole config rather than the key.
@@ -137,9 +138,13 @@ const SYMBOLS = [
   "comma",
   "period",
   "slash",
-] satisfies StandardKeyCode[];
+] as const satisfies readonly KeyCode[];
 
-const FUNCTION_KEYS = Array.from({ length: 24 }, (_, i) => `f${i + 1}`);
+const FUNCTION_KEYS = Array.from(
+  { length: 24 },
+  // `f1`..`f24` are all in the key_code table; a template literal cannot prove it.
+  (_, i) => `f${i + 1}` as KeyCode,
+);
 
 const NAVIGATION = [
   "return_or_enter",
@@ -157,7 +162,7 @@ const NAVIGATION = [
   "down_arrow",
   "left_arrow",
   "right_arrow",
-] satisfies StandardKeyCode[];
+] as const satisfies readonly KeyCode[];
 
 const KEYPAD = [
   "keypad_0",
@@ -178,7 +183,7 @@ const KEYPAD = [
   "keypad_equal_sign",
   "keypad_enter",
   "keypad_num_lock",
-] satisfies StandardKeyCode[];
+] as const satisfies readonly KeyCode[];
 
 /**
  * Every key the layer translates.
@@ -188,7 +193,7 @@ const KEYPAD = [
  * so a remapped key reaches the layer already rewritten and the layer only ever
  * sees the post-remap code. There is nothing to race.
  */
-export const CAPS_LAYER_KEYS: readonly string[] = [
+export const CAPS_LAYER_KEYS: readonly KeyCode[] = [
   ...LETTERS,
   ...DIGITS,
   ...SYMBOLS,
@@ -199,15 +204,15 @@ export const CAPS_LAYER_KEYS: readonly string[] = [
 
 export type CapsLayerConfig = {
   /** The physical key that activates the layer. */
-  triggerKey: string;
+  triggerKey: KeyCode;
   /** Set to 1 while the layer key is held; read by every layer manipulator. */
   pressedVar: VarSpec;
   /** Set to 1 once the layer has translated a key; gates the tap output. */
   usedVar: VarSpec;
   /** Key emitted with the full hyper set when the layer key is tapped. */
-  tapKey: string;
+  tapKey: KeyCode;
   /** Keys the layer translates. Defaults to {@link CAPS_LAYER_KEYS}. */
-  keys?: readonly string[];
+  keys?: readonly KeyCode[];
   /**
    * Bindings the layer may adopt: every other binding in the configuration.
    *
@@ -357,7 +362,7 @@ function layerCatchAll(
 }
 
 /** The `from` a translated key matches in one layer state. */
-function layerTrigger(state: CapsLayerState, translatedKey: string): Trigger {
+function layerTrigger(state: CapsLayerState, translatedKey: KeyCode): Trigger {
   const modifiers: TriggerModifiers = {
     ...(state.selector ? { mandatory: [state.selector] } : {}),
     optional: [...PASSTHROUGH_MODIFIERS],
@@ -370,7 +375,7 @@ function layerKeyTranslation(
   config: CapsLayerConfig,
   ruleGroup: { id: string; description: string },
   state: CapsLayerState,
-  translatedKey: string,
+  translatedKey: KeyCode,
 ): Binding {
   return bind(
     layerTrigger(state, translatedKey),
@@ -438,7 +443,7 @@ function layerMultiTap(
   config: CapsLayerConfig,
   source: Binding,
   state: CapsLayerState,
-  translatedKey: string,
+  translatedKey: KeyCode,
 ): NonNullable<Binding["multiTap"]> {
   const { mods: _override, ...rest } = source.multiTap ?? {};
   const scope = state.selector ? normalizeModifier(state.selector) : "base";
@@ -501,7 +506,7 @@ function markUsedCases(source: Binding, usedVar: VarSpec): Case[] {
 function fallbackPhaseCases(
   source: Binding,
   state: CapsLayerState,
-  translatedKey: string,
+  translatedKey: KeyCode,
 ): Case[] {
   if (isMultiTap(source)) return [];
   const phases = new Set(source.cases.map((c) => c.phase ?? "press"));
@@ -523,7 +528,7 @@ function adoptedTranslation(
   config: CapsLayerConfig,
   ruleGroup: { id: string; description: string },
   state: CapsLayerState,
-  translatedKey: string,
+  translatedKey: KeyCode,
   source: Binding,
 ): Binding {
   // The source's description names the modifier combination it was written for,
@@ -567,13 +572,15 @@ function stateBindings(
   config: CapsLayerConfig,
   ruleGroup: { id: string; description: string },
   state: CapsLayerState,
-  gridKeys: readonly string[],
+  gridKeys: readonly KeyCode[],
   adoptable: ReadonlyMap<string, Binding[]>,
 ): Binding[] {
   const combination = modifierSetKey(state.emit);
   const adoptedKeys = [...adoptable.keys()]
     .filter((id) => id.endsWith(`@${combination}`))
-    .map((id) => id.slice(0, id.lastIndexOf("@")));
+    // Sound: `adoptionKey()` builds every index key as
+    // `${resolveKeyAlias(k)}@${combination}`, so the prefix is already a KeyCode.
+    .map((id) => id.slice(0, id.lastIndexOf("@")) as KeyCode);
 
   const keys = [...new Set([...gridKeys.map(resolveKeyAlias), ...adoptedKeys])];
 

@@ -39,23 +39,20 @@ export const MODKEY_CODES = new Set<string>([
   "option",
 ]);
 
-/** Known standard Karabiner key codes for auto-completion. */
-export type StandardKeyCode =
-  | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m"
-  | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
-  | "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
-  | "f1" | "f2" | "f3" | "f4" | "f5" | "f6" | "f7" | "f8" | "f9" | "f10" | "f11" | "f12"
-  | "f13" | "f14" | "f15" | "f16" | "f17" | "f18" | "f19" | "f20" | "f21" | "f22" | "f23" | "f24"
-  | "return_or_enter" | "escape" | "delete_or_backspace" | "delete_forward" | "tab" | "spacebar"
-  | "hyphen" | "equal_sign" | "open_bracket" | "close_bracket" | "backslash" | "non_us_pound"
-  | "semicolon" | "quote" | "grave_accent_and_tilde" | "comma" | "period" | "slash"
-  | "caps_lock" | "print_screen" | "scroll_lock" | "pause" | "insert" | "home" | "page_up"
-  | "end" | "page_down" | "right_arrow" | "left_arrow" | "down_arrow" | "up_arrow"
-  | "keypad_num_lock" | "keypad_slash" | "keypad_asterisk" | "keypad_hyphen" | "keypad_plus"
-  | "keypad_enter" | "keypad_1" | "keypad_2" | "keypad_3" | "keypad_4" | "keypad_5"
-  | "keypad_6" | "keypad_7" | "keypad_8" | "keypad_9" | "keypad_0" | "keypad_period"
-  | "keypad_equal_sign" | "left_control" | "left_shift" | "left_option" | "left_command"
-  | "right_control" | "right_shift" | "right_option" | "right_command" | "fn";
+/**
+ * Karabiner's full `key_code` table (207 names), generated from the parser's
+ * own tables via `npm run codegen`.
+ *
+ * This replaces the hand-maintained 118-name `StandardKeyCode` union that used
+ * to live here. Every name in that list is present in this one, and the
+ * `(string & {})` escape hatch is gone on purpose: a key name Karabiner does
+ * not know is now a compile error rather than a rule that silently never fires.
+ */
+export type { KeyCode } from "../../types/karabiner";
 
-/** Key code string type with IntelliSense auto-completion for standard keys. */
-export type KeyCode = StandardKeyCode | (string & {});
+/**
+ * @deprecated Alias of {@link KeyCode}, kept for existing `satisfies` call
+ * sites. The distinction it used to draw — a curated subset, widened by
+ * `(string & {})` — no longer exists.
+ */
+export type { KeyCode as StandardKeyCode } from "../../types/karabiner";

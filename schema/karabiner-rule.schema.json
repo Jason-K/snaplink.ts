@@ -1,0 +1,3996 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local/karabiner-rule.schema.json",
+  "title": "Karabiner-Elements complex modification rule",
+  "description": "Schema for a Karabiner-Elements complex_modifications asset file (~/.config/karabiner/assets/complex_modifications/*.json), a single rule, or a single manipulator. Derived from pqrs-org/pqrs.org docs and pqrs-org/Karabiner-Elements source (parser key sets, parameter defaults, and the simple_modifications.json key-code tables).",
+  "$ref": "#/$defs/complexModificationsFile",
+  "$defs": {
+    "complexModificationsFile": {
+      "type": "object",
+      "description": "A custom *.json file placed in ~/.config/karabiner/assets/complex_modifications/. Unknown keys are permitted here and at rule level (Karabiner ignores them, and generators add their own metadata); strictness applies inside `manipulators`.",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Shown as the group heading in Settings."
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/rule"
+          }
+        },
+        "maintainers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "author": {
+          "type": "string"
+        },
+        "homepage": {
+          "type": "string"
+        },
+        "maintainer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ],
+          "description": "Non-standard singular form seen in the wild."
+        },
+        "version": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "repo": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "website": {
+          "type": "string"
+        },
+        "gallery_url": {
+          "type": "string"
+        },
+        "json_url": {
+          "type": "string"
+        },
+        "import_url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "rules"
+      ],
+      "additionalProperties": true
+    },
+    "complexModifications": {
+      "type": "object",
+      "description": "The complex_modifications block of a profile, or of a generator's build output.",
+      "properties": {
+        "parameters": {
+          "$ref": "#/$defs/parameters"
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/rule"
+          }
+        }
+      },
+      "required": [
+        "rules"
+      ],
+      "additionalProperties": true
+    },
+    "complexModificationsBlock": {
+      "type": "object",
+      "description": "Build-output shape: {\"complex_modifications\": {\"rules\": [...]}}.",
+      "properties": {
+        "complex_modifications": {
+          "$ref": "#/$defs/complexModifications"
+        }
+      },
+      "required": [
+        "complex_modifications"
+      ],
+      "additionalProperties": true
+    },
+    "rules": {
+      "type": "array",
+      "description": "A bare array of rules.",
+      "items": {
+        "$ref": "#/$defs/rule"
+      }
+    },
+    "karabinerConfig": {
+      "type": "object",
+      "description": "~/.config/karabiner/karabiner.json. Permissive outside complex_modifications: devices, virtual_hid_keyboard, fn_function_keys and simple_modifications are passed through unvalidated because they are not covered by the rule documentation.",
+      "properties": {
+        "global": {
+          "type": "object"
+        },
+        "profiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "selected": {
+                "type": "boolean"
+              },
+              "complex_modifications": {
+                "$ref": "#/$defs/complexModifications"
+              },
+              "parameters": {
+                "type": "object"
+              },
+              "virtual_hid_keyboard": {
+                "type": "object"
+              },
+              "simple_modifications": {
+                "type": "array"
+              },
+              "fn_function_keys": {
+                "type": "array"
+              },
+              "devices": {
+                "type": "array"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": true
+          }
+        }
+      },
+      "required": [
+        "profiles"
+      ],
+      "additionalProperties": true
+    },
+    "rule": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Shown in Settings; keep it unique and human-readable."
+        },
+        "manipulators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/manipulator"
+          }
+        },
+        "available_since": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean",
+          "description": "Ignored by the parser; used by some third-party generators."
+        }
+      },
+      "required": [
+        "manipulators"
+      ],
+      "additionalProperties": true
+    },
+    "manipulator": {
+      "description": "Evaluated top to bottom; the FIRST matching manipulator wins and the rest are skipped.",
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "basic",
+            "mouse_basic",
+            "mouse_motion_to_scroll"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "basic"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/manipulatorBasic"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "mouse_basic"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/manipulatorMouseBasic"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "mouse_motion_to_scroll"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/manipulatorMouseMotionToScroll"
+          }
+        }
+      ]
+    },
+    "manipulatorBasic": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "basic"
+        },
+        "from": {
+          "$ref": "#/$defs/fromEventDefinition"
+        },
+        "to": {
+          "description": "Events sent while `from` is pressed.",
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/toEventDefinition"
+              }
+            },
+            {
+              "$ref": "#/$defs/toEventDefinition"
+            }
+          ]
+        },
+        "to_if_alone": {
+          "description": "Posted when `from` is pressed and released alone. key_down and key_up are sent together, so key repeat is impossible here.",
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/toEventDefinition"
+              }
+            },
+            {
+              "$ref": "#/$defs/toEventDefinition"
+            }
+          ]
+        },
+        "to_if_held_down": {
+          "description": "Posted after basic.to_if_held_down_threshold_milliseconds.",
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/toEventDefinition"
+              }
+            },
+            {
+              "$ref": "#/$defs/toEventDefinition"
+            }
+          ]
+        },
+        "to_if_other_key_pressed": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/toIfOtherKeyPressedEntry"
+          },
+          "description": "Rewrites the held `from` key itself when one of other_keys is pressed."
+        },
+        "to_after_key_up": {
+          "description": "Posted when `from` is released.",
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/toEventDefinition"
+              }
+            },
+            {
+              "$ref": "#/$defs/toEventDefinition"
+            }
+          ]
+        },
+        "to_delayed_action": {
+          "$ref": "#/$defs/toDelayedAction"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          }
+        },
+        "parameters": {
+          "$ref": "#/$defs/parameters"
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable comment for this manipulator."
+        }
+      },
+      "required": [
+        "type",
+        "from"
+      ],
+      "additionalProperties": false
+    },
+    "manipulatorMouseBasic": {
+      "type": "object",
+      "description": "Invert, swap, or discard mouse movement. Requires the mouse to be enabled in the Devices tab.",
+      "properties": {
+        "type": {
+          "const": "mouse_basic"
+        },
+        "flip": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "x",
+              "y",
+              "vertical_wheel",
+              "horizontal_wheel"
+            ]
+          }
+        },
+        "swap": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "xy",
+              "wheels"
+            ]
+          }
+        },
+        "discard": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "x",
+              "y",
+              "vertical_wheel",
+              "horizontal_wheel"
+            ]
+          },
+          "description": "DANGER: always pair discard with a device_if condition or the cursor can become unmovable."
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          }
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    "manipulatorMouseMotionToScroll": {
+      "type": "object",
+      "description": "Converts pointer motion into scrolling. Specify from.modifiers or conditions, or the mouse becomes unusable.",
+      "properties": {
+        "type": {
+          "const": "mouse_motion_to_scroll"
+        },
+        "from": {
+          "type": "object",
+          "properties": {
+            "modifiers": {
+              "$ref": "#/$defs/fromModifiers"
+            }
+          },
+          "additionalProperties": false
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          }
+        },
+        "options": {
+          "type": "object",
+          "properties": {
+            "momentum_scroll_enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "speed_multiplier": {
+              "type": "number",
+              "default": 1.0
+            }
+          },
+          "additionalProperties": false
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "anyOf": [
+        {
+          "required": [
+            "from"
+          ]
+        },
+        {
+          "required": [
+            "conditions"
+          ]
+        }
+      ],
+      "additionalProperties": false
+    },
+    "fromModifiers": {
+      "type": "object",
+      "description": "mandatory modifiers are consumed (removed from `to`); optional modifiers are passed through. Without \"optional\": [\"any\"], the manipulator will not fire when extra modifiers are held.",
+      "properties": {
+        "mandatory": {
+          "description": "Modifiers that must be held; removed from the output events.",
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "caps_lock",
+                  "left_command",
+                  "left_control",
+                  "left_option",
+                  "left_shift",
+                  "right_command",
+                  "right_control",
+                  "right_option",
+                  "right_shift",
+                  "fn",
+                  "command",
+                  "control",
+                  "option",
+                  "shift",
+                  "left_alt",
+                  "left_gui",
+                  "right_alt",
+                  "right_gui",
+                  "any"
+                ]
+              }
+            },
+            {
+              "type": "string",
+              "enum": [
+                "caps_lock",
+                "left_command",
+                "left_control",
+                "left_option",
+                "left_shift",
+                "right_command",
+                "right_control",
+                "right_option",
+                "right_shift",
+                "fn",
+                "command",
+                "control",
+                "option",
+                "shift",
+                "left_alt",
+                "left_gui",
+                "right_alt",
+                "right_gui",
+                "any"
+              ]
+            }
+          ]
+        },
+        "optional": {
+          "description": "Modifiers allowed to be held; kept in the output events.",
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "caps_lock",
+                  "left_command",
+                  "left_control",
+                  "left_option",
+                  "left_shift",
+                  "right_command",
+                  "right_control",
+                  "right_option",
+                  "right_shift",
+                  "fn",
+                  "command",
+                  "control",
+                  "option",
+                  "shift",
+                  "left_alt",
+                  "left_gui",
+                  "right_alt",
+                  "right_gui",
+                  "any"
+                ]
+              }
+            },
+            {
+              "type": "string",
+              "enum": [
+                "caps_lock",
+                "left_command",
+                "left_control",
+                "left_option",
+                "left_shift",
+                "right_command",
+                "right_control",
+                "right_option",
+                "right_shift",
+                "fn",
+                "command",
+                "control",
+                "option",
+                "shift",
+                "left_alt",
+                "left_gui",
+                "right_alt",
+                "right_gui",
+                "any"
+              ]
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "simultaneousOptions": {
+      "type": "object",
+      "properties": {
+        "detect_key_down_uninterruptedly": {
+          "type": "boolean",
+          "default": false,
+          "description": "If true, an unrelated key_down between the target keys does not cancel the match."
+        },
+        "key_down_order": {
+          "enum": [
+            "insensitive",
+            "strict",
+            "strict_inverse"
+          ],
+          "default": "insensitive"
+        },
+        "key_up_order": {
+          "enum": [
+            "insensitive",
+            "strict",
+            "strict_inverse"
+          ],
+          "default": "insensitive",
+          "description": "Ignored once basic.simultaneous_threshold_milliseconds elapses; raise that parameter when using this."
+        },
+        "key_up_when": {
+          "enum": [
+            "any",
+            "all"
+          ],
+          "description": "When the `to` key_up is posted."
+        },
+        "to_after_key_up": {
+          "description": "Posted once every `from` event is released; typical place to clear mode variables.",
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/toEventDefinition"
+              }
+            },
+            {
+              "$ref": "#/$defs/toEventDefinition"
+            }
+          ]
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "fromEventDefinition": {
+      "type": "object",
+      "properties": {
+        "key_code": {
+          "description": "Must be a key_code name (see EventViewer, or karabiner-keycodes.json) or a raw usage integer.",
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "0",
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "7",
+                "8",
+                "9",
+                "a",
+                "again",
+                "alternate_erase",
+                "apple_display_brightness_decrement",
+                "apple_display_brightness_increment",
+                "apple_top_case_display_brightness_decrement",
+                "apple_top_case_display_brightness_increment",
+                "application",
+                "b",
+                "backslash",
+                "c",
+                "cancel",
+                "caps_lock",
+                "clear",
+                "clear_or_again",
+                "close_bracket",
+                "comma",
+                "copy",
+                "cr_sel_or_props",
+                "cut",
+                "d",
+                "dashboard",
+                "delete_forward",
+                "delete_or_backspace",
+                "display_brightness_decrement",
+                "display_brightness_increment",
+                "down_arrow",
+                "e",
+                "eject",
+                "end",
+                "equal_sign",
+                "escape",
+                "ex_sel",
+                "execute",
+                "f",
+                "f1",
+                "f10",
+                "f11",
+                "f12",
+                "f13",
+                "f14",
+                "f15",
+                "f16",
+                "f17",
+                "f18",
+                "f19",
+                "f2",
+                "f20",
+                "f21",
+                "f22",
+                "f23",
+                "f24",
+                "f3",
+                "f4",
+                "f5",
+                "f6",
+                "f7",
+                "f8",
+                "f9",
+                "fastforward",
+                "find",
+                "fn",
+                "g",
+                "grave_accent_and_tilde",
+                "h",
+                "help",
+                "home",
+                "hyphen",
+                "i",
+                "illumination_decrement",
+                "illumination_increment",
+                "insert",
+                "international1",
+                "international2",
+                "international3",
+                "international4",
+                "international5",
+                "international6",
+                "international7",
+                "international8",
+                "international9",
+                "j",
+                "japanese_eisuu",
+                "japanese_kana",
+                "japanese_pc_katakana",
+                "japanese_pc_nfer",
+                "japanese_pc_xfer",
+                "k",
+                "keypad_0",
+                "keypad_1",
+                "keypad_2",
+                "keypad_3",
+                "keypad_4",
+                "keypad_5",
+                "keypad_6",
+                "keypad_7",
+                "keypad_8",
+                "keypad_9",
+                "keypad_asterisk",
+                "keypad_comma",
+                "keypad_enter",
+                "keypad_equal_sign",
+                "keypad_equal_sign_as400",
+                "keypad_hyphen",
+                "keypad_num_lock",
+                "keypad_period",
+                "keypad_plus",
+                "keypad_slash",
+                "l",
+                "lang1",
+                "lang2",
+                "lang3",
+                "lang4",
+                "lang5",
+                "lang6",
+                "lang7",
+                "lang8",
+                "lang9",
+                "launchpad",
+                "left_alt",
+                "left_arrow",
+                "left_command",
+                "left_control",
+                "left_gui",
+                "left_option",
+                "left_shift",
+                "locking_caps_lock",
+                "locking_num_lock",
+                "locking_scroll_lock",
+                "m",
+                "menu",
+                "mission_control",
+                "mute",
+                "n",
+                "non_us_backslash",
+                "non_us_pound",
+                "o",
+                "open_bracket",
+                "oper",
+                "out",
+                "p",
+                "page_down",
+                "page_up",
+                "paste",
+                "pause",
+                "period",
+                "play_or_pause",
+                "power",
+                "print_screen",
+                "prior",
+                "q",
+                "quote",
+                "r",
+                "return",
+                "return_or_enter",
+                "rewind",
+                "right_alt",
+                "right_arrow",
+                "right_command",
+                "right_control",
+                "right_gui",
+                "right_option",
+                "right_shift",
+                "s",
+                "scroll_lock",
+                "select",
+                "semicolon",
+                "separator",
+                "slash",
+                "spacebar",
+                "stop",
+                "sys_req_or_attention",
+                "t",
+                "tab",
+                "u",
+                "undo",
+                "up_arrow",
+                "v",
+                "vk_consumer_brightness_down",
+                "vk_consumer_brightness_up",
+                "vk_consumer_illumination_down",
+                "vk_consumer_illumination_up",
+                "vk_consumer_next",
+                "vk_consumer_play",
+                "vk_consumer_previous",
+                "vk_dashboard",
+                "vk_launchpad",
+                "vk_mission_control",
+                "vk_none",
+                "volume_decrement",
+                "volume_down",
+                "volume_increment",
+                "volume_up",
+                "w",
+                "x",
+                "y",
+                "z"
+              ]
+            },
+            {
+              "type": "integer",
+              "description": "Raw usage number (do not quote)."
+            }
+          ]
+        },
+        "consumer_key_code": {
+          "description": "Must be a consumer_key_code (media key) name or a raw usage integer.",
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "ac_back",
+                "ac_bookmarks",
+                "ac_desktop_show_all_applications",
+                "ac_desktop_show_all_windows",
+                "ac_forward",
+                "ac_home",
+                "ac_keyboard_layout_select",
+                "ac_refresh",
+                "ac_search",
+                "ac_soft_key_left",
+                "ac_zoom_in",
+                "ac_zoom_out",
+                "al_Calendar_Or_Schedule",
+                "al_a_or_v_capture_or_playback",
+                "al_alarms",
+                "al_audio_browser",
+                "al_audio_player",
+                "al_calculator",
+                "al_checkbook_or_finance",
+                "al_clock",
+                "al_command_line_processor_or_run",
+                "al_consumer_control_configuration",
+                "al_contact_sync",
+                "al_contacts_or_address_book",
+                "al_contextaware_desktop_assistant",
+                "al_control_panel",
+                "al_customized_corporate_news_browser",
+                "al_database_app",
+                "al_desktop",
+                "al_dictionary",
+                "al_digital_rights_manager",
+                "al_digital_wallet",
+                "al_documents",
+                "al_email_reader",
+                "al_encryption",
+                "al_entertainment_content_browser",
+                "al_file_browser",
+                "al_grammer_check",
+                "al_graphics_editor",
+                "al_image_browser",
+                "al_instant_messaging",
+                "al_integrated_help_center",
+                "al_internet_browser",
+                "al_keyboard_layout",
+                "al_lan_or_wan_browser",
+                "al_local_machine_browser",
+                "al_log_or_journal_or_timecard",
+                "al_logoff",
+                "al_logon",
+                "al_logon_or_logoff",
+                "al_market_monitor_or_finance_browser",
+                "al_message_status",
+                "al_movie_browser",
+                "al_navigation",
+                "al_network_chat",
+                "al_network_conference",
+                "al_newsreader",
+                "al_next_task_or_application",
+                "al_oem_feature_browser",
+                "al_oem_help",
+                "al_online_activity_browswer",
+                "al_online_community",
+                "al_online_shopping_browswer",
+                "al_power_status",
+                "al_preemptive_halt_task_or_application",
+                "al_presentation_app",
+                "al_previous_task_or_application",
+                "al_process_or_task_manager",
+                "al_remote_networking_or_isp_connect",
+                "al_research_or_search_browswer",
+                "al_screen_saver",
+                "al_select_task_or_application",
+                "al_smart_card_information_or_help",
+                "al_spell_check",
+                "al_spreadsheet",
+                "al_task_or_project_manager",
+                "al_telephony_or_dialer",
+                "al_terminal_lock_or_screensaver",
+                "al_text_editor",
+                "al_thesaurus",
+                "al_virus_protection",
+                "al_voicemail",
+                "al_wireless_status",
+                "al_word_processor",
+                "aspect",
+                "bass_boost",
+                "bass_decrement",
+                "bass_increment",
+                "blue_menu_button",
+                "broadcast_mode",
+                "closed_caption",
+                "closed_caption_select",
+                "data_on_screen",
+                "dictation",
+                "display_brightness_decrement",
+                "display_brightness_increment",
+                "eject",
+                "fast_forward",
+                "fastforward",
+                "green_menu_button",
+                "loudness",
+                "menu",
+                "menu_down",
+                "menu_escape",
+                "menu_left",
+                "menu_pick",
+                "menu_right",
+                "menu_up",
+                "menu_value_decrease",
+                "menu_value_increase",
+                "microphone",
+                "mute",
+                "picture_in_picture_swap",
+                "picture_in_picture_toggle",
+                "play_or_pause",
+                "power",
+                "red_menu_button",
+                "rewind",
+                "scan_next_track",
+                "scan_previous_track",
+                "selection",
+                "snapshot",
+                "still",
+                "stop",
+                "three_dimensional_mode_select",
+                "vcr_or_tv",
+                "voice_command",
+                "volume_decrement",
+                "volume_increment",
+                "yellow_menu_button"
+              ]
+            },
+            {
+              "type": "integer",
+              "description": "Raw usage number (do not quote)."
+            }
+          ]
+        },
+        "apple_vendor_keyboard_key_code": {
+          "description": "Must be an apple_vendor_keyboard_key_code name (mission_control, launchpad, ...) or a raw usage integer.",
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "brightness_down",
+                "brightness_up",
+                "dashboard",
+                "expose_all",
+                "expose_desktop",
+                "function",
+                "language",
+                "launchpad",
+                "mission_control",
+                "spotlight"
+              ]
+            },
+            {
+              "type": "integer",
+              "description": "Raw usage number (do not quote)."
+            }
+          ]
+        },
+        "apple_vendor_top_case_key_code": {
+          "description": "Must be an apple_vendor_top_case_key_code name (brightness_*, illumination_*, ...) or a raw usage integer.",
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "brightness_down",
+                "brightness_up",
+                "illumination_down",
+                "illumination_toggle",
+                "illumination_up",
+                "keyboard_fn",
+                "video_mirror"
+              ]
+            },
+            {
+              "type": "integer",
+              "description": "Raw usage number (do not quote)."
+            }
+          ]
+        },
+        "generic_desktop": {
+          "description": "Must be a generic_desktop usage name (system_sleep, dpad_*, ...) or a raw usage integer.",
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "do_not_disturb",
+                "dpad_down",
+                "dpad_left",
+                "dpad_right",
+                "dpad_up",
+                "system_app_menu",
+                "system_sleep"
+              ]
+            },
+            {
+              "type": "integer",
+              "description": "Raw usage number (do not quote)."
+            }
+          ]
+        },
+        "pointing_button": {
+          "description": "Must be a pointing_button name (button1 = left click) or a raw usage integer.",
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "button1",
+                "button10",
+                "button100",
+                "button101",
+                "button102",
+                "button103",
+                "button104",
+                "button105",
+                "button106",
+                "button107",
+                "button108",
+                "button109",
+                "button11",
+                "button110",
+                "button111",
+                "button112",
+                "button113",
+                "button114",
+                "button115",
+                "button116",
+                "button117",
+                "button118",
+                "button119",
+                "button12",
+                "button120",
+                "button121",
+                "button122",
+                "button123",
+                "button124",
+                "button125",
+                "button126",
+                "button127",
+                "button128",
+                "button129",
+                "button13",
+                "button130",
+                "button131",
+                "button132",
+                "button133",
+                "button134",
+                "button135",
+                "button136",
+                "button137",
+                "button138",
+                "button139",
+                "button14",
+                "button140",
+                "button141",
+                "button142",
+                "button143",
+                "button144",
+                "button145",
+                "button146",
+                "button147",
+                "button148",
+                "button149",
+                "button15",
+                "button150",
+                "button151",
+                "button152",
+                "button153",
+                "button154",
+                "button155",
+                "button156",
+                "button157",
+                "button158",
+                "button159",
+                "button16",
+                "button160",
+                "button161",
+                "button162",
+                "button163",
+                "button164",
+                "button165",
+                "button166",
+                "button167",
+                "button168",
+                "button169",
+                "button17",
+                "button170",
+                "button171",
+                "button172",
+                "button173",
+                "button174",
+                "button175",
+                "button176",
+                "button177",
+                "button178",
+                "button179",
+                "button18",
+                "button180",
+                "button181",
+                "button182",
+                "button183",
+                "button184",
+                "button185",
+                "button186",
+                "button187",
+                "button188",
+                "button189",
+                "button19",
+                "button190",
+                "button191",
+                "button192",
+                "button193",
+                "button194",
+                "button195",
+                "button196",
+                "button197",
+                "button198",
+                "button199",
+                "button2",
+                "button20",
+                "button200",
+                "button201",
+                "button202",
+                "button203",
+                "button204",
+                "button205",
+                "button206",
+                "button207",
+                "button208",
+                "button209",
+                "button21",
+                "button210",
+                "button211",
+                "button212",
+                "button213",
+                "button214",
+                "button215",
+                "button216",
+                "button217",
+                "button218",
+                "button219",
+                "button22",
+                "button220",
+                "button221",
+                "button222",
+                "button223",
+                "button224",
+                "button225",
+                "button226",
+                "button227",
+                "button228",
+                "button229",
+                "button23",
+                "button230",
+                "button231",
+                "button232",
+                "button233",
+                "button234",
+                "button235",
+                "button236",
+                "button237",
+                "button238",
+                "button239",
+                "button24",
+                "button240",
+                "button241",
+                "button242",
+                "button243",
+                "button244",
+                "button245",
+                "button246",
+                "button247",
+                "button248",
+                "button249",
+                "button25",
+                "button250",
+                "button251",
+                "button252",
+                "button253",
+                "button254",
+                "button255",
+                "button26",
+                "button27",
+                "button28",
+                "button29",
+                "button3",
+                "button30",
+                "button31",
+                "button32",
+                "button33",
+                "button34",
+                "button35",
+                "button36",
+                "button37",
+                "button38",
+                "button39",
+                "button4",
+                "button40",
+                "button41",
+                "button42",
+                "button43",
+                "button44",
+                "button45",
+                "button46",
+                "button47",
+                "button48",
+                "button49",
+                "button5",
+                "button50",
+                "button51",
+                "button52",
+                "button53",
+                "button54",
+                "button55",
+                "button56",
+                "button57",
+                "button58",
+                "button59",
+                "button6",
+                "button60",
+                "button61",
+                "button62",
+                "button63",
+                "button64",
+                "button65",
+                "button66",
+                "button67",
+                "button68",
+                "button69",
+                "button7",
+                "button70",
+                "button71",
+                "button72",
+                "button73",
+                "button74",
+                "button75",
+                "button76",
+                "button77",
+                "button78",
+                "button79",
+                "button8",
+                "button80",
+                "button81",
+                "button82",
+                "button83",
+                "button84",
+                "button85",
+                "button86",
+                "button87",
+                "button88",
+                "button89",
+                "button9",
+                "button90",
+                "button91",
+                "button92",
+                "button93",
+                "button94",
+                "button95",
+                "button96",
+                "button97",
+                "button98",
+                "button99"
+              ]
+            },
+            {
+              "type": "integer",
+              "description": "Raw usage number (do not quote)."
+            }
+          ]
+        },
+        "any": {
+          "enum": [
+            "key_code",
+            "consumer_key_code",
+            "apple_vendor_keyboard_key_code",
+            "apple_vendor_top_case_key_code",
+            "pointing_button"
+          ],
+          "description": "Match every event of this type. DANGER: \"pointing_button\" can cost you the left click."
+        },
+        "modifiers": {
+          "$ref": "#/$defs/fromModifiers"
+        },
+        "integer_value": {
+          "type": "integer",
+          "description": "Match only events carrying this integer value (multi-button footpedals etc.)."
+        },
+        "simultaneous": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "properties": {
+              "key_code": {
+                "description": "Must be a key_code name (see EventViewer, or karabiner-keycodes.json) or a raw usage integer.",
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "0",
+                      "1",
+                      "2",
+                      "3",
+                      "4",
+                      "5",
+                      "6",
+                      "7",
+                      "8",
+                      "9",
+                      "a",
+                      "again",
+                      "alternate_erase",
+                      "apple_display_brightness_decrement",
+                      "apple_display_brightness_increment",
+                      "apple_top_case_display_brightness_decrement",
+                      "apple_top_case_display_brightness_increment",
+                      "application",
+                      "b",
+                      "backslash",
+                      "c",
+                      "cancel",
+                      "caps_lock",
+                      "clear",
+                      "clear_or_again",
+                      "close_bracket",
+                      "comma",
+                      "copy",
+                      "cr_sel_or_props",
+                      "cut",
+                      "d",
+                      "dashboard",
+                      "delete_forward",
+                      "delete_or_backspace",
+                      "display_brightness_decrement",
+                      "display_brightness_increment",
+                      "down_arrow",
+                      "e",
+                      "eject",
+                      "end",
+                      "equal_sign",
+                      "escape",
+                      "ex_sel",
+                      "execute",
+                      "f",
+                      "f1",
+                      "f10",
+                      "f11",
+                      "f12",
+                      "f13",
+                      "f14",
+                      "f15",
+                      "f16",
+                      "f17",
+                      "f18",
+                      "f19",
+                      "f2",
+                      "f20",
+                      "f21",
+                      "f22",
+                      "f23",
+                      "f24",
+                      "f3",
+                      "f4",
+                      "f5",
+                      "f6",
+                      "f7",
+                      "f8",
+                      "f9",
+                      "fastforward",
+                      "find",
+                      "fn",
+                      "g",
+                      "grave_accent_and_tilde",
+                      "h",
+                      "help",
+                      "home",
+                      "hyphen",
+                      "i",
+                      "illumination_decrement",
+                      "illumination_increment",
+                      "insert",
+                      "international1",
+                      "international2",
+                      "international3",
+                      "international4",
+                      "international5",
+                      "international6",
+                      "international7",
+                      "international8",
+                      "international9",
+                      "j",
+                      "japanese_eisuu",
+                      "japanese_kana",
+                      "japanese_pc_katakana",
+                      "japanese_pc_nfer",
+                      "japanese_pc_xfer",
+                      "k",
+                      "keypad_0",
+                      "keypad_1",
+                      "keypad_2",
+                      "keypad_3",
+                      "keypad_4",
+                      "keypad_5",
+                      "keypad_6",
+                      "keypad_7",
+                      "keypad_8",
+                      "keypad_9",
+                      "keypad_asterisk",
+                      "keypad_comma",
+                      "keypad_enter",
+                      "keypad_equal_sign",
+                      "keypad_equal_sign_as400",
+                      "keypad_hyphen",
+                      "keypad_num_lock",
+                      "keypad_period",
+                      "keypad_plus",
+                      "keypad_slash",
+                      "l",
+                      "lang1",
+                      "lang2",
+                      "lang3",
+                      "lang4",
+                      "lang5",
+                      "lang6",
+                      "lang7",
+                      "lang8",
+                      "lang9",
+                      "launchpad",
+                      "left_alt",
+                      "left_arrow",
+                      "left_command",
+                      "left_control",
+                      "left_gui",
+                      "left_option",
+                      "left_shift",
+                      "locking_caps_lock",
+                      "locking_num_lock",
+                      "locking_scroll_lock",
+                      "m",
+                      "menu",
+                      "mission_control",
+                      "mute",
+                      "n",
+                      "non_us_backslash",
+                      "non_us_pound",
+                      "o",
+                      "open_bracket",
+                      "oper",
+                      "out",
+                      "p",
+                      "page_down",
+                      "page_up",
+                      "paste",
+                      "pause",
+                      "period",
+                      "play_or_pause",
+                      "power",
+                      "print_screen",
+                      "prior",
+                      "q",
+                      "quote",
+                      "r",
+                      "return",
+                      "return_or_enter",
+                      "rewind",
+                      "right_alt",
+                      "right_arrow",
+                      "right_command",
+                      "right_control",
+                      "right_gui",
+                      "right_option",
+                      "right_shift",
+                      "s",
+                      "scroll_lock",
+                      "select",
+                      "semicolon",
+                      "separator",
+                      "slash",
+                      "spacebar",
+                      "stop",
+                      "sys_req_or_attention",
+                      "t",
+                      "tab",
+                      "u",
+                      "undo",
+                      "up_arrow",
+                      "v",
+                      "vk_consumer_brightness_down",
+                      "vk_consumer_brightness_up",
+                      "vk_consumer_illumination_down",
+                      "vk_consumer_illumination_up",
+                      "vk_consumer_next",
+                      "vk_consumer_play",
+                      "vk_consumer_previous",
+                      "vk_dashboard",
+                      "vk_launchpad",
+                      "vk_mission_control",
+                      "vk_none",
+                      "volume_decrement",
+                      "volume_down",
+                      "volume_increment",
+                      "volume_up",
+                      "w",
+                      "x",
+                      "y",
+                      "z"
+                    ]
+                  },
+                  {
+                    "type": "integer",
+                    "description": "Raw usage number (do not quote)."
+                  }
+                ]
+              },
+              "consumer_key_code": {
+                "description": "Must be a consumer_key_code (media key) name or a raw usage integer.",
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "ac_back",
+                      "ac_bookmarks",
+                      "ac_desktop_show_all_applications",
+                      "ac_desktop_show_all_windows",
+                      "ac_forward",
+                      "ac_home",
+                      "ac_keyboard_layout_select",
+                      "ac_refresh",
+                      "ac_search",
+                      "ac_soft_key_left",
+                      "ac_zoom_in",
+                      "ac_zoom_out",
+                      "al_Calendar_Or_Schedule",
+                      "al_a_or_v_capture_or_playback",
+                      "al_alarms",
+                      "al_audio_browser",
+                      "al_audio_player",
+                      "al_calculator",
+                      "al_checkbook_or_finance",
+                      "al_clock",
+                      "al_command_line_processor_or_run",
+                      "al_consumer_control_configuration",
+                      "al_contact_sync",
+                      "al_contacts_or_address_book",
+                      "al_contextaware_desktop_assistant",
+                      "al_control_panel",
+                      "al_customized_corporate_news_browser",
+                      "al_database_app",
+                      "al_desktop",
+                      "al_dictionary",
+                      "al_digital_rights_manager",
+                      "al_digital_wallet",
+                      "al_documents",
+                      "al_email_reader",
+                      "al_encryption",
+                      "al_entertainment_content_browser",
+                      "al_file_browser",
+                      "al_grammer_check",
+                      "al_graphics_editor",
+                      "al_image_browser",
+                      "al_instant_messaging",
+                      "al_integrated_help_center",
+                      "al_internet_browser",
+                      "al_keyboard_layout",
+                      "al_lan_or_wan_browser",
+                      "al_local_machine_browser",
+                      "al_log_or_journal_or_timecard",
+                      "al_logoff",
+                      "al_logon",
+                      "al_logon_or_logoff",
+                      "al_market_monitor_or_finance_browser",
+                      "al_message_status",
+                      "al_movie_browser",
+                      "al_navigation",
+                      "al_network_chat",
+                      "al_network_conference",
+                      "al_newsreader",
+                      "al_next_task_or_application",
+                      "al_oem_feature_browser",
+                      "al_oem_help",
+                      "al_online_activity_browswer",
+                      "al_online_community",
+                      "al_online_shopping_browswer",
+                      "al_power_status",
+                      "al_preemptive_halt_task_or_application",
+                      "al_presentation_app",
+                      "al_previous_task_or_application",
+                      "al_process_or_task_manager",
+                      "al_remote_networking_or_isp_connect",
+                      "al_research_or_search_browswer",
+                      "al_screen_saver",
+                      "al_select_task_or_application",
+                      "al_smart_card_information_or_help",
+                      "al_spell_check",
+                      "al_spreadsheet",
+                      "al_task_or_project_manager",
+                      "al_telephony_or_dialer",
+                      "al_terminal_lock_or_screensaver",
+                      "al_text_editor",
+                      "al_thesaurus",
+                      "al_virus_protection",
+                      "al_voicemail",
+                      "al_wireless_status",
+                      "al_word_processor",
+                      "aspect",
+                      "bass_boost",
+                      "bass_decrement",
+                      "bass_increment",
+                      "blue_menu_button",
+                      "broadcast_mode",
+                      "closed_caption",
+                      "closed_caption_select",
+                      "data_on_screen",
+                      "dictation",
+                      "display_brightness_decrement",
+                      "display_brightness_increment",
+                      "eject",
+                      "fast_forward",
+                      "fastforward",
+                      "green_menu_button",
+                      "loudness",
+                      "menu",
+                      "menu_down",
+                      "menu_escape",
+                      "menu_left",
+                      "menu_pick",
+                      "menu_right",
+                      "menu_up",
+                      "menu_value_decrease",
+                      "menu_value_increase",
+                      "microphone",
+                      "mute",
+                      "picture_in_picture_swap",
+                      "picture_in_picture_toggle",
+                      "play_or_pause",
+                      "power",
+                      "red_menu_button",
+                      "rewind",
+                      "scan_next_track",
+                      "scan_previous_track",
+                      "selection",
+                      "snapshot",
+                      "still",
+                      "stop",
+                      "three_dimensional_mode_select",
+                      "vcr_or_tv",
+                      "voice_command",
+                      "volume_decrement",
+                      "volume_increment",
+                      "yellow_menu_button"
+                    ]
+                  },
+                  {
+                    "type": "integer",
+                    "description": "Raw usage number (do not quote)."
+                  }
+                ]
+              },
+              "apple_vendor_keyboard_key_code": {
+                "description": "Must be an apple_vendor_keyboard_key_code name (mission_control, launchpad, ...) or a raw usage integer.",
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "brightness_down",
+                      "brightness_up",
+                      "dashboard",
+                      "expose_all",
+                      "expose_desktop",
+                      "function",
+                      "language",
+                      "launchpad",
+                      "mission_control",
+                      "spotlight"
+                    ]
+                  },
+                  {
+                    "type": "integer",
+                    "description": "Raw usage number (do not quote)."
+                  }
+                ]
+              },
+              "apple_vendor_top_case_key_code": {
+                "description": "Must be an apple_vendor_top_case_key_code name (brightness_*, illumination_*, ...) or a raw usage integer.",
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "brightness_down",
+                      "brightness_up",
+                      "illumination_down",
+                      "illumination_toggle",
+                      "illumination_up",
+                      "keyboard_fn",
+                      "video_mirror"
+                    ]
+                  },
+                  {
+                    "type": "integer",
+                    "description": "Raw usage number (do not quote)."
+                  }
+                ]
+              },
+              "generic_desktop": {
+                "description": "Must be a generic_desktop usage name (system_sleep, dpad_*, ...) or a raw usage integer.",
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "do_not_disturb",
+                      "dpad_down",
+                      "dpad_left",
+                      "dpad_right",
+                      "dpad_up",
+                      "system_app_menu",
+                      "system_sleep"
+                    ]
+                  },
+                  {
+                    "type": "integer",
+                    "description": "Raw usage number (do not quote)."
+                  }
+                ]
+              },
+              "pointing_button": {
+                "description": "Must be a pointing_button name (button1 = left click) or a raw usage integer.",
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "button1",
+                      "button10",
+                      "button100",
+                      "button101",
+                      "button102",
+                      "button103",
+                      "button104",
+                      "button105",
+                      "button106",
+                      "button107",
+                      "button108",
+                      "button109",
+                      "button11",
+                      "button110",
+                      "button111",
+                      "button112",
+                      "button113",
+                      "button114",
+                      "button115",
+                      "button116",
+                      "button117",
+                      "button118",
+                      "button119",
+                      "button12",
+                      "button120",
+                      "button121",
+                      "button122",
+                      "button123",
+                      "button124",
+                      "button125",
+                      "button126",
+                      "button127",
+                      "button128",
+                      "button129",
+                      "button13",
+                      "button130",
+                      "button131",
+                      "button132",
+                      "button133",
+                      "button134",
+                      "button135",
+                      "button136",
+                      "button137",
+                      "button138",
+                      "button139",
+                      "button14",
+                      "button140",
+                      "button141",
+                      "button142",
+                      "button143",
+                      "button144",
+                      "button145",
+                      "button146",
+                      "button147",
+                      "button148",
+                      "button149",
+                      "button15",
+                      "button150",
+                      "button151",
+                      "button152",
+                      "button153",
+                      "button154",
+                      "button155",
+                      "button156",
+                      "button157",
+                      "button158",
+                      "button159",
+                      "button16",
+                      "button160",
+                      "button161",
+                      "button162",
+                      "button163",
+                      "button164",
+                      "button165",
+                      "button166",
+                      "button167",
+                      "button168",
+                      "button169",
+                      "button17",
+                      "button170",
+                      "button171",
+                      "button172",
+                      "button173",
+                      "button174",
+                      "button175",
+                      "button176",
+                      "button177",
+                      "button178",
+                      "button179",
+                      "button18",
+                      "button180",
+                      "button181",
+                      "button182",
+                      "button183",
+                      "button184",
+                      "button185",
+                      "button186",
+                      "button187",
+                      "button188",
+                      "button189",
+                      "button19",
+                      "button190",
+                      "button191",
+                      "button192",
+                      "button193",
+                      "button194",
+                      "button195",
+                      "button196",
+                      "button197",
+                      "button198",
+                      "button199",
+                      "button2",
+                      "button20",
+                      "button200",
+                      "button201",
+                      "button202",
+                      "button203",
+                      "button204",
+                      "button205",
+                      "button206",
+                      "button207",
+                      "button208",
+                      "button209",
+                      "button21",
+                      "button210",
+                      "button211",
+                      "button212",
+                      "button213",
+                      "button214",
+                      "button215",
+                      "button216",
+                      "button217",
+                      "button218",
+                      "button219",
+                      "button22",
+                      "button220",
+                      "button221",
+                      "button222",
+                      "button223",
+                      "button224",
+                      "button225",
+                      "button226",
+                      "button227",
+                      "button228",
+                      "button229",
+                      "button23",
+                      "button230",
+                      "button231",
+                      "button232",
+                      "button233",
+                      "button234",
+                      "button235",
+                      "button236",
+                      "button237",
+                      "button238",
+                      "button239",
+                      "button24",
+                      "button240",
+                      "button241",
+                      "button242",
+                      "button243",
+                      "button244",
+                      "button245",
+                      "button246",
+                      "button247",
+                      "button248",
+                      "button249",
+                      "button25",
+                      "button250",
+                      "button251",
+                      "button252",
+                      "button253",
+                      "button254",
+                      "button255",
+                      "button26",
+                      "button27",
+                      "button28",
+                      "button29",
+                      "button3",
+                      "button30",
+                      "button31",
+                      "button32",
+                      "button33",
+                      "button34",
+                      "button35",
+                      "button36",
+                      "button37",
+                      "button38",
+                      "button39",
+                      "button4",
+                      "button40",
+                      "button41",
+                      "button42",
+                      "button43",
+                      "button44",
+                      "button45",
+                      "button46",
+                      "button47",
+                      "button48",
+                      "button49",
+                      "button5",
+                      "button50",
+                      "button51",
+                      "button52",
+                      "button53",
+                      "button54",
+                      "button55",
+                      "button56",
+                      "button57",
+                      "button58",
+                      "button59",
+                      "button6",
+                      "button60",
+                      "button61",
+                      "button62",
+                      "button63",
+                      "button64",
+                      "button65",
+                      "button66",
+                      "button67",
+                      "button68",
+                      "button69",
+                      "button7",
+                      "button70",
+                      "button71",
+                      "button72",
+                      "button73",
+                      "button74",
+                      "button75",
+                      "button76",
+                      "button77",
+                      "button78",
+                      "button79",
+                      "button8",
+                      "button80",
+                      "button81",
+                      "button82",
+                      "button83",
+                      "button84",
+                      "button85",
+                      "button86",
+                      "button87",
+                      "button88",
+                      "button89",
+                      "button9",
+                      "button90",
+                      "button91",
+                      "button92",
+                      "button93",
+                      "button94",
+                      "button95",
+                      "button96",
+                      "button97",
+                      "button98",
+                      "button99"
+                    ]
+                  },
+                  {
+                    "type": "integer",
+                    "description": "Raw usage number (do not quote)."
+                  }
+                ]
+              },
+              "any": {
+                "enum": [
+                  "key_code",
+                  "consumer_key_code",
+                  "apple_vendor_keyboard_key_code",
+                  "apple_vendor_top_case_key_code",
+                  "pointing_button"
+                ]
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "oneOf": [
+              {
+                "required": [
+                  "key_code"
+                ]
+              },
+              {
+                "required": [
+                  "consumer_key_code"
+                ]
+              },
+              {
+                "required": [
+                  "apple_vendor_keyboard_key_code"
+                ]
+              },
+              {
+                "required": [
+                  "apple_vendor_top_case_key_code"
+                ]
+              },
+              {
+                "required": [
+                  "generic_desktop"
+                ]
+              },
+              {
+                "required": [
+                  "pointing_button"
+                ]
+              },
+              {
+                "required": [
+                  "any"
+                ]
+              }
+            ]
+          },
+          "description": "Keys pressed together within basic.simultaneous_threshold_milliseconds (default 50 ms)."
+        },
+        "simultaneous_options": {
+          "$ref": "#/$defs/simultaneousOptions"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "key_code"
+          ]
+        },
+        {
+          "required": [
+            "consumer_key_code"
+          ]
+        },
+        {
+          "required": [
+            "apple_vendor_keyboard_key_code"
+          ]
+        },
+        {
+          "required": [
+            "apple_vendor_top_case_key_code"
+          ]
+        },
+        {
+          "required": [
+            "generic_desktop"
+          ]
+        },
+        {
+          "required": [
+            "pointing_button"
+          ]
+        },
+        {
+          "required": [
+            "any"
+          ]
+        },
+        {
+          "required": [
+            "simultaneous"
+          ]
+        }
+      ],
+      "description": "Exactly one of key_code / consumer_key_code / apple_vendor_* / generic_desktop / pointing_button / any / simultaneous."
+    },
+    "setVariable": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": [
+            "integer",
+            "boolean",
+            "string"
+          ],
+          "description": "Types are not coerced: 1 != true, true != \"true\". Unset variables read as 0."
+        },
+        "expression": {
+          "type": "string",
+          "description": "exprtk arithmetic expression (KE 15.5.19+)."
+        },
+        "key_up_value": {
+          "type": [
+            "integer",
+            "boolean",
+            "string"
+          ],
+          "description": "Value applied on key_up (KE 14.12.6+)."
+        },
+        "key_up_expression": {
+          "type": "string",
+          "description": "Expression evaluated on key_up (KE 15.5.19+)."
+        },
+        "type": {
+          "enum": [
+            "set",
+            "unset"
+          ],
+          "default": "set",
+          "description": "KE 14.99.2+."
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "value"
+          ]
+        },
+        {
+          "required": [
+            "expression"
+          ]
+        },
+        {
+          "required": [
+            "key_up_value"
+          ]
+        },
+        {
+          "required": [
+            "key_up_expression"
+          ]
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "unset"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        }
+      ]
+    },
+    "mouseKey": {
+      "type": "object",
+      "description": "Speeds and directions follow System Settings > Mouse.",
+      "properties": {
+        "x": {
+          "type": "number",
+          "description": "Negative = left, positive = right."
+        },
+        "y": {
+          "type": "number",
+          "description": "Negative = up, positive = down."
+        },
+        "vertical_wheel": {
+          "type": "number",
+          "description": "Negative = scroll up, positive = scroll down."
+        },
+        "horizontal_wheel": {
+          "type": "number",
+          "description": "Positive = scroll left, negative = scroll right."
+        },
+        "speed_multiplier": {
+          "type": "number",
+          "description": "Multiplies mouse-key speed while this key is held."
+        }
+      },
+      "additionalProperties": false,
+      "minProperties": 1
+    },
+    "softwareFunction": {
+      "type": "object",
+      "description": "KE 13.5.1+. Exactly one function per `to` entry.",
+      "properties": {
+        "cg_event_double_click": {
+          "type": "object",
+          "properties": {
+            "button": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 31,
+              "description": "CGMouseButton: 0 left, 1 right, 2 middle."
+            }
+          },
+          "required": [
+            "button"
+          ],
+          "additionalProperties": false,
+          "description": "Laggy (software-generated) and needs Accessibility permission for karabiner_console_user_server; two pointing_button events are usually better."
+        },
+        "iokit_power_management_sleep_system": {
+          "type": "object",
+          "properties": {
+            "delay_milliseconds": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 500
+            }
+          },
+          "additionalProperties": false,
+          "description": "KE 13.7.1+."
+        },
+        "open_application": {
+          "type": "object",
+          "properties": {
+            "bundle_identifier": {
+              "type": "string",
+              "description": "Priority 1 (KE 15.0.19+)."
+            },
+            "file_path": {
+              "type": "string",
+              "description": "Priority 2 (KE 15.0.19+)."
+            },
+            "frontmost_application_history_index": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Priority 3 (KE 15.3.6+). Only apps launched after KE started and still running are candidates."
+            },
+            "frontmost_application_history_exclusion_bundle_identifiers": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Regexes; KE 15.7.3+."
+            },
+            "frontmost_application_history_exclusion_file_paths": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Regexes; KE 15.7.3+."
+            }
+          },
+          "additionalProperties": false,
+          "anyOf": [
+            {
+              "required": [
+                "bundle_identifier"
+              ]
+            },
+            {
+              "required": [
+                "file_path"
+              ]
+            },
+            {
+              "required": [
+                "frontmost_application_history_index"
+              ]
+            }
+          ],
+          "description": "When several of bundle_identifier / file_path / history_index are given, only the highest-priority one is used."
+        },
+        "set_mouse_cursor_position": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": [
+                "integer",
+                "string"
+              ],
+              "description": "Points (100) or percent (\"50%\")."
+            },
+            "y": {
+              "type": [
+                "integer",
+                "string"
+              ],
+              "description": "Points (100) or percent (\"50%\")."
+            },
+            "screen": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Screen index for the origin."
+            },
+            "relative_to": {
+              "enum": [
+                "screen",
+                "focused_window"
+              ],
+              "default": "screen",
+              "description": "Source-only (not yet in the published docs)."
+            },
+            "fallback_to": {
+              "enum": [
+                "none",
+                "screen"
+              ],
+              "default": "none",
+              "description": "Source-only; used when relative_to target is unavailable."
+            }
+          },
+          "required": [
+            "x",
+            "y"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "minProperties": 1,
+      "maxProperties": 1
+    },
+    "toEventDefinition": {
+      "type": "object",
+      "properties": {
+        "key_code": {
+          "description": "Must be a key_code name (see EventViewer, or karabiner-keycodes.json) or a raw usage integer.",
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "0",
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "7",
+                "8",
+                "9",
+                "a",
+                "again",
+                "alternate_erase",
+                "apple_display_brightness_decrement",
+                "apple_display_brightness_increment",
+                "apple_top_case_display_brightness_decrement",
+                "apple_top_case_display_brightness_increment",
+                "application",
+                "b",
+                "backslash",
+                "c",
+                "cancel",
+                "caps_lock",
+                "clear",
+                "clear_or_again",
+                "close_bracket",
+                "comma",
+                "copy",
+                "cr_sel_or_props",
+                "cut",
+                "d",
+                "dashboard",
+                "delete_forward",
+                "delete_or_backspace",
+                "display_brightness_decrement",
+                "display_brightness_increment",
+                "down_arrow",
+                "e",
+                "eject",
+                "end",
+                "equal_sign",
+                "escape",
+                "ex_sel",
+                "execute",
+                "f",
+                "f1",
+                "f10",
+                "f11",
+                "f12",
+                "f13",
+                "f14",
+                "f15",
+                "f16",
+                "f17",
+                "f18",
+                "f19",
+                "f2",
+                "f20",
+                "f21",
+                "f22",
+                "f23",
+                "f24",
+                "f3",
+                "f4",
+                "f5",
+                "f6",
+                "f7",
+                "f8",
+                "f9",
+                "fastforward",
+                "find",
+                "fn",
+                "g",
+                "grave_accent_and_tilde",
+                "h",
+                "help",
+                "home",
+                "hyphen",
+                "i",
+                "illumination_decrement",
+                "illumination_increment",
+                "insert",
+                "international1",
+                "international2",
+                "international3",
+                "international4",
+                "international5",
+                "international6",
+                "international7",
+                "international8",
+                "international9",
+                "j",
+                "japanese_eisuu",
+                "japanese_kana",
+                "japanese_pc_katakana",
+                "japanese_pc_nfer",
+                "japanese_pc_xfer",
+                "k",
+                "keypad_0",
+                "keypad_1",
+                "keypad_2",
+                "keypad_3",
+                "keypad_4",
+                "keypad_5",
+                "keypad_6",
+                "keypad_7",
+                "keypad_8",
+                "keypad_9",
+                "keypad_asterisk",
+                "keypad_comma",
+                "keypad_enter",
+                "keypad_equal_sign",
+                "keypad_equal_sign_as400",
+                "keypad_hyphen",
+                "keypad_num_lock",
+                "keypad_period",
+                "keypad_plus",
+                "keypad_slash",
+                "l",
+                "lang1",
+                "lang2",
+                "lang3",
+                "lang4",
+                "lang5",
+                "lang6",
+                "lang7",
+                "lang8",
+                "lang9",
+                "launchpad",
+                "left_alt",
+                "left_arrow",
+                "left_command",
+                "left_control",
+                "left_gui",
+                "left_option",
+                "left_shift",
+                "locking_caps_lock",
+                "locking_num_lock",
+                "locking_scroll_lock",
+                "m",
+                "menu",
+                "mission_control",
+                "mute",
+                "n",
+                "non_us_backslash",
+                "non_us_pound",
+                "o",
+                "open_bracket",
+                "oper",
+                "out",
+                "p",
+                "page_down",
+                "page_up",
+                "paste",
+                "pause",
+                "period",
+                "play_or_pause",
+                "power",
+                "print_screen",
+                "prior",
+                "q",
+                "quote",
+                "r",
+                "return",
+                "return_or_enter",
+                "rewind",
+                "right_alt",
+                "right_arrow",
+                "right_command",
+                "right_control",
+                "right_gui",
+                "right_option",
+                "right_shift",
+                "s",
+                "scroll_lock",
+                "select",
+                "semicolon",
+                "separator",
+                "slash",
+                "spacebar",
+                "stop",
+                "sys_req_or_attention",
+                "t",
+                "tab",
+                "u",
+                "undo",
+                "up_arrow",
+                "v",
+                "vk_consumer_brightness_down",
+                "vk_consumer_brightness_up",
+                "vk_consumer_illumination_down",
+                "vk_consumer_illumination_up",
+                "vk_consumer_next",
+                "vk_consumer_play",
+                "vk_consumer_previous",
+                "vk_dashboard",
+                "vk_launchpad",
+                "vk_mission_control",
+                "vk_none",
+                "volume_decrement",
+                "volume_down",
+                "volume_increment",
+                "volume_up",
+                "w",
+                "x",
+                "y",
+                "z"
+              ]
+            },
+            {
+              "type": "integer",
+              "description": "Raw usage number (do not quote)."
+            }
+          ]
+        },
+        "consumer_key_code": {
+          "description": "Must be a consumer_key_code (media key) name or a raw usage integer.",
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "ac_back",
+                "ac_bookmarks",
+                "ac_desktop_show_all_applications",
+                "ac_desktop_show_all_windows",
+                "ac_forward",
+                "ac_home",
+                "ac_keyboard_layout_select",
+                "ac_refresh",
+                "ac_search",
+                "ac_soft_key_left",
+                "ac_zoom_in",
+                "ac_zoom_out",
+                "al_Calendar_Or_Schedule",
+                "al_a_or_v_capture_or_playback",
+                "al_alarms",
+                "al_audio_browser",
+                "al_audio_player",
+                "al_calculator",
+                "al_checkbook_or_finance",
+                "al_clock",
+                "al_command_line_processor_or_run",
+                "al_consumer_control_configuration",
+                "al_contact_sync",
+                "al_contacts_or_address_book",
+                "al_contextaware_desktop_assistant",
+                "al_control_panel",
+                "al_customized_corporate_news_browser",
+                "al_database_app",
+                "al_desktop",
+                "al_dictionary",
+                "al_digital_rights_manager",
+                "al_digital_wallet",
+                "al_documents",
+                "al_email_reader",
+                "al_encryption",
+                "al_entertainment_content_browser",
+                "al_file_browser",
+                "al_grammer_check",
+                "al_graphics_editor",
+                "al_image_browser",
+                "al_instant_messaging",
+                "al_integrated_help_center",
+                "al_internet_browser",
+                "al_keyboard_layout",
+                "al_lan_or_wan_browser",
+                "al_local_machine_browser",
+                "al_log_or_journal_or_timecard",
+                "al_logoff",
+                "al_logon",
+                "al_logon_or_logoff",
+                "al_market_monitor_or_finance_browser",
+                "al_message_status",
+                "al_movie_browser",
+                "al_navigation",
+                "al_network_chat",
+                "al_network_conference",
+                "al_newsreader",
+                "al_next_task_or_application",
+                "al_oem_feature_browser",
+                "al_oem_help",
+                "al_online_activity_browswer",
+                "al_online_community",
+                "al_online_shopping_browswer",
+                "al_power_status",
+                "al_preemptive_halt_task_or_application",
+                "al_presentation_app",
+                "al_previous_task_or_application",
+                "al_process_or_task_manager",
+                "al_remote_networking_or_isp_connect",
+                "al_research_or_search_browswer",
+                "al_screen_saver",
+                "al_select_task_or_application",
+                "al_smart_card_information_or_help",
+                "al_spell_check",
+                "al_spreadsheet",
+                "al_task_or_project_manager",
+                "al_telephony_or_dialer",
+                "al_terminal_lock_or_screensaver",
+                "al_text_editor",
+                "al_thesaurus",
+                "al_virus_protection",
+                "al_voicemail",
+                "al_wireless_status",
+                "al_word_processor",
+                "aspect",
+                "bass_boost",
+                "bass_decrement",
+                "bass_increment",
+                "blue_menu_button",
+                "broadcast_mode",
+                "closed_caption",
+                "closed_caption_select",
+                "data_on_screen",
+                "dictation",
+                "display_brightness_decrement",
+                "display_brightness_increment",
+                "eject",
+                "fast_forward",
+                "fastforward",
+                "green_menu_button",
+                "loudness",
+                "menu",
+                "menu_down",
+                "menu_escape",
+                "menu_left",
+                "menu_pick",
+                "menu_right",
+                "menu_up",
+                "menu_value_decrease",
+                "menu_value_increase",
+                "microphone",
+                "mute",
+                "picture_in_picture_swap",
+                "picture_in_picture_toggle",
+                "play_or_pause",
+                "power",
+                "red_menu_button",
+                "rewind",
+                "scan_next_track",
+                "scan_previous_track",
+                "selection",
+                "snapshot",
+                "still",
+                "stop",
+                "three_dimensional_mode_select",
+                "vcr_or_tv",
+                "voice_command",
+                "volume_decrement",
+                "volume_increment",
+                "yellow_menu_button"
+              ]
+            },
+            {
+              "type": "integer",
+              "description": "Raw usage number (do not quote)."
+            }
+          ]
+        },
+        "apple_vendor_keyboard_key_code": {
+          "description": "Must be an apple_vendor_keyboard_key_code name (mission_control, launchpad, ...) or a raw usage integer.",
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "brightness_down",
+                "brightness_up",
+                "dashboard",
+                "expose_all",
+                "expose_desktop",
+                "function",
+                "language",
+                "launchpad",
+                "mission_control",
+                "spotlight"
+              ]
+            },
+            {
+              "type": "integer",
+              "description": "Raw usage number (do not quote)."
+            }
+          ]
+        },
+        "apple_vendor_top_case_key_code": {
+          "description": "Must be an apple_vendor_top_case_key_code name (brightness_*, illumination_*, ...) or a raw usage integer.",
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "brightness_down",
+                "brightness_up",
+                "illumination_down",
+                "illumination_toggle",
+                "illumination_up",
+                "keyboard_fn",
+                "video_mirror"
+              ]
+            },
+            {
+              "type": "integer",
+              "description": "Raw usage number (do not quote)."
+            }
+          ]
+        },
+        "generic_desktop": {
+          "description": "Must be a generic_desktop usage name (system_sleep, dpad_*, ...) or a raw usage integer.",
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "do_not_disturb",
+                "dpad_down",
+                "dpad_left",
+                "dpad_right",
+                "dpad_up",
+                "system_app_menu",
+                "system_sleep"
+              ]
+            },
+            {
+              "type": "integer",
+              "description": "Raw usage number (do not quote)."
+            }
+          ]
+        },
+        "pointing_button": {
+          "description": "Must be a pointing_button name (button1 = left click) or a raw usage integer.",
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "button1",
+                "button10",
+                "button100",
+                "button101",
+                "button102",
+                "button103",
+                "button104",
+                "button105",
+                "button106",
+                "button107",
+                "button108",
+                "button109",
+                "button11",
+                "button110",
+                "button111",
+                "button112",
+                "button113",
+                "button114",
+                "button115",
+                "button116",
+                "button117",
+                "button118",
+                "button119",
+                "button12",
+                "button120",
+                "button121",
+                "button122",
+                "button123",
+                "button124",
+                "button125",
+                "button126",
+                "button127",
+                "button128",
+                "button129",
+                "button13",
+                "button130",
+                "button131",
+                "button132",
+                "button133",
+                "button134",
+                "button135",
+                "button136",
+                "button137",
+                "button138",
+                "button139",
+                "button14",
+                "button140",
+                "button141",
+                "button142",
+                "button143",
+                "button144",
+                "button145",
+                "button146",
+                "button147",
+                "button148",
+                "button149",
+                "button15",
+                "button150",
+                "button151",
+                "button152",
+                "button153",
+                "button154",
+                "button155",
+                "button156",
+                "button157",
+                "button158",
+                "button159",
+                "button16",
+                "button160",
+                "button161",
+                "button162",
+                "button163",
+                "button164",
+                "button165",
+                "button166",
+                "button167",
+                "button168",
+                "button169",
+                "button17",
+                "button170",
+                "button171",
+                "button172",
+                "button173",
+                "button174",
+                "button175",
+                "button176",
+                "button177",
+                "button178",
+                "button179",
+                "button18",
+                "button180",
+                "button181",
+                "button182",
+                "button183",
+                "button184",
+                "button185",
+                "button186",
+                "button187",
+                "button188",
+                "button189",
+                "button19",
+                "button190",
+                "button191",
+                "button192",
+                "button193",
+                "button194",
+                "button195",
+                "button196",
+                "button197",
+                "button198",
+                "button199",
+                "button2",
+                "button20",
+                "button200",
+                "button201",
+                "button202",
+                "button203",
+                "button204",
+                "button205",
+                "button206",
+                "button207",
+                "button208",
+                "button209",
+                "button21",
+                "button210",
+                "button211",
+                "button212",
+                "button213",
+                "button214",
+                "button215",
+                "button216",
+                "button217",
+                "button218",
+                "button219",
+                "button22",
+                "button220",
+                "button221",
+                "button222",
+                "button223",
+                "button224",
+                "button225",
+                "button226",
+                "button227",
+                "button228",
+                "button229",
+                "button23",
+                "button230",
+                "button231",
+                "button232",
+                "button233",
+                "button234",
+                "button235",
+                "button236",
+                "button237",
+                "button238",
+                "button239",
+                "button24",
+                "button240",
+                "button241",
+                "button242",
+                "button243",
+                "button244",
+                "button245",
+                "button246",
+                "button247",
+                "button248",
+                "button249",
+                "button25",
+                "button250",
+                "button251",
+                "button252",
+                "button253",
+                "button254",
+                "button255",
+                "button26",
+                "button27",
+                "button28",
+                "button29",
+                "button3",
+                "button30",
+                "button31",
+                "button32",
+                "button33",
+                "button34",
+                "button35",
+                "button36",
+                "button37",
+                "button38",
+                "button39",
+                "button4",
+                "button40",
+                "button41",
+                "button42",
+                "button43",
+                "button44",
+                "button45",
+                "button46",
+                "button47",
+                "button48",
+                "button49",
+                "button5",
+                "button50",
+                "button51",
+                "button52",
+                "button53",
+                "button54",
+                "button55",
+                "button56",
+                "button57",
+                "button58",
+                "button59",
+                "button6",
+                "button60",
+                "button61",
+                "button62",
+                "button63",
+                "button64",
+                "button65",
+                "button66",
+                "button67",
+                "button68",
+                "button69",
+                "button7",
+                "button70",
+                "button71",
+                "button72",
+                "button73",
+                "button74",
+                "button75",
+                "button76",
+                "button77",
+                "button78",
+                "button79",
+                "button8",
+                "button80",
+                "button81",
+                "button82",
+                "button83",
+                "button84",
+                "button85",
+                "button86",
+                "button87",
+                "button88",
+                "button89",
+                "button9",
+                "button90",
+                "button91",
+                "button92",
+                "button93",
+                "button94",
+                "button95",
+                "button96",
+                "button97",
+                "button98",
+                "button99"
+              ]
+            },
+            {
+              "type": "integer",
+              "description": "Raw usage number (do not quote)."
+            }
+          ]
+        },
+        "any": {
+          "enum": [
+            "key_code",
+            "consumer_key_code",
+            "apple_vendor_keyboard_key_code",
+            "apple_vendor_top_case_key_code",
+            "pointing_button"
+          ]
+        },
+        "from_event": {
+          "type": "boolean",
+          "description": "Re-send the `from` event verbatim. With from.any this builds pass-through mode: once an event is modified it is exempt from later rules."
+        },
+        "shell_command": {
+          "type": "string",
+          "description": "Runs with a minimal environment ($HOME, $UID, $USER, ...). Export LC_ALL etc. inside the command when needed."
+        },
+        "send_user_command": {
+          "type": "object",
+          "properties": {
+            "payload": {
+              "description": "JSON-serialized and sent to the receiver."
+            },
+            "endpoint": {
+              "type": "string",
+              "description": "UNIX datagram socket path. Default: /Library/Application Support/org.pqrs/tmp/user/{UID}/user_command_receiver.sock"
+            }
+          },
+          "required": [
+            "payload"
+          ],
+          "additionalProperties": false
+        },
+        "select_input_source": {
+          "description": "CJKV input sources with input_mode_id may fail to switch (macOS issue); send the OS shortcut instead.",
+          "anyOf": [
+            {
+              "type": "object",
+              "description": "Regex specifiers; multiple keys within one object are ANDed.",
+              "properties": {
+                "language": {
+                  "type": "string",
+                  "description": "Language regex, e.g. \"^en$\"."
+                },
+                "input_source_id": {
+                  "type": "string",
+                  "description": "Input source id regex."
+                },
+                "input_mode_id": {
+                  "type": "string",
+                  "description": "Input mode id regex."
+                }
+              },
+              "additionalProperties": false,
+              "minProperties": 1
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "description": "Regex specifiers; multiple keys within one object are ANDed.",
+                "properties": {
+                  "language": {
+                    "type": "string",
+                    "description": "Language regex, e.g. \"^en$\"."
+                  },
+                  "input_source_id": {
+                    "type": "string",
+                    "description": "Input source id regex."
+                  },
+                  "input_mode_id": {
+                    "type": "string",
+                    "description": "Input mode id regex."
+                  }
+                },
+                "additionalProperties": false,
+                "minProperties": 1
+              }
+            }
+          ]
+        },
+        "set_variable": {
+          "$ref": "#/$defs/setVariable"
+        },
+        "set_notification_message": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Unique id; reuse it to update or clear the message."
+            },
+            "text": {
+              "type": "string",
+              "description": "Empty string removes the message. Always clear what you set."
+            },
+            "duration_milliseconds": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "KE 16.1.18+."
+            }
+          },
+          "required": [
+            "id",
+            "text"
+          ],
+          "additionalProperties": false
+        },
+        "mouse_key": {
+          "$ref": "#/$defs/mouseKey"
+        },
+        "sticky_modifier": {
+          "type": "object",
+          "description": "Exactly one modifier per entry; repeat the entry for multiple sticky modifiers.",
+          "properties": {
+            "left_control": {
+              "enum": [
+                "on",
+                "off",
+                "toggle"
+              ]
+            },
+            "left_shift": {
+              "enum": [
+                "on",
+                "off",
+                "toggle"
+              ]
+            },
+            "left_option": {
+              "enum": [
+                "on",
+                "off",
+                "toggle"
+              ]
+            },
+            "left_command": {
+              "enum": [
+                "on",
+                "off",
+                "toggle"
+              ]
+            },
+            "right_control": {
+              "enum": [
+                "on",
+                "off",
+                "toggle"
+              ]
+            },
+            "right_shift": {
+              "enum": [
+                "on",
+                "off",
+                "toggle"
+              ]
+            },
+            "right_option": {
+              "enum": [
+                "on",
+                "off",
+                "toggle"
+              ]
+            },
+            "right_command": {
+              "enum": [
+                "on",
+                "off",
+                "toggle"
+              ]
+            },
+            "fn": {
+              "enum": [
+                "on",
+                "off",
+                "toggle"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "minProperties": 1,
+          "maxProperties": 1
+        },
+        "software_function": {
+          "$ref": "#/$defs/softwareFunction"
+        },
+        "modifiers": {
+          "description": "Modifiers posted with the event. Here command/control/option/shift are aliases of the LEFT variants (in `from` they mean either side). \"any\" parses but adds no flag.",
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "caps_lock",
+                  "left_command",
+                  "left_control",
+                  "left_option",
+                  "left_shift",
+                  "right_command",
+                  "right_control",
+                  "right_option",
+                  "right_shift",
+                  "fn",
+                  "command",
+                  "control",
+                  "option",
+                  "shift",
+                  "left_alt",
+                  "left_gui",
+                  "right_alt",
+                  "right_gui",
+                  "any"
+                ]
+              }
+            },
+            {
+              "type": "string",
+              "enum": [
+                "caps_lock",
+                "left_command",
+                "left_control",
+                "left_option",
+                "left_shift",
+                "right_command",
+                "right_control",
+                "right_option",
+                "right_shift",
+                "fn",
+                "command",
+                "control",
+                "option",
+                "shift",
+                "left_alt",
+                "left_gui",
+                "right_alt",
+                "right_gui",
+                "any"
+              ]
+            }
+          ]
+        },
+        "lazy": {
+          "type": "boolean",
+          "default": false,
+          "description": "Modifier is not sent until another key is pressed with it."
+        },
+        "repeat": {
+          "type": "boolean",
+          "default": true,
+          "description": "false suppresses key repeat and sends key_down+key_up at press time."
+        },
+        "halt": {
+          "type": "boolean",
+          "default": false,
+          "description": "In to_if_alone / to_if_held_down: cancel to_after_key_up and to_delayed_action."
+        },
+        "hold_down_milliseconds": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "Gap between key_down and key_up when both are sent at once (caps_lock needs ~200)."
+        },
+        "held_down_milliseconds": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Undocumented alias of hold_down_milliseconds accepted by the parser."
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          },
+          "description": "KE 15.3.7+. Evaluated once, before the first event of the `to` array is processed."
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "key_code"
+          ]
+        },
+        {
+          "required": [
+            "consumer_key_code"
+          ]
+        },
+        {
+          "required": [
+            "apple_vendor_keyboard_key_code"
+          ]
+        },
+        {
+          "required": [
+            "apple_vendor_top_case_key_code"
+          ]
+        },
+        {
+          "required": [
+            "generic_desktop"
+          ]
+        },
+        {
+          "required": [
+            "pointing_button"
+          ]
+        },
+        {
+          "required": [
+            "any"
+          ]
+        },
+        {
+          "required": [
+            "from_event"
+          ]
+        },
+        {
+          "required": [
+            "shell_command"
+          ]
+        },
+        {
+          "required": [
+            "send_user_command"
+          ]
+        },
+        {
+          "required": [
+            "select_input_source"
+          ]
+        },
+        {
+          "required": [
+            "set_variable"
+          ]
+        },
+        {
+          "required": [
+            "set_notification_message"
+          ]
+        },
+        {
+          "required": [
+            "mouse_key"
+          ]
+        },
+        {
+          "required": [
+            "sticky_modifier"
+          ]
+        },
+        {
+          "required": [
+            "software_function"
+          ]
+        }
+      ],
+      "description": "Exactly one event key per entry (key_code, shell_command, set_variable, software_function, ...)."
+    },
+    "toIfOtherKeyPressedEntry": {
+      "type": "object",
+      "properties": {
+        "other_keys": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/fromEventDefinition"
+          }
+        },
+        "to": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/toEventDefinition"
+          },
+          "description": "Must be an array here; the single-object shorthand is not accepted by this parser."
+        }
+      },
+      "required": [
+        "other_keys",
+        "to"
+      ],
+      "additionalProperties": false
+    },
+    "toDelayedAction": {
+      "type": "object",
+      "description": "Fires basic.to_delayed_action_delay_milliseconds (default 500) after `from` is pressed.",
+      "properties": {
+        "to_if_invoked": {
+          "description": "Sent when no other key was pressed before the delay elapsed.",
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/toEventDefinition"
+              }
+            },
+            {
+              "$ref": "#/$defs/toEventDefinition"
+            }
+          ]
+        },
+        "to_if_canceled": {
+          "description": "Sent when another key was pressed first.",
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/toEventDefinition"
+              }
+            },
+            {
+              "$ref": "#/$defs/toEventDefinition"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "minProperties": 1
+    },
+    "parameters": {
+      "type": "object",
+      "description": "Valid at profile complex_modifications level and per-manipulator. Out-of-range values are clamped with a log warning, not rejected.",
+      "properties": {
+        "basic.simultaneous_threshold_milliseconds": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000,
+          "default": 50,
+          "description": "Window for from.simultaneous. Clamped to 0..1000."
+        },
+        "basic.to_if_alone_timeout_milliseconds": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 1000,
+          "description": "Holding longer than this cancels to_if_alone."
+        },
+        "basic.to_if_held_down_threshold_milliseconds": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 500
+        },
+        "basic.to_delayed_action_delay_milliseconds": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 500
+        },
+        "mouse_motion_to_scroll.speed": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000,
+          "default": 100,
+          "description": "Percent; the runtime divides by 100. Profile-level parameter."
+        }
+      },
+      "additionalProperties": false
+    },
+    "condition": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "frontmost_application_if",
+            "frontmost_application_unless",
+            "device_if",
+            "device_unless",
+            "device_exists_if",
+            "device_exists_unless",
+            "keyboard_type_if",
+            "keyboard_type_unless",
+            "input_source_if",
+            "input_source_unless",
+            "variable_if",
+            "variable_unless",
+            "expression_if",
+            "expression_unless",
+            "event_changed_if",
+            "event_changed_unless"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "frontmost_application_if",
+                  "frontmost_application_unless"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/conditionFrontmostApplication"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "device_if",
+                  "device_unless",
+                  "device_exists_if",
+                  "device_exists_unless"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/conditionDevice"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "keyboard_type_if",
+                  "keyboard_type_unless"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/conditionKeyboardType"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "input_source_if",
+                  "input_source_unless"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/conditionInputSource"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "variable_if",
+                  "variable_unless"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/conditionVariable"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "expression_if",
+                  "expression_unless"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/conditionExpression"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "event_changed_if",
+                  "event_changed_unless"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/conditionEventChanged"
+          }
+        }
+      ]
+    },
+    "conditionFrontmostApplication": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "frontmost_application_if",
+            "frontmost_application_unless"
+          ]
+        },
+        "bundle_identifiers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Regexes, ORed. Escape dots: \"^com\\\\.apple\\\\.Terminal$\"."
+        },
+        "file_paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Regexes, ORed."
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "anyOf": [
+        {
+          "required": [
+            "bundle_identifiers"
+          ]
+        },
+        {
+          "required": [
+            "file_paths"
+          ]
+        }
+      ],
+      "additionalProperties": false
+    },
+    "conditionDevice": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "device_if",
+            "device_unless",
+            "device_exists_if",
+            "device_exists_unless"
+          ],
+          "description": "device_exists_* (KE 14.8.4+) test connection, not event origin."
+        },
+        "identifiers": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Entries are ORed; keys inside one entry are ANDed.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "vendor_id": {
+                "type": "integer",
+                "description": "Decimal, from EventViewer > Devices."
+              },
+              "product_id": {
+                "type": "integer"
+              },
+              "location_id": {
+                "type": "integer",
+                "description": "Changes when the USB port changes."
+              },
+              "device_address": {
+                "type": "string",
+                "description": "Bluetooth MAC (KE 14.12.2+); changes with hardware replacement."
+              },
+              "is_keyboard": {
+                "type": "boolean"
+              },
+              "is_pointing_device": {
+                "type": "boolean"
+              },
+              "is_game_pad": {
+                "type": "boolean",
+                "description": "KE 14.12.4+."
+              },
+              "is_consumer": {
+                "type": "boolean",
+                "description": "KE 15.3.18+."
+              },
+              "is_touch_bar": {
+                "type": "boolean"
+              },
+              "is_built_in_keyboard": {
+                "type": "boolean",
+                "description": "KE 14.8.2+."
+              },
+              "is_virtual_device": {
+                "type": "boolean",
+                "description": "Accepted by the device_identifiers parser."
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "minProperties": 1
+          }
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "identifiers"
+      ],
+      "additionalProperties": false
+    },
+    "conditionKeyboardType": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "keyboard_type_if",
+            "keyboard_type_unless"
+          ]
+        },
+        "keyboard_types": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "ansi",
+              "iso",
+              "jis"
+            ]
+          },
+          "description": "ORed. Refers to the VIRTUAL keyboard type, not the physical device."
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "keyboard_types"
+      ],
+      "additionalProperties": false
+    },
+    "conditionInputSource": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "input_source_if",
+            "input_source_unless"
+          ]
+        },
+        "input_sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "description": "Regex specifiers; multiple keys within one object are ANDed.",
+            "properties": {
+              "language": {
+                "type": "string",
+                "description": "Language regex, e.g. \"^en$\"."
+              },
+              "input_source_id": {
+                "type": "string",
+                "description": "Input source id regex."
+              },
+              "input_mode_id": {
+                "type": "string",
+                "description": "Input mode id regex."
+              }
+            },
+            "additionalProperties": false,
+            "minProperties": 1
+          },
+          "description": "Entries are ORed; keys inside one entry are ANDed."
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "input_sources"
+      ],
+      "additionalProperties": false
+    },
+    "conditionVariable": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "variable_if",
+            "variable_unless"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": [
+            "integer",
+            "boolean",
+            "string"
+          ],
+          "description": "Strict type match: 1 != true, true != \"true\". Unset variables evaluate as 0."
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "name",
+        "value"
+      ],
+      "additionalProperties": false
+    },
+    "conditionExpression": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "expression_if",
+            "expression_unless"
+          ]
+        },
+        "expression": {
+          "type": "string",
+          "description": "exprtk syntax. Undefined variables are 0. system.* and accessibility.* variables are available."
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "expression"
+      ],
+      "additionalProperties": false
+    },
+    "conditionEventChanged": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "event_changed_if",
+            "event_changed_unless"
+          ]
+        },
+        "value": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "value"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

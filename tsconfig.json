@@ -23,5 +23,5 @@
     "types": ["node"]
   },
   "include": ["src"],
-  "exclude": ["node_modules", "**/node_modules/*", "docs", "docs/**"]
+  "exclude": ["node_modules", "**/node_modules/*", "docs", "docs/**", "schema", "schema/**", "ref", "ref/**"]
 }

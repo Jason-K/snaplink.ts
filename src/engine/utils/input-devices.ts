@@ -1,4 +1,5 @@
 import type { Trigger } from "../../data";
+import type { PointingButton } from "../../types/karabiner";
 import { BUTTONS, BUTTON_DESCS, type ButtonSpec } from "../../data/constants/mouse";
 import { resolveModifiers } from "./modifier-utils";
 
@@ -27,14 +28,15 @@ export const triggerSignature = ioSignature;
 
 /** Resolve a pointer alias (or raw button id) → button + nameScope + label. */
 export function resolveButton(pointer: string): {
-  button: string;
+  button: PointingButton;
   nameScope?: ButtonSpec["nameScope"];
   desc: string;
 } {
   const spec = (BUTTONS as Record<string, ButtonSpec>)[pointer];
   if (spec)
     return { button: spec.button, nameScope: spec.nameScope, desc: spec.desc };
-  return { button: pointer, desc: BUTTON_DESCS[pointer] ?? pointer };
+  // `button1`..`button255` only; anything else fails schema validation.
+  return { button: pointer as PointingButton, desc: BUTTON_DESCS[pointer] ?? pointer };
 }
 
 export function isPointerButton(pointer: string): boolean {

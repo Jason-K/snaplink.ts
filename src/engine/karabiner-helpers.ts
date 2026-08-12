@@ -10,6 +10,7 @@ import type {
   FromEvent,
   FromKeyType,
   FromModifiers,
+  KeyCode,
   Manipulator,
   Modifier,
   PointingButton,
@@ -192,12 +193,25 @@ export function ifApp(
   description?: string,
 ): ConditionBuilder {
   if (typeof apps === 'object' && !Array.isArray(apps)) {
-    return new ConditionBuilder({
-      type: 'frontmost_application_if',
-      ...(apps.bundle_identifiers ? { bundle_identifiers: apps.bundle_identifiers } : {}),
-      ...(apps.file_paths ? { file_paths: apps.file_paths } : {}),
-      ...withDescription(description),
-    });
+    // The schema requires at least one of the two arrays (8.1), which the
+    // spread form cannot prove — so branch on which one is present.
+    const { bundle_identifiers, file_paths } = apps;
+    if (bundle_identifiers) {
+      return new ConditionBuilder({
+        type: 'frontmost_application_if',
+        bundle_identifiers,
+        ...(file_paths ? { file_paths } : {}),
+        ...withDescription(description),
+      });
+    }
+    if (file_paths) {
+      return new ConditionBuilder({
+        type: 'frontmost_application_if',
+        file_paths,
+        ...withDescription(description),
+      });
+    }
+    throw new Error('ifApp: one of bundle_identifiers or file_paths is required');
   }
   const bundle_identifiers = Array.isArray(apps) ? apps : [apps];
   return new ConditionBuilder({
@@ -350,7 +364,7 @@ export class BasicManipulatorBuilder {
  * it is not re-exported from the engine barrel.
  */
 export function map(
-  fromParam: string | FromEvent,
+  fromParam: KeyCode | FromEvent,
   mandatoryModifiers?: Modifier[],
   optionalModifiers?: Modifier[],
 ): BasicManipulatorBuilder {
@@ -370,7 +384,7 @@ export function map(
 }
 
 export function mapSimultaneous(
-  keys: (string | FromKeyType)[],
+  keys: (KeyCode | FromKeyType)[],
   options?: SimultaneousOptions,
   thresholdMs?: number,
 ): BasicManipulatorBuilder {

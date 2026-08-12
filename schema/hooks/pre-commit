@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+#
+# Karabiner config pre-commit hook.
+#
+# Validates the staged karabiner-output.json against karabiner-rule.schema.json,
+# and any staged complex_modifications asset file. Reads blobs from the index, so
+# what is checked is what is committed, not what happens to be in the worktree.
+#
+# Optional drift check (off by default, it touches the worktree):
+#   KARABINER_HOOK_REGEN=1 git commit ...
+# regenerates the output with CI=true (dry-run: never writes karabiner.json) and
+# fails if the committed file is stale.
+#
+# Bypass:  git commit --no-verify
+# Skip:    KARABINER_HOOK_SKIP=1 git commit ...
+
+set -euo pipefail
+
+SCHEMA_DIR="${KARABINER_SCHEMA_DIR:-$HOME/Scripts/apps/karabiner/snaplink.ts/schema}"
+VALIDATOR="$SCHEMA_DIR/validate_karabiner.py"
+VENV_PY="$HOME/Scripts/.venv/shared_venv/bin/python3"
+LOG_DIR="$HOME/Library/Logs/Scripts/karabiner-schema"
+LOG_FILE="$LOG_DIR/log.txt"
+OUTPUT_FILE="karabiner-output.json"
+
+TMPDIR_HOOK=""
+REGEN_BACKUP=""
+
+cleanup() {
+    local status=$?
+    if [[ -n "$REGEN_BACKUP" && -f "$REGEN_BACKUP" ]]; then
+        mv -f "$REGEN_BACKUP" "$OUTPUT_FILE"
+    fi
+    if [[ -n "$TMPDIR_HOOK" && -d "$TMPDIR_HOOK" ]]; then
+        rm -rf "$TMPDIR_HOOK"
+    fi
+    exit "$status"
+}
+trap cleanup EXIT
+
+log() {
+    mkdir -p "$LOG_DIR"
+    printf '%s pre-commit %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" >> "$LOG_FILE"
+}
+
+die() {
+    printf '✗ karabiner pre-commit: %s\n' "$*" >&2
+    log "FAIL $*"
+    exit 1
+}
+
+if [[ "${KARABINER_HOOK_SKIP:-0}" == "1" ]]; then
+    echo "karabiner pre-commit: skipped (KARABINER_HOOK_SKIP=1)"
+    exit 0
+fi
+
+if [[ -x "$VENV_PY" ]]; then
+    PYTHON="$VENV_PY"
+elif command -v python3 >/dev/null 2>&1; then
+    PYTHON="$(command -v python3)"
+else
+    die "no python3 found"
+fi
+
+[[ -f "$VALIDATOR" ]] || die "validator not found at $VALIDATOR (set KARABINER_SCHEMA_DIR)"
+
+if ! "$PYTHON" -c 'import jsonschema' >/dev/null 2>&1; then
+    die "jsonschema not installed for $PYTHON — run: make -C '$SCHEMA_DIR' deps"
+fi
+
+# Staged files, added/copied/modified/renamed only.
+mapfile -t STAGED < <(git diff --cached --name-only --diff-filter=ACMR)
+[[ ${#STAGED[@]} -gt 0 ]] || exit 0
+
+needs_check=0
+asset_files=()
+for file in "${STAGED[@]}"; do
+    case "$file" in
+        "$OUTPUT_FILE") needs_check=1 ;;
+        src/*) needs_check=1 ;;
+        *complex_modifications/*.json) asset_files+=("$file") ;;
+    esac
+done
+
+if [[ "$needs_check" -eq 0 && ${#asset_files[@]} -eq 0 ]]; then
+    exit 0
+fi
+
+TMPDIR_HOOK="$(mktemp -d "${TMPDIR:-/tmp}/karabiner-hook.XXXXXX")"
+
+# 1. Validate the staged build output.
+if git ls-files --cached --error-unmatch "$OUTPUT_FILE" >/dev/null 2>&1; then
+    staged_output="$TMPDIR_HOOK/$OUTPUT_FILE"
+    git show ":$OUTPUT_FILE" > "$staged_output"
+    if ! "$PYTHON" "$VALIDATOR" --quiet --node output "$staged_output" 2>"$TMPDIR_HOOK/err.txt"; then
+        sed "s|$TMPDIR_HOOK/|(staged) |" "$TMPDIR_HOOK/err.txt" >&2
+        die "$OUTPUT_FILE failed schema validation"
+    fi
+    echo "✓ karabiner pre-commit: $OUTPUT_FILE valid"
+fi
+
+# 2. Validate any staged complex_modifications asset files.
+for file in "${asset_files[@]}"; do
+    staged_asset="$TMPDIR_HOOK/$(basename "$file")"
+    git show ":$file" > "$staged_asset"
+    if ! "$PYTHON" "$VALIDATOR" --quiet --node file "$staged_asset" 2>"$TMPDIR_HOOK/err.txt"; then
+        sed "s|$TMPDIR_HOOK/|(staged) |" "$TMPDIR_HOOK/err.txt" >&2
+        die "$file failed schema validation"
+    fi
+    echo "✓ karabiner pre-commit: $file valid"
+done
+
+# 3. Optional drift check: is the committed output current with src/?
+if [[ "${KARABINER_HOOK_REGEN:-0}" == "1" && "$needs_check" -eq 1 ]]; then
+    command -v npm >/dev/null 2>&1 || die "npm not found (needed for KARABINER_HOOK_REGEN)"
+    if [[ -f "$OUTPUT_FILE" ]]; then
+        REGEN_BACKUP="$TMPDIR_HOOK/worktree-output.json"
+        cp -p "$OUTPUT_FILE" "$REGEN_BACKUP"
+    fi
+    # CI=true forces the dry-run path: karabiner.json is never written.
+    if ! CI=true npm run --silent generate >"$TMPDIR_HOOK/generate.log" 2>&1; then
+        cat "$TMPDIR_HOOK/generate.log" >&2
+        die "build failed"
+    fi
+    if ! diff -q "$OUTPUT_FILE" "$TMPDIR_HOOK/$OUTPUT_FILE" >/dev/null 2>&1; then
+        die "$OUTPUT_FILE is stale — run 'npm run generate' and stage the result"
+    fi
+    echo "✓ karabiner pre-commit: $OUTPUT_FILE current with src/"
+fi
+
+log "OK ${#STAGED[@]} staged file(s)"
+exit 0

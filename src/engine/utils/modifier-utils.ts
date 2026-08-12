@@ -1,4 +1,4 @@
-import type { Modifier } from "../../types/karabiner";
+import type { KeyCode, Modifier } from "../../types/karabiner";
 import type { TriggerModifiers } from "../../data";
 import { MODKEY_CODES, VM, type ModComboAlias } from "../../data/constants/keys";
 
@@ -39,8 +39,8 @@ export function isModComboAlias(alias: string): boolean {
  * - `L.shift` / `L_shift` → `"left_shift"`
  * - `R.shift` / `R_shift` → `"right_shift"`
  */
-export function resolveKeyAlias(key: string): string {
-  if (!key) return key;
+export function resolveKeyAlias(key: string): KeyCode {
+  if (!key) return key as KeyCode;
 
   let sidePrefix = "";
   let baseKey = key;
@@ -65,7 +65,11 @@ export function resolveKeyAlias(key: string): string {
     baseKey = "control";
   }
 
-  return `${sidePrefix}${baseKey}`;
+  // Asserted, not proven: the alias table maps onto Karabiner names, but the
+  // fall-through returns the caller's string unchanged. A name Karabiner does
+  // not know is caught by `make validate` against the schema, which is the
+  // layer that owns key-name validity.
+  return `${sidePrefix}${baseKey}` as KeyCode;
 }
 
 export function isModifierKey(key: string): boolean {

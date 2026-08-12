@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import type { Binding } from "../data";
-import type { BasicManipulator, Manipulator } from "../types/karabiner";
+import type { CapsLayerConfig } from "../engine/caps-layer";
+import type { BasicManipulator, KeyCode, Manipulator } from "../types/karabiner";
 import {
   CAPS_LAYER_KEYS,
   CAPS_LAYER_STATES,
@@ -39,7 +40,7 @@ const CONFIG = {
   usedVar: USED,
   tapKey: "f24",
   keys: ["a", "spacebar"],
-};
+} satisfies CapsLayerConfig;
 
 function manipulators(): BasicManipulator[] {
   return defineBindings(capsLayer(CONFIG)).flatMap(
@@ -206,7 +207,7 @@ test("nothing in the layer depends on press order", () => {
 });
 
 test("the layer covers letters, digits, symbols, function, navigation and keypad keys", () => {
-  const covered = [
+  const covered: readonly KeyCode[] = [
     "a", "z", "0", "9", "slash", "f1", "f24", "spacebar", "escape",
     "page_down", "up_arrow",
     // Simple modifications run before complex ones, so a per-device keypad
@@ -504,7 +505,7 @@ test("an adopted multi-tap gets its own pending-tap variable", () => {
   const pending = allFor(adopting(source), "a", null)
     .flatMap((m) => m.conditions ?? [])
     .filter((c) => c.type === "variable_if" && (c as any).name !== PRESSED.name)
-    .map((c) => (c as { expression: string }).name as string);
+    .map((c) => (c as { name: string }).name);
 
   assert.deepEqual(
     [...new Set(pending)],

@@ -13,13 +13,14 @@ export * from "./resolve-script";
 
 /** Normalize path quoting inside any shell command an action produced. */
 function normalizeToEvent(event: ToEvent): ToEvent {
-  if (event && typeof event === "object" && "shell_command" in event) {
-    return {
-      ...event,
-      shell_command: ensurePathQuotingInCommand(event.shell_command),
-    };
-  }
-  return event;
+  if (!event || typeof event !== "object" || !("shell_command" in event)) return event;
+  // Destructure rather than spread-and-override: spreading a `ExactlyOne` union
+  // widens it back to "every member's keys at once", which no member satisfies.
+  const { shell_command, ...rest } = event;
+  // Asserted: rebuilding a union member from its own rest object drops the
+  // `?: never` siblings that make it exclusive. This rewrites one string field
+  // of an event that was already a valid `ToEvent`, so its member cannot change.
+  return { ...rest, shell_command: ensurePathQuotingInCommand(shell_command) } as ToEvent;
 }
 
 /**
