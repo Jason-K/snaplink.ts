@@ -37,14 +37,14 @@ const numBindings: Binding[] = [
 
 const letterBindings: Binding[] = [
   bind(from("a"), to(hold(key("f18", VM.COCS)))),
-  bind(from("c"), to(hold(map(COMBOS.showBusyCal)))),
+  bind(from("c"), to(hold(app(APPS.claude, "shell")))),
   bind(from("d"), to(hold(key("f1", VM.CO_S)))),
   bind(from("f"), to(hold(actHere("qspace")))),
-  bind(from("g"), to(hold(app(APPS.claude, "shell")))),
+  bind(from("g"), to(hold(map(COMBOS.showGlyphlow)))),
   bind(from("h"), to(hold(url(URLS.rayHere2There)))),
   bind(from("j"), to(hold(url(URLS.rayRecentDownloads)))),
   bind(from("k"), to(hold(app(APPS.kitty)))),
-  bind(from("n"), to(hold(url(URLS.newClientNote, true)))),
+  bind(from("n"), to(hold(shell(CMDS.neruHints)))),
   bind(from("o"), to(hold(url(URLS.csxOcrNoLinebreaks)))),
   bind(from("p"), to(hold(map(COMBOS.showPopclip)))),
   bind(from("q"), to(hold(app(APPS.qspace)))),

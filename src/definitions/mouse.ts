@@ -20,6 +20,7 @@ import {
   type Binding,
   button,
 } from "../engine";
+import type { PointerTweak } from "../data";
 
 /**
  * G502X mouse mappings authored as plain `Binding[]` literals and consumed by
@@ -227,4 +228,30 @@ export const mouseBindings: Binding[] = [
       timing: { holdMs: 0 },
     }),
   ),
+];
+
+/**
+ * Pointer tweaks — the two Karabiner manipulator types that are not `basic`.
+ *
+ * These carry no `from` key and no `to` events, so they are not `Binding`s and
+ * do not pass through the resolve pipeline. `src/config.ts` collects them into
+ * `POINTER_TWEAKS` and emits them directly.
+ *
+ * Anything added here is live the moment it is built, and both manipulator
+ * types can leave a machine undriveable if mis-scoped (gotchas 1.2, 1.3). Keep
+ * every entry scoped, and test with the built-in trackpad available.
+ */
+export const pointerTweaks: PointerTweak[] = [
+  {
+    kind: "motionToScroll",
+    description: "Hold fn and move the pointer to scroll",
+    // `fn` is what scopes this: without modifiers *and* without conditions, all
+    // pointer motion becomes scrolling permanently (1.3).
+    //
+    // `optional: ["any"]` matters as much as the mandatory half — without it
+    // the rule silently stops firing the moment any other modifier is held,
+    // which is the most common cause of "my rule doesn't work" (3.2). Here that
+    // would mean fn+shift+move doing nothing.
+    modifiers: { mandatory: ["fn"], optional: ["any"] },
+  },
 ];

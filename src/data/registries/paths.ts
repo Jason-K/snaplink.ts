@@ -112,6 +112,7 @@ const BIN_FILES = {
     "PrivilegesCLI",
   ),
   binHS: path(`${BIN_DIRS.brewBin.path}/hs`, "Hammerspoon binary"),
+  binNeru: path(`${BIN_DIRS.brewBin.path}/neru`, "Neru binary"),
   binSendKeys: path(`${BIN_DIRS.brewBin.path}/SendKeys`, "Sendkeys"),
   binSharedVenv: path(`${ENV_DIRS.sharedVenv.path}/bin/python`, "shared venv python"),
   binTypinatorVenv: path(

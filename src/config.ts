@@ -13,6 +13,7 @@ import {
   guardBindings,
   mouseBindings,
   NUMPAD_REMAPS,
+  pointerTweaks,
   simultaneousMappings,
   tapHoldBindings,
 } from "./definitions";
@@ -75,7 +76,7 @@ export const CAPS_LAYER_SET: { name: string; bindings: Binding[] } = {
  * Test any addition with a second pointing device attached, or with the
  * built-in trackpad available as a fallback.
  */
-export const POINTER_TWEAKS: PointerTweak[] = [];
+export const POINTER_TWEAKS: PointerTweak[] = pointerTweaks;
 
 /** Device-scoped settings and simple modifications. */
 export const DEVICE_CONFIGS: DeviceConfig[] = [

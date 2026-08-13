@@ -22,6 +22,7 @@ const HK_REGISTRY = {
   selectWordRight: mapSpec("right_arrow", VM._O_S, "select word forward"),
   selectLine: mapSpec([["left_arrow", ["L.cmd"]], ["right_arrow", VM.C__S]], "select text to the end of line"),
   showBusyCal: mapSpec("7", VM.CO_S, "show busycal popup", { app: "com.busymac.busycal-setapp", options: { repeat: false } }),
+  showGlyphlow: mapSpec("g", VM.COCS, "show glyphlow", { app: "glyphlow", options: { repeat: false } }),
   showKittyQuakeTerm: mapSpec("f11", VM._OCS, "show kitty quake terminal", { app: APPS.kitty, options: { repeat: false } }),
   showMissionControl: mapSpec(["vk_mission_control", "vk_none"], "show mission control"),
   showPopclip: mapSpec("f9", VM.COCS, "show showPopclip", { app: "com.pilotmoon.showPopclip", options: { repeat: false } }),

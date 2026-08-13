@@ -171,6 +171,14 @@ const App_Specific = {
     `osascript -e 'tell application "Popclip" to appear'`,
     "Show Popclip at cursor position",
   ),
+  neruGrid: cmdEntry(
+    `'${PATHS.binNeru.path}' grid`,
+    "Show Neru Grid"
+  ),
+  neruHints: cmdEntry(
+    `'${PATHS.binNeru.path}' hints`,
+    "Show Neru Hints"
+  ),
 
 };
 

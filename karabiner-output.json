@@ -25144,7 +25144,7 @@
         ]
       },
       {
-        "description": "[C]:\n---\n\tOn Hold:\n\t\tAlways:\tmap 'show busycal popup'",
+        "description": "[C]:\n---\n\tOn Hold:\n\t\tAlways:\topen-shell Claude",
         "manipulators": [
           {
             "type": "basic",
@@ -25163,13 +25163,7 @@
             "to_if_held_down": [
               {
                 "halt": true,
-                "repeat": false,
-                "key_code": "7",
-                "modifiers": [
-                  "command",
-                  "option",
-                  "shift"
-                ]
+                "shell_command": "\"/Users/jason/.local/bin/open-app\" -b 'com.anthropic.claudefordesktop'"
               }
             ],
             "to_delayed_action": {
@@ -25908,7 +25902,7 @@
         ]
       },
       {
-        "description": "[G]:\n---\n\tOn Hold:\n\t\tAlways:\topen-shell Claude",
+        "description": "[G]:\n---\n\tOn Hold:\n\t\tAlways:\tmap 'show glyphlow'",
         "manipulators": [
           {
             "type": "basic",
@@ -25927,7 +25921,14 @@
             "to_if_held_down": [
               {
                 "halt": true,
-                "shell_command": "\"/Users/jason/.local/bin/open-app\" -b 'com.anthropic.claudefordesktop'"
+                "repeat": false,
+                "key_code": "g",
+                "modifiers": [
+                  "command",
+                  "option",
+                  "control",
+                  "shift"
+                ]
               }
             ],
             "to_delayed_action": {
@@ -26769,7 +26770,7 @@
         ]
       },
       {
-        "description": "[N]:\n---\n\tOn Hold:\n\t\tAlways:\tOpen 'new client note template'",
+        "description": "[N]:\n---\n\tOn Hold:\n\t\tAlways:\tRun 'Show Neru Hints'",
         "manipulators": [
           {
             "type": "basic",
@@ -26788,7 +26789,7 @@
             "to_if_held_down": [
               {
                 "halt": true,
-                "shell_command": "open -g 'sidenotes://add-note-with-text/DATE%3A%20%0ACLIENT%3A%20%0ATOPIC%3A%20%0A%0A'"
+                "shell_command": "'/opt/homebrew/bin/neru' hints"
               }
             ],
             "to_delayed_action": {
@@ -28815,6 +28816,25 @@
                 ]
               }
             ]
+          }
+        ]
+      },
+      {
+        "description": "Hold fn and move the pointer to scroll",
+        "manipulators": [
+          {
+            "type": "mouse_motion_to_scroll",
+            "from": {
+              "modifiers": {
+                "mandatory": [
+                  "fn"
+                ],
+                "optional": [
+                  "any"
+                ]
+              }
+            },
+            "description": "Hold fn and move the pointer to scroll"
           }
         ]
       }

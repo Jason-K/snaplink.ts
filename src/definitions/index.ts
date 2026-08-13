@@ -7,7 +7,7 @@ import { singleKeyTapHoldBindings } from "./single-key";
 export { buildCapsLockBindings, capsVars } from "./caps-lock";
 export { disabledHotkeys } from "./disable-hotkeys";
 export { antinoteGuardBinding, globalGuardBinding, guardBindings } from "./guards";
-export { mouseBindings } from "./mouse";
+export { mouseBindings, pointerTweaks } from "./mouse";
 
 /** All tap-hold bindings. */
 export const tapHoldBindings: Binding[] = [
