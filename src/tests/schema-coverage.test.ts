@@ -22,8 +22,6 @@ import { schemaCoverage } from "../coverage";
  * has no wrapper for — a candidate to add, not a defect.
  */
 const KNOWN_UNWIRED = new Set([
-  "manipulator type:mouse_basic",
-  "manipulator type:mouse_motion_to_scroll",
   "from:apple_vendor_keyboard_key_code",
   "from:apple_vendor_top_case_key_code",
   "from:generic_desktop",
@@ -33,7 +31,6 @@ const KNOWN_UNWIRED = new Set([
   "to action:generic_desktop",
   "to action:select_input_source",
   "to action:set_notification_message",
-  "to action:mouse_key",
   "to option:held_down_milliseconds",
 ]);
 

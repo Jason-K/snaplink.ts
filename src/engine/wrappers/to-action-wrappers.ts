@@ -14,6 +14,7 @@ import type {
   UrlSpec,
   VarSpec,
 } from "../../data";
+import type { ToMouseKey } from "../../types/karabiner";
 import { resolveKeyAlias } from "../utils";
 
 /**
@@ -580,6 +581,72 @@ export function key(
     options: finalOptions,
     ...(actionDesc ? { actionDesc } : {}),
   };
+}
+
+/**
+ * Move the pointer while the key is held, in directions rather than signs.
+ *
+ * Values are Karabiner mouse-key units, not pixels, and the actual speed also
+ * depends on System Settings > Mouse (gotcha 6.10).
+ *
+ * @example
+ * ```ts
+ * mouseMove({ right: 1536 })
+ * mouseMove({ up: 1536, speedMultiplier: 2 })
+ * ```
+ */
+export function mouseMove(
+  opts: { left?: number; right?: number; up?: number; down?: number; speedMultiplier?: number },
+  actionDesc?: string,
+): ActionSpec {
+  const x = (opts.right ?? 0) - (opts.left ?? 0);
+  const y = (opts.down ?? 0) - (opts.up ?? 0);
+  const mouseKey: ToMouseKey = {
+    ...(x ? { x } : {}),
+    ...(y ? { y } : {}),
+    ...(opts.speedMultiplier !== undefined ? { speed_multiplier: opts.speedMultiplier } : {}),
+  } as ToMouseKey;
+  if (!Object.keys(mouseKey).length) {
+    throw new Error("mouseMove: name at least one direction or a speedMultiplier");
+  }
+  return { type: "mouseKey", mouseKey, ...(actionDesc ? { actionDesc } : {}) };
+}
+
+/**
+ * Scroll while the key is held, in directions rather than signs.
+ *
+ * The sign conventions are the trap this wrapper exists to remove:
+ * `vertical_wheel > 0` scrolls **down** but `horizontal_wheel > 0` scrolls
+ * **left** — the horizontal axis is inverted relative to the vertical one
+ * (gotcha 6.10). Scroll direction also follows System Settings > Mouse.
+ *
+ * @example
+ * ```ts
+ * mouseScroll({ down: 64 })
+ * mouseScroll({ right: 32 })
+ * ```
+ */
+export function mouseScroll(
+  opts: { up?: number; down?: number; left?: number; right?: number; speedMultiplier?: number },
+  actionDesc?: string,
+): ActionSpec {
+  const vertical_wheel = (opts.down ?? 0) - (opts.up ?? 0);
+  // Inverted on purpose: positive horizontal_wheel scrolls left.
+  const horizontal_wheel = (opts.left ?? 0) - (opts.right ?? 0);
+  const mouseKey: ToMouseKey = {
+    ...(vertical_wheel ? { vertical_wheel } : {}),
+    ...(horizontal_wheel ? { horizontal_wheel } : {}),
+    ...(opts.speedMultiplier !== undefined ? { speed_multiplier: opts.speedMultiplier } : {}),
+  } as ToMouseKey;
+  if (!Object.keys(mouseKey).length) {
+    throw new Error("mouseScroll: name at least one direction or a speedMultiplier");
+  }
+  return { type: "mouseKey", mouseKey, ...(actionDesc ? { actionDesc } : {}) };
+}
+
+/** Raw `to.mouse_key`. Prefer {@link mouseMove} / {@link mouseScroll}. */
+export function mouseKey(spec: ToMouseKey, actionDesc?: string): ActionSpec {
+  return { type: "mouseKey", mouseKey: spec, ...(actionDesc ? { actionDesc } : {}) };
 }
 
 /**

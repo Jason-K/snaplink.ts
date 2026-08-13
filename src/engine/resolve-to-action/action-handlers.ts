@@ -9,7 +9,7 @@
  * hand-maintained `Set` of tag strings that nothing kept in sync.
  */
 
-import type { ToEvent } from "../../types/karabiner";
+import type { ToEvent, ToMouseKey } from "../../types/karabiner";
 import type { Action, ActionSpec } from "../../data";
 import { FINDER_REPLACEMENT } from "../../data/constants/global";
 import { expandModifiers, resolveButton, resolveKeyAlias } from "../utils";
@@ -78,6 +78,23 @@ function pythonCommandFor(a: OfType<"python">): string {
   });
 }
 
+/**
+ * Human label for a `mouse_key`, in directions rather than signs.
+ *
+ * Karabiner's axis conventions are not uniform: `y > 0` moves the pointer down
+ * and `vertical_wheel > 0` scrolls down, but `horizontal_wheel > 0` scrolls
+ * **left** (gotcha 6.10). Reading a raw spec back is exactly where that bites.
+ */
+function describeMouseKey(m: ToMouseKey): string {
+  const parts: string[] = [];
+  if (m.x) parts.push(`pointer ${m.x > 0 ? "right" : "left"}`);
+  if (m.y) parts.push(`pointer ${m.y > 0 ? "down" : "up"}`);
+  if (m.vertical_wheel) parts.push(`scroll ${m.vertical_wheel > 0 ? "down" : "up"}`);
+  if (m.horizontal_wheel) parts.push(`scroll ${m.horizontal_wheel > 0 ? "left" : "right"}`);
+  if (m.speed_multiplier !== undefined) parts.push(`speed x${m.speed_multiplier}`);
+  return parts.length ? parts.join(", ") : "mouse key";
+}
+
 export const ACTION_HANDLERS = {
   actHere: {
     toEvents: (a) => [toCmd(toHere2There(a.action))],
@@ -111,6 +128,11 @@ export const ACTION_HANDLERS = {
   appHistory: {
     toEvents: (a) => [toApp({ historyIndex: a.index })],
     describe: (a) => `Go back ${a.index} apps`,
+  },
+
+  mouseKey: {
+    toEvents: (a) => [{ mouse_key: a.mouseKey }],
+    describe: (a) => a.actionDesc ?? describeMouseKey(a.mouseKey),
   },
 
   button: {

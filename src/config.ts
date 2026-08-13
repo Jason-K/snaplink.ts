@@ -16,11 +16,12 @@ import {
   simultaneousMappings,
   tapHoldBindings,
 } from "./definitions";
-import type { Binding } from "./data";
+import type { Binding, PointerTweak } from "./data";
 import type { AnalysisReport, DeviceConfig, PlannedBinding, RulePlan } from "./engine";
 import {
   assertNoConflictsInOrder,
   buildDeviceConfig,
+  emitPointerTweaks,
   emitRules,
   generateSimultaneousRules,
   planRules,
@@ -63,6 +64,19 @@ export const CAPS_LAYER_SET: { name: string; bindings: Binding[] } = {
   bindings: buildCapsLockBindings(BINDING_SETS.flatMap((s) => s.bindings)),
 };
 
+/**
+ * Pointer tweaks — `mouse_basic` and `mouse_motion_to_scroll`.
+ *
+ * Empty by design. Both manipulator types can render a machine undriveable if
+ * mis-scoped (gotchas 1.2, 1.3), so nothing is enabled until it is deliberately
+ * added here. The types refuse the unscoped forms; `emitPointerTweaks` refuses
+ * them again at build time.
+ *
+ * Test any addition with a second pointing device attached, or with the
+ * built-in trackpad available as a fallback.
+ */
+export const POINTER_TWEAKS: PointerTweak[] = [];
+
 /** Device-scoped settings and simple modifications. */
 export const DEVICE_CONFIGS: DeviceConfig[] = [
   buildDeviceConfig(DEVICES.appleNumericKeypad, [...NUMPAD_REMAPS]),
@@ -98,6 +112,10 @@ export function buildRules(): { rules: Rule[]; analysis: AnalysisReport } {
     // cannot express that dependency.
     ...generateSimultaneousRules(simultaneousMappings, tapHoldBindings),
     ...emitRules(plans),
+    // Last: these claim pointer motion, which no key rule competes for, so
+    // their position is free — and keeping them out of the key-rule block keeps
+    // the emitted ordering readable.
+    ...emitPointerTweaks(POINTER_TWEAKS),
   ];
   return { rules, analysis };
 }

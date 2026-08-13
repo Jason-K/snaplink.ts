@@ -9,7 +9,7 @@ becomes reachable without being struck off, and if a wired feature loses its
 wrapper. Re-run it after any upstream refresh
 (`make -C schema keycodes KE_SRC=/path/to/Karabiner-Elements`).
 
-**54 of 67 schema features reachable** as of 2026-08-13.
+**57 of 67 schema features reachable** as of 2026-08-13.
 
 Parenthesised numbers cite [karabiner-gotchas.md](./karabiner_docs/karabiner-gotchas.md).
 
@@ -45,29 +45,13 @@ a UNIX datagram socket to a Hammerspoon receiver
 native notification would remove that entire IPC chain — the socket, the
 receiver module, the launch agent, and the endpoint file — for the common case.
 
-### 2. The mouse cluster (3)
-
-| feature | notes |
-| --- | --- |
-| `to.mouse_key` | Cursor motion, wheel, and a speed multiplier from a key. Sign conventions differ per axis — `horizontal_wheel > 0` scrolls **left**, `vertical_wheel > 0` scrolls **down** (6.10). |
-| `mouse_basic` manipulator | Flip, swap, or discard pointer axes. **DANGER:** `discard` without a scoping condition can make the cursor unmovable (1.2). |
-| `mouse_motion_to_scroll` manipulator | Pointer motion becomes scrolling. **DANGER:** without `from.modifiers` *and* without `conditions`, all pointer motion becomes scrolling permanently (1.3). |
-
-`src/data/constants/profiles.ts` already sets
-`"mouse_motion_to_scroll.speed": 100` — a parameter for a manipulator type
-nothing can emit.
-
-The two manipulator types are the only items on this list that are not `basic`
-manipulators. They carry no `from`/`to` and so bypass the binding pipeline
-entirely; see Shape C below.
-
-### 3. `to.select_input_source`
+### 2. `to.select_input_source`
 
 Language / input-source-id / input-mode-id regexes. Input sources carrying an
 `input_mode_id` (Chinese, Japanese, Korean, Vietnamese) may fail to switch due
 to a macOS issue — send the OS shortcut for CJKV instead (6.2).
 
-### 4. Alternate key namespaces (3 families, in both `from` and `to`)
+### 3. Alternate key namespaces (3 families, in both `from` and `to`)
 
 `apple_vendor_keyboard_key_code` (10 names), `apple_vendor_top_case_key_code`
 (7), and `generic_desktop` (7). All three are undocumented upstream — they come
@@ -80,7 +64,7 @@ aliases for the most-wanted members (`vk_mission_control`, `vk_launchpad`,
 `vk_dashboard`, `vk_consumer_brightness_up`, …), so the common cases are
 reachable today by another name. Wire these when a specific key is not.
 
-### 5. `from.integer_value`
+### 4. `from.integer_value`
 
 For devices that distinguish buttons by integer payload rather than by button
 number — USB foot pedals, some programmable pads. Values that change mid-press
@@ -90,7 +74,7 @@ are unsupported: the value is read from the first button pressed, so Left+Middle
 No action until such a device is in use. The AST type exists; only DSL access is
 missing.
 
-### 6. Modal layers (leader keys)
+### 5. Modal layers (leader keys)
 
 Not a schema feature — Karabiner has no notion of a layer. A leader layer is a
 *composition* of features the DSL already has (`set_variable`, `variable_if`,
@@ -211,7 +195,7 @@ login path available.
 
 ### Shape D — a modal layer
 
-Covers item 6 only, and is the largest of the four.
+Covers item 5 only, and is the largest of the four.
 
 A layer is not one binding; it is a family of rules plus an ordering constraint
 on everything else. `buildCapsLockBindings()` in `src/engine/caps-layer.ts` is
@@ -228,7 +212,7 @@ A leader layer needs the same three parts:
 3. A suppression pass adding `variable_unless` for the layer variables to every
    binding outside the family.
 
-Start from `src/engine/caps-layer.ts` and the choreography table in item 6.
+Start from `src/engine/caps-layer.ts` and the choreography table in item 5.
 
 ### Suggested order
 
@@ -238,7 +222,7 @@ Start from `src/engine/caps-layer.ts` and the choreography table in item 6.
 | ~~2~~ | ~~`to_if_other_key_pressed`~~ | **Done 2026-08-13.** |
 | 3 | `set_notification_message` | Deferred: its stated payoff was retiring the layer-indicator IPC chain, which is already orphaned. No consumer. |
 | ~~4~~ | ~~all eight conditions~~ | **Done 2026-08-13.** Conditions are 16/16. |
-| 5 | mouse cluster | Shape C plus `mouse_key`. Needs the safety work and careful testing. |
+| ~~5~~ | ~~mouse cluster~~ | **Done 2026-08-13.** All 3 manipulator types wired. |
 | 6 | `select_input_source` | Shape A; no current use case. |
 | 7 | alternate namespaces, `integer_value` | On demand. Wire when a specific key or device needs it. |
 | — | modal layers (Shape D) | Independent of the phases above: a feature, not a gap. Size it against `caps-layer.ts`. |
@@ -293,6 +277,25 @@ avoid: every claim here is checked by `npm run coverage` on every `npm run check
   once, unlike `device`, where one event has exactly one source); `keyboardType`
   contradicts only when the accepted sets are disjoint; `inputSource` never
   does, because its fields are regexes and overlap cannot be ruled out.
+
+- **The mouse cluster** (2026-08-13) — `mouse_key` via `mouseMove()` /
+  `mouseScroll()`, and both non-`basic` manipulator types via `PointerTweak`
+  in `POINTER_TWEAKS` (`src/config.ts`). Manipulator types are now 3/3.
+
+  `POINTER_TWEAKS` ships **empty**. Both types can leave a machine undriveable
+  if mis-scoped, so nothing is enabled until it is deliberately added, and the
+  emitted config is unchanged until then.
+
+  Scoping is enforced twice. `discard` without a condition and
+  `mouse_motion_to_scroll` without modifiers-or-conditions are unrepresentable
+  in the types, and `emitPointerTweaks()` throws on both again at build time —
+  the types cannot see a value that arrives through a cast, and the failure mode
+  is a machine you cannot drive to the Settings UI to undo it.
+
+  `mouseMove` / `mouseScroll` take directions, not signs: `vertical_wheel > 0`
+  scrolls down but `horizontal_wheel > 0` scrolls **left** (gotcha 6.10), and
+  that asymmetry is the kind of thing you get wrong once and then debug for an
+  hour.
 
 ### Orphaned
 

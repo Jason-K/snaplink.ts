@@ -611,18 +611,30 @@ export type BasicManipulator = {
  * Invert, swap, or discard mouse movement. Requires the mouse to be enabled in
  * the Devices tab.
  */
-export type MouseBasicManipulator = {
+export type PointerAxis = "x" | "y" | "vertical_wheel" | "horizontal_wheel";
+
+type MouseBasicCommon = {
   type: "mouse_basic";
-  flip?: ("x" | "y" | "vertical_wheel" | "horizontal_wheel")[];
+  flip?: PointerAxis[];
   swap?: ("xy" | "wheels")[];
-  /**
-   * DANGER: always pair `discard` with a scoping condition (e.g. `device_if`),
-   * or the cursor can become completely unmovable. (1.2)
-   */
-  discard?: ("x" | "y" | "vertical_wheel" | "horizontal_wheel")[];
-  conditions?: Condition[];
   description?: string;
 };
+
+/**
+ * Invert, swap, or discard pointer axes. Requires the mouse to be enabled in
+ * the Devices tab.
+ *
+ * `discard` **requires** at least one condition, at the type level: an unscoped
+ * discard can leave the cursor completely unmovable, with no way to reach the
+ * Settings UI to undo it (gotcha 1.2). `flip` and `swap` are recoverable — the
+ * pointer still moves — so they stay unconstrained.
+ */
+export type MouseBasicManipulator =
+  | (MouseBasicCommon & {
+      discard: [PointerAxis, ...PointerAxis[]];
+      conditions: [Condition, ...Condition[]];
+    })
+  | (MouseBasicCommon & { discard?: never; conditions?: Condition[] });
 
 /**
  * Converts pointer motion into scrolling.

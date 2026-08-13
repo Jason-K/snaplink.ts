@@ -1,4 +1,4 @@
-import type { ToEvent } from "../../types/karabiner";
+import type { ToEvent, ToMouseKey } from "../../types/karabiner";
 import type { AppSpec } from "./apps";
 import type { CommandSpec } from "./commands";
 import type { MapSpec } from "./maps";
@@ -63,6 +63,18 @@ export type ActionSpec =
       /** Switch application history state by relative index. */
       type: "appHistory";
       index: number;
+    }
+  | {
+      /**
+       * Move the pointer or scroll while the key is held (`to.mouse_key`).
+       *
+       * Raw Karabiner axes and signs. Prefer the `mouseMove` / `mouseScroll`
+       * wrappers, which take directions instead — the sign conventions are not
+       * uniform (gotcha 6.10).
+       */
+      type: "mouseKey";
+      mouseKey: ToMouseKey;
+      actionDesc?: string;
     }
   | {
       /** Emit a mouse button click. */
