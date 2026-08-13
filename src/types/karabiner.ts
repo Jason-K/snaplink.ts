@@ -425,8 +425,13 @@ export type ToDelayedAction = AtLeastOne<{
  * arrays, and the entry rejects a `description` key. (5.13)
  */
 export type ToIfOtherKeyPressedEntry = {
-  /** `minItems: 1`, enforced by the schema at validate time. */
-  other_keys: FromKeyType[];
+  /**
+   * Full `from` event definitions, not bare event keys — an entry may carry
+   * `modifiers`, so `option+shift+tab` can be distinguished from `option+tab`.
+   *
+   * `minItems: 1`, enforced by the schema at validate time.
+   */
+  other_keys: FromEvent[];
   to: ToEvent[];
 };
 

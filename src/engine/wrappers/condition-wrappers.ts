@@ -6,6 +6,7 @@ import type {
   VarSpec,
   VarValueSpec,
 } from "../../data";
+import type { InputSourceSpecifier, KeyboardType } from "../../types/karabiner";
 import { STATES, VARS } from "../../data";
 
 /**
@@ -325,6 +326,96 @@ export function condDevice(
 
 /** Alias for {@link condDevice}. */
 export const ifDevice = condDevice;
+
+/**
+ * Whether a device is **connected**, regardless of what produced the event.
+ *
+ * `condDevice` tests the event's own source, so it cannot express "while the
+ * mouse is plugged in" for a keystroke typed on the built-in keyboard — that is
+ * what this is for (KE 14.8.4+, gotcha 8.5).
+ *
+ * @example
+ * ```ts
+ * when(condDeviceExists(DEVICES.g502X))
+ * ```
+ */
+export function condDeviceExists(
+  deviceExists: DeviceSpec,
+  unlessOrOpts?: boolean | { unless?: boolean },
+): Condition {
+  const unless =
+    typeof unlessOrOpts === "boolean" ? unlessOrOpts : Boolean(unlessOrOpts?.unless);
+  return { deviceExists, ...(unless ? { unless } : {}) };
+}
+
+/** Alias for {@link condDeviceExists}. */
+export const ifDeviceExists = condDeviceExists;
+
+/**
+ * The **virtual** keyboard type configured in Karabiner, not the physical
+ * device (gotcha 8.6). Note `[` is `close_bracket` on JIS.
+ *
+ * @example
+ * ```ts
+ * when(condKeyboardType("jis"))
+ * ```
+ */
+export function condKeyboardType(
+  keyboardType: KeyboardType | KeyboardType[],
+  unlessOrOpts?: boolean | { unless?: boolean },
+): Condition {
+  const unless =
+    typeof unlessOrOpts === "boolean" ? unlessOrOpts : Boolean(unlessOrOpts?.unless);
+  return { keyboardType, ...(unless ? { unless } : {}) };
+}
+
+/** Alias for {@link condKeyboardType}. */
+export const ifKeyboardType = condKeyboardType;
+
+/**
+ * Active input source. Every field is a regular expression; entries are ORed
+ * and keys within one entry are ANDed (gotchas 8.1, 8.2).
+ *
+ * @example
+ * ```ts
+ * when(condInputSource({ language: "^en$" }))
+ * ```
+ */
+export function condInputSource(
+  inputSource: InputSourceSpecifier | InputSourceSpecifier[],
+  unlessOrOpts?: boolean | { unless?: boolean },
+): Condition {
+  const unless =
+    typeof unlessOrOpts === "boolean" ? unlessOrOpts : Boolean(unlessOrOpts?.unless);
+  return { inputSource, ...(unless ? { unless } : {}) };
+}
+
+/** Alias for {@link condInputSource}. */
+export const ifInputSource = condInputSource;
+
+/**
+ * Whether Simple Modifications already rewrote this event (gotcha 2.5).
+ *
+ * Simple Modifications run *before* Complex Modifications, so a remapped key
+ * arrives here as the new key. This is how Function Keys Modifications are
+ * stopped from re-changing an fx key that a complex rule already handled.
+ *
+ * @example
+ * ```ts
+ * when(condEventChanged(false))   // only untouched events
+ * ```
+ */
+export function condEventChanged(
+  eventChanged: boolean,
+  unlessOrOpts?: boolean | { unless?: boolean },
+): Condition {
+  const unless =
+    typeof unlessOrOpts === "boolean" ? unlessOrOpts : Boolean(unlessOrOpts?.unless);
+  return { eventChanged, ...(unless ? { unless } : {}) };
+}
+
+/** Alias for {@link condEventChanged}. */
+export const ifEventChanged = condEventChanged;
 
 function resolveSingleState(target: unknown, valOverride?: unknown): Condition {
   const isBoolNegated =

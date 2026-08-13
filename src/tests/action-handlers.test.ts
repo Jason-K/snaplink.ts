@@ -8,6 +8,7 @@ import {
   describeAction,
   isActionSpec,
   resolveActionToEvents,
+  key,
   resolveShellCommand,
 } from "../engine";
 
@@ -102,4 +103,40 @@ test("actionDesc is appended to the derived description", () => {
     describeAction({ type: "key", key: "a", actionDesc: "select all" }),
     "Emit 'A' | select all",
   );
+});
+
+/**
+ * `to_if_alone` posts key_down and key_up together, so a key that must be
+ * *held* to register does nothing without an explicit gap (gotchas 5.7, 5.8,
+ * 7.4). `caps_lock` is the canonical case at roughly 200 ms.
+ */
+test("hold_down_milliseconds reaches the emitted event", () => {
+  const [event] = resolveActionToEvents(
+    key("caps_lock", { hold_down_milliseconds: 200 }),
+  );
+  assert.deepEqual(event, {
+    key_code: "caps_lock",
+    repeat: false,
+    hold_down_milliseconds: 200,
+  });
+});
+
+test("hold_down_milliseconds survives modifiers and coexists with halt", () => {
+  const [event] = resolveActionToEvents(
+    key("a", ["cmd"], { hold_down_milliseconds: 50, halt: true }),
+  );
+  assert.deepEqual(event, {
+    key_code: "a",
+    // `cmd` resolves to `command`; in a `to` event that name IS the left
+    // variant, unlike in `from.modifiers` where it means either side (3.4).
+    modifiers: ["command"],
+    repeat: false,
+    halt: true,
+    hold_down_milliseconds: 50,
+  });
+});
+
+test("omitting hold_down_milliseconds emits no such key", () => {
+  const [event] = resolveActionToEvents(key("a"));
+  assert.ok(event && !("hold_down_milliseconds" in event));
 });

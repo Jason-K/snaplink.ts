@@ -78,6 +78,7 @@ const BINDING_OPTION_KEYS = {
   eventOptions: true,
   multiTap: true,
   afterKeyUp: true,
+  otherKeyPressed: true,
   whileHoldVar: true,
   suppress: true,
   suppressCancelFallback: true,

@@ -2,10 +2,17 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import type { AppSpec, Condition, DeviceSpec, PathSpec, VarSpec } from "../data";
+import { DEVICES } from "../data";
 import {
   CONDITION_HANDLERS,
+  condDevice,
+  condDeviceExists,
+  condEventChanged,
+  condInputSource,
+  condKeyboardType,
   conditionKey,
   conditionKind,
+  conditionsComplementary,
   conditionsContradict,
   describeCondition,
   resolveCondition,
@@ -36,13 +43,25 @@ const device: DeviceSpec = {
 };
 
 test("every condition kind has a handler", () => {
-  assert.deepEqual(Object.keys(CONDITION_HANDLERS).sort(), ["app", "device", "var"]);
+  assert.deepEqual(Object.keys(CONDITION_HANDLERS).sort(), [
+    "app",
+    "device",
+    "deviceExists",
+    "eventChanged",
+    "inputSource",
+    "keyboardType",
+    "var",
+  ]);
 });
 
 test("conditionKind classifies each authoring shape", () => {
   assert.equal(conditionKind({ app }), "app");
   assert.equal(conditionKind({ var: flag, equals: 1 }), "var");
   assert.equal(conditionKind({ device }), "device");
+  assert.equal(conditionKind({ deviceExists: device }), "deviceExists");
+  assert.equal(conditionKind({ keyboardType: "ansi" }), "keyboardType");
+  assert.equal(conditionKind({ inputSource: { language: "^en$" } }), "inputSource");
+  assert.equal(conditionKind({ eventChanged: true }), "eventChanged");
 });
 
 test("conditionKind throws on an unrecognised shape rather than guessing", () => {
@@ -181,4 +200,85 @@ test("contradiction: an event cannot come from two different devices", () => {
 test("conditions of different kinds never contradict each other", () => {
   assert.equal(conditionsContradict({ app }, { var: flag, equals: 1 }), false);
   assert.equal(conditionsContradict({ device }, { app }), false);
+});
+
+// ── device_exists / keyboard_type / input_source / event_changed ────────────
+
+test("deviceExists compiles to device_exists_if and flips to _unless", () => {
+  const c = resolveCondition(condDeviceExists(DEVICES.g502X));
+  assert.equal(c.type, "device_exists_if");
+  assert.equal(resolveCondition(condDeviceExists(DEVICES.g502X, true)).type, "device_exists_unless");
+});
+
+test("deviceExists never contradicts — several devices can be connected at once", () => {
+  // `device` is the opposite: one event has exactly one source.
+  assert.equal(
+    conditionsContradict(condDevice(DEVICES.g502X), condDevice(DEVICES.appleNumericKeypad)),
+    true,
+  );
+  assert.equal(
+    conditionsContradict(
+      condDeviceExists(DEVICES.g502X),
+      condDeviceExists(DEVICES.appleNumericKeypad),
+    ),
+    false,
+  );
+});
+
+test("keyboardType contradicts only when the accepted sets are disjoint", () => {
+  assert.equal(conditionsContradict(condKeyboardType("ansi"), condKeyboardType("jis")), true);
+  assert.equal(
+    conditionsContradict(condKeyboardType(["ansi", "iso"]), condKeyboardType("iso")),
+    false,
+  );
+  // Polarity is handled by the shared complementary check, not by contradicts.
+  assert.equal(
+    conditionsContradict(condKeyboardType("ansi"), condKeyboardType("jis", true)),
+    false,
+  );
+});
+
+test("keyboardType compiles the array form", () => {
+  const c = resolveCondition(condKeyboardType(["ansi", "iso"]));
+  assert.deepEqual(c, { type: "keyboard_type_if", keyboard_types: ["ansi", "iso"] });
+});
+
+test("inputSource never claims contradiction — its fields are regexes", () => {
+  const en = condInputSource({ language: "^en$" });
+  const ja = condInputSource({ language: "^ja$" });
+  assert.equal(conditionsContradict(en, ja), false);
+  assert.deepEqual(resolveCondition(en), {
+    type: "input_source_if",
+    input_sources: [{ language: "^en$" }],
+  });
+});
+
+test("eventChanged contradicts across its two values", () => {
+  assert.equal(conditionsContradict(condEventChanged(true), condEventChanged(false)), true);
+  assert.equal(conditionsContradict(condEventChanged(true), condEventChanged(true)), false);
+  assert.deepEqual(resolveCondition(condEventChanged(false)), {
+    type: "event_changed_if",
+    value: false,
+  });
+});
+
+test("opposite polarities of one new condition are complementary", () => {
+  for (const [a, b] of [
+    [condDeviceExists(DEVICES.g502X), condDeviceExists(DEVICES.g502X, true)],
+    [condKeyboardType("ansi"), condKeyboardType("ansi", true)],
+    [condEventChanged(true), condEventChanged(true, true)],
+  ] as const) {
+    assert.equal(conditionsComplementary(a, b), true);
+  }
+});
+
+test("every new condition has a describe string", () => {
+  for (const c of [
+    condDeviceExists(DEVICES.g502X),
+    condKeyboardType("jis"),
+    condInputSource({ language: "^en$" }),
+    condEventChanged(true),
+  ]) {
+    assert.ok(describeCondition(c).length > 0);
+  }
 });

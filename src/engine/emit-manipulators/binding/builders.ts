@@ -198,7 +198,9 @@ export function buildMultiTap(
         // `multiTap.mods` stays an explicit override for the call sites that
         // want to say "no modifiers at all".
         from: triggerToFrom(b.trigger),
-        passThrough: b.multiTap?.allowPassThrough
+        // `key` is "" for a simultaneous trigger, which has no single key to
+        // pass through; emitting `key_code: ""` would fail schema validation.
+        passThrough: b.multiTap?.allowPassThrough && key
           ? toKey(key, [], { lazy: true })
           : undefined,
         ...(b.multiTap?.mods ? { mods: b.multiTap.mods as Modifier[] } : {}),

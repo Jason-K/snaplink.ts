@@ -24,7 +24,6 @@ import { schemaCoverage } from "../coverage";
 const KNOWN_UNWIRED = new Set([
   "manipulator type:mouse_basic",
   "manipulator type:mouse_motion_to_scroll",
-  "basic channel:to_if_other_key_pressed",
   "from:apple_vendor_keyboard_key_code",
   "from:apple_vendor_top_case_key_code",
   "from:generic_desktop",
@@ -35,16 +34,7 @@ const KNOWN_UNWIRED = new Set([
   "to action:select_input_source",
   "to action:set_notification_message",
   "to action:mouse_key",
-  "to option:hold_down_milliseconds",
   "to option:held_down_milliseconds",
-  "condition:device_exists_if",
-  "condition:device_exists_unless",
-  "condition:keyboard_type_if",
-  "condition:keyboard_type_unless",
-  "condition:input_source_if",
-  "condition:input_source_unless",
-  "condition:event_changed_if",
-  "condition:event_changed_unless",
 ]);
 
 const id = (f: { group: string; name: string }): string => `${f.group}:${f.name}`;

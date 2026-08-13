@@ -14,6 +14,7 @@ import {
   buildSimultaneousTapHold,
   buildTapHold,
   stampDeviceScope,
+  stampOtherKeyPressed,
 } from "./binding";
 
 export type {
@@ -39,6 +40,11 @@ export function buildManipulators(b: Binding): Manipulator[] {
   if (resolved.some((c) => c.guard)) {
     const manipulators = buildGuard(b, resolved);
     stampDeviceScope(manipulators, b.trigger);
+    if (b.otherKeyPressed?.length) {
+      throw new Error(
+        `otherKeyPressed is not supported on a guard binding ("${b.description ?? "unnamed"}")`,
+      );
+    }
     return manipulators;
   }
   const hasMultiTap =
@@ -57,6 +63,7 @@ export function buildManipulators(b: Binding): Manipulator[] {
     );
   }
   stampDeviceScope(manipulators, b.trigger);
+  stampOtherKeyPressed(manipulators, b);
   return manipulators;
 }
 

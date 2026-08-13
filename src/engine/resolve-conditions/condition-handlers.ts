@@ -15,20 +15,55 @@
 
 import type { Condition as KarabinerCondition } from "../../types/karabiner";
 import type { Condition } from "../../data";
-import { ifApp, ifDevice } from "../karabiner-helpers";
+import {
+  ifApp,
+  ifDevice,
+  ifDeviceExists,
+  ifEventChanged,
+  ifInputSource,
+  ifKeyboardType,
+} from "../karabiner-helpers";
 import { karabinerDeviceId } from "../resolve-trigger/device-config";
 
-export type ConditionKind = "app" | "var" | "device";
+export type ConditionKind =
+  | "app"
+  | "var"
+  | "device"
+  | "deviceExists"
+  | "keyboardType"
+  | "inputSource"
+  | "eventChanged";
 
 type AppCondition = Extract<Condition, { app: unknown }>;
 type VarCondition = Extract<Condition, { var: unknown }>;
 type DeviceCondition = Extract<Condition, { device: unknown }>;
+type DeviceExistsCondition = Extract<Condition, { deviceExists: unknown }>;
+type KeyboardTypeCondition = Extract<Condition, { keyboardType: unknown }>;
+type InputSourceCondition = Extract<Condition, { inputSource: unknown }>;
+type EventChangedCondition = Extract<Condition, { eventChanged: unknown }>;
 
 type ConditionOfKind = {
   app: AppCondition;
   var: VarCondition;
   device: DeviceCondition;
+  deviceExists: DeviceExistsCondition;
+  keyboardType: KeyboardTypeCondition;
+  inputSource: InputSourceCondition;
+  eventChanged: EventChangedCondition;
 };
+
+/**
+ * Every `Condition` variant must appear in {@link ConditionOfKind}.
+ *
+ * Without this, adding a variant to the union compiles cleanly and then throws
+ * from {@link conditionKind} at build time — `satisfies ConditionHandlers` only
+ * enforces coverage of the kinds already listed, so it cannot see a variant
+ * that was never given a kind.
+ */
+type UncoveredConditions = Exclude<Condition, ConditionOfKind[ConditionKind]>;
+type EveryConditionHasAKind = UncoveredConditions extends never ? true : UncoveredConditions;
+const _everyConditionHasAKind: EveryConditionHasAKind = true;
+void _everyConditionHasAKind;
 
 export type ConditionHandler<K extends ConditionKind> = {
   /** Compile to the Karabiner-native condition object. */
@@ -62,6 +97,10 @@ export function conditionKind(c: Condition): ConditionKind {
   if ("app" in c) return "app";
   if ("var" in c) return "var";
   if ("device" in c) return "device";
+  if ("deviceExists" in c) return "deviceExists";
+  if ("keyboardType" in c) return "keyboardType";
+  if ("inputSource" in c) return "inputSource";
+  if ("eventChanged" in c) return "eventChanged";
   throw new Error(
     `Unrecognised condition shape: ${JSON.stringify(c)}. ` +
       "Add the variant to the Condition union, to conditionKind(), and to CONDITION_HANDLERS.",
@@ -168,6 +207,86 @@ export const CONDITION_HANDLERS = {
       if (a.unless || b.unless) return false;
       // One input event has exactly one source device.
       return deviceTargetKey(a) !== deviceTargetKey(b);
+    },
+  },
+
+  deviceExists: {
+    toKarabiner: (c) => {
+      const builder = ifDeviceExists(karabinerDeviceId(c.deviceExists));
+      return c.unless ? builder.unless().build() : builder.build();
+    },
+    describe: (c) =>
+      c.unless
+        ? `without ${c.deviceExists.deviceDesc} connected`
+        : `with ${c.deviceExists.deviceDesc} connected`,
+    targetKey: (c) => `${c.deviceExists.vendor_id}:${c.deviceExists.product_id}`,
+    // Any number of devices can be connected at once, so two positive
+    // conditions on different devices are simultaneously satisfiable — unlike
+    // `device`, where one event has exactly one source.
+    contradicts: () => false,
+  },
+
+  keyboardType: {
+    toKarabiner: (c) => {
+      const builder = ifKeyboardType(c.keyboardType);
+      return c.unless ? builder.unless().build() : builder.build();
+    },
+    describe: (c) => {
+      const types = (Array.isArray(c.keyboardType) ? c.keyboardType : [c.keyboardType]).join("/");
+      return c.unless ? `not on a ${types} keyboard` : `on a ${types} keyboard`;
+    },
+    targetKey: (c) =>
+      (Array.isArray(c.keyboardType) ? [...c.keyboardType] : [c.keyboardType]).sort().join("|"),
+    contradicts: (a, b): boolean => {
+      if (a.unless || b.unless) return false;
+      // Exactly one virtual keyboard type is configured, so two positive
+      // conditions contradict only when their accepted sets are disjoint.
+      const setA = new Set(Array.isArray(a.keyboardType) ? a.keyboardType : [a.keyboardType]);
+      const listB = Array.isArray(b.keyboardType) ? b.keyboardType : [b.keyboardType];
+      return !listB.some((t) => setA.has(t));
+    },
+  },
+
+  inputSource: {
+    toKarabiner: (c) => {
+      const builder = ifInputSource(c.inputSource);
+      return c.unless ? builder.unless().build() : builder.build();
+    },
+    describe: (c) => {
+      const list = Array.isArray(c.inputSource) ? c.inputSource : [c.inputSource];
+      const label = list
+        .map((src) => src.language ?? src.input_source_id ?? src.input_mode_id ?? "?")
+        .join("/");
+      return c.unless ? `not in input source ${label}` : `in input source ${label}`;
+    },
+    targetKey: (c) => {
+      const list = Array.isArray(c.inputSource) ? c.inputSource : [c.inputSource];
+      return list
+        .map((src) => `${src.language ?? ""}~${src.input_source_id ?? ""}~${src.input_mode_id ?? ""}`)
+        .sort()
+        .join("|");
+    },
+    // Every field is a regular expression, so two specifiers may well both
+    // match the active source. Claiming contradiction we cannot prove would let
+    // the analyzer drop a reachable rule as dead; never claiming it only costs
+    // some fallback elimination.
+    contradicts: () => false,
+  },
+
+  eventChanged: {
+    toKarabiner: (c) => {
+      const builder = ifEventChanged(c.eventChanged);
+      return c.unless ? builder.unless().build() : builder.build();
+    },
+    describe: (c) => {
+      const changed = c.eventChanged !== Boolean(c.unless);
+      return changed ? "when already remapped" : "when not already remapped";
+    },
+    targetKey: () => "event_changed",
+    contradicts: (a, b): boolean => {
+      if (a.unless || b.unless) return false;
+      // One boolean fact about the event in flight.
+      return a.eventChanged !== b.eventChanged;
     },
   },
 } satisfies ConditionHandlers;

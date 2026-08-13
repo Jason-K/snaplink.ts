@@ -19,6 +19,33 @@ export type ActionKeyModifier = ModKey | ModComboAlias;
 /**
  * High-level action specifications evaluated by the synthesizer into Karabiner `to` events.
  */
+/**
+ * Per-event options carried by an emitting action.
+ *
+ * These are Karabiner's own `to`-event option names, not a camelCase mirror:
+ * `toKey()` spreads this object straight into the emitted event, so a rename
+ * here would silently produce a key Karabiner ignores. Timing that maps to
+ * `parameters` rather than to an event lives on `Binding.timing` and *is*
+ * camelCase — the two are different layers.
+ */
+export type ActionEventOptions = {
+  /** Default false here (Karabiner's own default is true). */
+  repeat?: boolean;
+  /** In `to_if_alone` / `to_if_held_down`: cancel `to_after_key_up` and `to_delayed_action`. */
+  halt?: boolean;
+  /** Hold the modifier until another key needs it. */
+  lazy?: boolean;
+  /**
+   * Gap in milliseconds between key_down and key_up when both are sent at once.
+   *
+   * Required whenever a key must be *held* to register. `to_if_alone` posts
+   * key_down and key_up together, so `caps_lock` emitted from a tap needs
+   * roughly 200 here or it does nothing (gotchas 5.7, 5.8, 7.4). Pair it with a
+   * `vk_none` event to swallow the hardware key_up.
+   */
+  hold_down_milliseconds?: number;
+};
+
 export type ActionSpec =
   | {
       /** Execute a named action in context. */
@@ -42,11 +69,7 @@ export type ActionSpec =
       type: "button";
       button: string;
       modifiers?: ActionKeyModifier[];
-      options?: {
-        repeat?: boolean;
-        halt?: boolean;
-        lazy?: boolean;
-      };
+      options?: ActionEventOptions;
       actionDesc?: string;
     }
   | {
@@ -72,11 +95,7 @@ export type ActionSpec =
       /** Emit a hotkey map specification. */
       type: "map";
       ref: MapSpec;
-      options?: {
-        repeat?: boolean;
-        halt?: boolean;
-        lazy?: boolean;
-      };
+      options?: ActionEventOptions;
       actionDesc?: string;
     }
   | {
@@ -90,11 +109,7 @@ export type ActionSpec =
       type: "key";
       key: string;
       modifiers?: ActionKeyModifier[];
-      options?: {
-        repeat?: boolean;
-        halt?: boolean;
-        lazy?: boolean;
-      };
+      options?: ActionEventOptions;
       actionDesc?: string;
     }
   | {

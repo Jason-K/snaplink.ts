@@ -1,4 +1,9 @@
-import type { AnyEventType } from "../../types/karabiner";
+import type {
+  AnyEventType,
+  FromEvent,
+  InputSourceSpecifier,
+  KeyboardType,
+} from "../../types/karabiner";
 import type { TriggerKey } from "../constants/keys";
 import type { PointerButtonAlias } from "../constants/mouse";
 import type { Action } from "./actions";
@@ -40,6 +45,48 @@ export type Condition =
     /** If true, condition evaluates to true when variable value does NOT match. */
     unless?: boolean;
     /** Optional description override. */
+    description?: string;
+  }
+  | {
+    /**
+     * Whether a device is **connected**, regardless of which device produced
+     * the event (KE 14.8.4+, gotcha 8.5).
+     *
+     * Distinct from `device`, which tests the event's own source: only this one
+     * can express "while the mouse is plugged in" for a keystroke typed on the
+     * built-in keyboard.
+     */
+    deviceExists: DeviceSpec;
+    unless?: boolean;
+    description?: string;
+  }
+  | {
+    /**
+     * The **virtual** keyboard type configured in Karabiner, not the physical
+     * device (gotcha 8.6). Note `[` is `close_bracket` on JIS.
+     */
+    keyboardType: KeyboardType | KeyboardType[];
+    unless?: boolean;
+    description?: string;
+  }
+  | {
+    /**
+     * Active input source, matched by regex. Entries are ORed; keys within one
+     * entry are ANDed (gotcha 8.1).
+     */
+    inputSource: InputSourceSpecifier | InputSourceSpecifier[];
+    unless?: boolean;
+    description?: string;
+  }
+  | {
+    /**
+     * Whether Simple Modifications already rewrote this event (gotcha 2.5).
+     *
+     * The mechanism that stops Function Keys Modifications from re-changing an
+     * fx key that Complex Modifications already handled.
+     */
+    eventChanged: boolean;
+    unless?: boolean;
     description?: string;
   }
   | {
@@ -181,6 +228,23 @@ export type Binding = {
    * happened during the hold — has no `ActionSpec` spelling.
    */
   afterKeyUp?: Action[];
+  /**
+   * Rewrite this binding's own key when one of `otherKeys` is pressed while it
+   * is held (`to_if_other_key_pressed`).
+   *
+   * The documented fix for the `option+tab -> command+tab` trap: remapping via
+   * mandatory modifiers changes only the second key's output, so pressing a
+   * further modifier releases the substituted one and the app switcher closes
+   * (gotcha 7.7). This rewrites the held key itself instead.
+   *
+   * Additive to the binding's `press` cases rather than replacing them, and
+   * evaluated per entry, so one held key can target several chords.
+   */
+  otherKeyPressed?: {
+    /** Full `from` definitions — an entry may carry `modifiers`. */
+    otherKeys: FromEvent | FromEvent[];
+    do: Action[];
+  }[];
   /** Tap-hold signaling variable set to 1 while key is held down and 0 on key release. */
   whileHoldVar?: VarSpec;
   /** Suppress trigger fallback across binding. */

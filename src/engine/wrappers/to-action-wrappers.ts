@@ -1,5 +1,6 @@
 import type {
   Action,
+  ActionEventOptions,
   ActionKeyModifier,
   ActionSpec,
   AppTarget,
@@ -526,9 +527,12 @@ export function url(
 }
 
 /**
- * Configuration options for key and mouse press actions (`repeat`, `halt`, `lazy`).
+ * Configuration options for key and mouse press actions.
+ *
+ * Re-exported from the action vocabulary so the wrapper layer and the spec it
+ * produces cannot drift apart.
  */
-export type KeyOptions = { repeat?: boolean; halt?: boolean; lazy?: boolean };
+export type KeyOptions = ActionEventOptions;
 
 
 /**

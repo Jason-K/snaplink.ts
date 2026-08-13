@@ -9,7 +9,7 @@ becomes reachable without being struck off, and if a wired feature loses its
 wrapper. Re-run it after any upstream refresh
 (`make -C schema keycodes KE_SRC=/path/to/Karabiner-Elements`).
 
-**44 of 67 schema features reachable** as of 2026-08-12.
+**54 of 67 schema features reachable** as of 2026-08-13.
 
 Parenthesised numbers cite [karabiner-gotchas.md](./karabiner_docs/karabiner-gotchas.md).
 
@@ -20,7 +20,7 @@ Parenthesised numbers cite [karabiner-gotchas.md](./karabiner_docs/karabiner-got
 Two independent columns, because they answer different questions:
 
 | | meaning |
-|---|---|
+| --- | --- |
 | **wired** | the emitter can produce it — a wrapper or handler names it |
 | **emitted** | the current configuration actually does — it appears in `karabiner-output.json` |
 
@@ -33,37 +33,7 @@ emits nothing only because one leader rule is active in the current build.
 
 ## Missing
 
-### 1. `to.hold_down_milliseconds`
-
-**Smallest change, largest correctness win.** `to_if_alone` posts key_down and
-key_up together, so key repeat is impossible there and any key that must be
-*held* to register needs an explicit gap — `caps_lock` needs roughly 200 ms, and
-pairs with a `vk_none` event to swallow the hardware key_up (5.7, 5.8, 7.4).
-
-This configuration emits 105 `to_if_alone` channels and cannot set the gap on
-any of them.
-
-**Insertion point:** `KeyOptions` in
-`src/engine/wrappers/to-action-wrappers.ts:531`, currently
-`{ repeat?, halt?, lazy? }`. The field passes straight through to the emitted
-event; no handler change is needed.
-
-### 2. `to_if_other_key_pressed`
-
-Rewrites the held `from` key itself when one of `other_keys` is pressed. The
-documented fix for the `option+tab → command+tab` trap, where remapping via
-`from.modifiers.mandatory` changes only the `tab` output and pressing another
-modifier afterwards releases `left_command` and closes the app switcher (7.7).
-
-The AST type (`ToIfOtherKeyPressedEntry`) is correct and
-`src/tests/beta-features-review.test.ts` already has two `test.skip` cases
-written against it. Nothing constructs one.
-
-**Note:** this channel is the exception to the single-object shorthand — both
-`other_keys` and `to` must be arrays, and the entry rejects `description`
-(5.13).
-
-### 3. `to.set_notification_message`
+### 1. `to.set_notification_message`
 
 An on-screen message Karabiner owns, addressed by `id`. Setting `text` to `""`
 with the same `id` clears it; `duration_milliseconds` (KE 16.1.18+) is the only
@@ -75,24 +45,10 @@ a UNIX datagram socket to a Hammerspoon receiver
 native notification would remove that entire IPC chain — the socket, the
 receiver module, the launch agent, and the endpoint file — for the common case.
 
-### 4. Conditions (8 unwired of 16)
-
-| condition | why it is worth having |
-|---|---|
-| `device_exists_if` / `_unless` | Tests whether a device is **connected**, not whether it originated the event (KE 14.8.4+, 8.5). `device_if` cannot express "while the G502X is plugged in" for events from the built-in keyboard. |
-| `keyboard_type_if` / `_unless` | The **virtual** keyboard type (ansi/iso/jis), not the physical device. `[` is `close_bracket` on JIS (8.6). |
-| `input_source_if` / `_unless` | Language / input-source-id / input-mode-id regexes (8.1, 8.2). |
-| `event_changed_if` / `_unless` | Whether Simple Modifications already rewrote this event. The mechanism that stops Function Keys Modifications from re-changing an fx key (2.5). |
-
-The `_unless` half of each pair comes free: `ConditionBuilder.unless()` rewrites
-`<x>_if` to `<x>_unless` generically, which is why `variable_unless` and
-`frontmost_application_unless` are already reachable without appearing anywhere
-in the source.
-
-### 5. The mouse cluster (3)
+### 2. The mouse cluster (3)
 
 | feature | notes |
-|---|---|
+| --- | --- |
 | `to.mouse_key` | Cursor motion, wheel, and a speed multiplier from a key. Sign conventions differ per axis — `horizontal_wheel > 0` scrolls **left**, `vertical_wheel > 0` scrolls **down** (6.10). |
 | `mouse_basic` manipulator | Flip, swap, or discard pointer axes. **DANGER:** `discard` without a scoping condition can make the cursor unmovable (1.2). |
 | `mouse_motion_to_scroll` manipulator | Pointer motion becomes scrolling. **DANGER:** without `from.modifiers` *and* without `conditions`, all pointer motion becomes scrolling permanently (1.3). |
@@ -105,13 +61,13 @@ The two manipulator types are the only items on this list that are not `basic`
 manipulators. They carry no `from`/`to` and so bypass the binding pipeline
 entirely; see Shape C below.
 
-### 6. `to.select_input_source`
+### 3. `to.select_input_source`
 
 Language / input-source-id / input-mode-id regexes. Input sources carrying an
 `input_mode_id` (Chinese, Japanese, Korean, Vietnamese) may fail to switch due
 to a macOS issue — send the OS shortcut for CJKV instead (6.2).
 
-### 7. Alternate key namespaces (3 families, in both `from` and `to`)
+### 4. Alternate key namespaces (3 families, in both `from` and `to`)
 
 `apple_vendor_keyboard_key_code` (10 names), `apple_vendor_top_case_key_code`
 (7), and `generic_desktop` (7). All three are undocumented upstream — they come
@@ -124,7 +80,7 @@ aliases for the most-wanted members (`vk_mission_control`, `vk_launchpad`,
 `vk_dashboard`, `vk_consumer_brightness_up`, …), so the common cases are
 reachable today by another name. Wire these when a specific key is not.
 
-### 8. `from.integer_value`
+### 5. `from.integer_value`
 
 For devices that distinguish buttons by integer payload rather than by button
 number — USB foot pedals, some programmable pads. Values that change mid-press
@@ -134,7 +90,7 @@ are unsupported: the value is read from the first button pressed, so Left+Middle
 No action until such a device is in use. The AST type exists; only DSL access is
 missing.
 
-### 9. Modal layers (leader keys)
+### 6. Modal layers (leader keys)
 
 Not a schema feature — Karabiner has no notion of a layer. A leader layer is a
 *composition* of features the DSL already has (`set_variable`, `variable_if`,
@@ -162,7 +118,7 @@ produces `Binding[]` and participates in conflict analysis.
 The variable choreography is the part worth keeping, and it is not obvious:
 
 | Step | Mechanism |
-|---|---|
+| --- | --- |
 | Activate | `to_if_held_down` sets `<prefix>_mod = 1`. `to_if_alone` emits the leader key itself with `halt: true` and clears every layer variable, so a tap still types the key. |
 | Tap past the timeout | `to_delayed_action.to_if_canceled` repeats the emit-and-clear, covering a hold that never reached the threshold. Both `to_if_alone_timeout` and `to_if_held_down_threshold` are set to the same value. |
 | Enter a sublayer | The sublayer key, gated on `<prefix>_mod == 1`, sets `<prefix>_<key>_sublayer = 1` **and clears `<prefix>_mod` in the same `to` array** — a hand-off, so the two are never both live. |
@@ -255,7 +211,7 @@ login path available.
 
 ### Shape D — a modal layer
 
-Covers item 9 only, and is the largest of the four.
+Covers item 6 only, and is the largest of the four.
 
 A layer is not one binding; it is a family of rules plus an ordering constraint
 on everything else. `buildCapsLockBindings()` in `src/engine/caps-layer.ts` is
@@ -272,18 +228,18 @@ A leader layer needs the same three parts:
 3. A suppression pass adding `variable_unless` for the layer variables to every
    binding outside the family.
 
-Start from `src/engine/caps-layer.ts` and the choreography table in item 9.
+Start from `src/engine/caps-layer.ts` and the choreography table in item 6.
 
 ### Suggested order
 
 | phase | items | rationale |
-|---|---|---|
-| 1 | `hold_down_milliseconds` | One field. Fixes a live correctness trap across 105 channels. |
-| 2 | `to_if_other_key_pressed` | Types and skipped tests already written; unskip them. |
-| 3 | `set_notification_message` | Can retire the Hammerspoon layer-indicator IPC chain. |
-| 4 | `device_exists_*`, `event_changed_*`, `keyboard_type_*` | Three Shape B passes; `device_exists_*` is the one with an immediate use. |
+| --- | --- | --- |
+| ~~1~~ | ~~`hold_down_milliseconds`~~ | **Done 2026-08-13.** |
+| ~~2~~ | ~~`to_if_other_key_pressed`~~ | **Done 2026-08-13.** |
+| 3 | `set_notification_message` | Deferred: its stated payoff was retiring the layer-indicator IPC chain, which is already orphaned. No consumer. |
+| ~~4~~ | ~~all eight conditions~~ | **Done 2026-08-13.** Conditions are 16/16. |
 | 5 | mouse cluster | Shape C plus `mouse_key`. Needs the safety work and careful testing. |
-| 6 | `input_source_*`, `select_input_source` | Shape A + B; no current use case. |
+| 6 | `select_input_source` | Shape A; no current use case. |
 | 7 | alternate namespaces, `integer_value` | On demand. Wire when a specific key or device needs it. |
 | — | modal layers (Shape D) | Independent of the phases above: a feature, not a gap. Size it against `caps-layer.ts`. |
 
@@ -311,6 +267,32 @@ the seven API names in those examples (`toSendUserCommand`, `toFromEvent`,
 `toIfOtherKeyPressed`, `layerIndicatorCommand`, `setVarExpr`, `exprIf`) do not
 exist in this codebase. That is the failure mode this document is now built to
 avoid: every claim here is checked by `npm run coverage` on every `npm run check`.
+
+### Shipped
+
+- **`to.hold_down_milliseconds`** (2026-08-13) — on `ActionEventOptions`, so
+  `key("caps_lock", { hold_down_milliseconds: 200 })` works. Extracting that
+  type also collapsed three identical inline `options` blocks in `ActionSpec`.
+- **`to_if_other_key_pressed`** (2026-08-13) — `Binding.otherKeyPressed`, and
+  `BasicManipulatorBuilder.toIfOtherKeyPressed()` underneath it. Rejected on
+  multi-tap and guard bindings, where the interaction is unvalidated. The five
+  `test.skip` cases that had been written against a non-existent API now run.
+
+- **All eight remaining conditions** (2026-08-13) — `deviceExists`,
+  `keyboardType`, `inputSource`, `eventChanged`, each with its `_unless` half
+  free via `ConditionBuilder.unless()`. Conditions are now 16/16.
+
+  Adding them exposed a gap in the registry's own guarantee: `ConditionKind` was
+  hand-listed, so a new `Condition` variant compiled cleanly and only failed at
+  runtime inside `conditionKind()`. `UncoveredConditions` now makes that a
+  compile error.
+
+  The interesting part is `contradicts`, which conflict analysis uses to drop
+  unreachable rules — claiming contradiction wrongly deletes a live rule.
+  `deviceExists` never contradicts (any number of devices can be connected at
+  once, unlike `device`, where one event has exactly one source); `keyboardType`
+  contradicts only when the accepted sets are disjoint; `inputSource` never
+  does, because its fields are regexes and overlap cannot be ruled out.
 
 ### Orphaned
 

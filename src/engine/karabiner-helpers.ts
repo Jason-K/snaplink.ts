@@ -10,7 +10,9 @@ import type {
   FromEvent,
   FromKeyType,
   FromModifiers,
+  InputSourceSpecifier,
   KeyCode,
+  KeyboardType,
   Manipulator,
   Modifier,
   PointingButton,
@@ -81,7 +83,7 @@ export function rule(description: string, ...manipulators: ManipulatorInput[]): 
   return new RuleBuilder(description, ...manipulators);
 }
 
-function normalizeToEvent(event: string | ToEvent): ToEvent {
+function normalizeToEvent(event: KeyCode | ToEvent): ToEvent {
   if (typeof event === "string") {
     return toKey(event);
   }
@@ -89,7 +91,7 @@ function normalizeToEvent(event: string | ToEvent): ToEvent {
 }
 
 export function toKey(
-  key_code: string | number,
+  key_code: KeyCode | number,
   modifiers?: Modifier[] | string,
   options?: ToEventOptions,
 ): ToEvent {
@@ -98,12 +100,15 @@ export function toKey(
       ? modifiers
       : [modifiers as Modifier]
     : undefined;
-  const result: ToEvent = {
+  // Spread rather than `modifiers: mods`: an `undefined`-valued key is what
+  // `exactOptionalPropertyTypes` exists to prevent, and the `as ToEvent` cast
+  // this replaces was suppressing exactly that check. `JSON.stringify` drops
+  // such keys, so the emitted file was already correct — but only by luck.
+  return {
     ...options,
     key_code,
-    modifiers: mods,
-  } as ToEvent;
-  return result;
+    ...(mods ? { modifiers: mods } : {}),
+  };
 }
 
 export function toPointingButton(
@@ -116,12 +121,15 @@ export function toPointingButton(
       ? modifiers
       : [modifiers as Modifier]
     : undefined;
-  const result: ToEvent = {
+  // Spread rather than `modifiers: mods`: an `undefined`-valued key is what
+  // `exactOptionalPropertyTypes` exists to prevent, and the `as ToEvent` cast
+  // this replaces was suppressing exactly that check. `JSON.stringify` drops
+  // such keys, so the emitted file was already correct — but only by luck.
+  return {
     ...options,
     pointing_button,
-    modifiers: mods,
-  } as ToEvent;
-  return result;
+    ...(mods ? { modifiers: mods } : {}),
+  };
 }
 
 export function toSetVar(
@@ -233,6 +241,59 @@ export function ifDevice(
   });
 }
 
+/**
+ * `device_exists_*` (KE 14.8.4+) — tests whether the device is connected, not
+ * whether it produced the event (gotcha 8.5).
+ */
+export function ifDeviceExists(
+  identifiers: DeviceIdentifier | DeviceIdentifier[],
+  description?: string,
+): ConditionBuilder {
+  const ids = Array.isArray(identifiers) ? identifiers : [identifiers];
+  return new ConditionBuilder({
+    type: "device_exists_if",
+    identifiers: ids,
+    ...withDescription(description),
+  });
+}
+
+/** `keyboard_type_*` — the virtual keyboard type, not the physical device (8.6). */
+export function ifKeyboardType(
+  keyboardTypes: KeyboardType | KeyboardType[],
+  description?: string,
+): ConditionBuilder {
+  const types = Array.isArray(keyboardTypes) ? keyboardTypes : [keyboardTypes];
+  if (!types.length) throw new Error("ifKeyboardType: name at least one keyboard type");
+  return new ConditionBuilder({
+    type: "keyboard_type_if",
+    keyboard_types: types,
+    ...withDescription(description),
+  });
+}
+
+/** `input_source_*` — every field is a regex; entries are ORed (8.1, 8.2). */
+export function ifInputSource(
+  sources: InputSourceSpecifier | InputSourceSpecifier[],
+  description?: string,
+): ConditionBuilder {
+  const list = Array.isArray(sources) ? sources : [sources];
+  if (!list.length) throw new Error("ifInputSource: name at least one input source");
+  return new ConditionBuilder({
+    type: "input_source_if",
+    input_sources: list,
+    ...withDescription(description),
+  });
+}
+
+/** `event_changed_*` — whether Simple Modifications already rewrote this event (2.5). */
+export function ifEventChanged(value: boolean, description?: string): ConditionBuilder {
+  return new ConditionBuilder({
+    type: "event_changed_if",
+    value,
+    ...withDescription(description),
+  });
+}
+
 export function withCondition(...conditions: (Condition | ConditionBuilder)[]): {
   build: () => Condition[];
 } {
@@ -258,7 +319,7 @@ export class BasicManipulatorBuilder {
     return this.manipulator.from;
   }
 
-  to(event: string | ToEvent | (string | ToEvent)[], modifiers?: Modifier[]): this {
+  to(event: KeyCode | ToEvent | (KeyCode | ToEvent)[], modifiers?: Modifier[]): this {
     this.manipulator.to = this.manipulator.to || [];
     const events = Array.isArray(event) ? event : [event];
     for (const e of events) {
@@ -271,7 +332,7 @@ export class BasicManipulatorBuilder {
     return this;
   }
 
-  toIfAlone(event: string | ToEvent | (string | ToEvent)[]): this {
+  toIfAlone(event: KeyCode | ToEvent | (KeyCode | ToEvent)[]): this {
     this.manipulator.to_if_alone = this.manipulator.to_if_alone || [];
     const events = Array.isArray(event) ? event : [event];
     for (const e of events) {
@@ -280,7 +341,7 @@ export class BasicManipulatorBuilder {
     return this;
   }
 
-  toIfHeldDown(event: string | ToEvent | (string | ToEvent)[]): this {
+  toIfHeldDown(event: KeyCode | ToEvent | (KeyCode | ToEvent)[]): this {
     this.manipulator.to_if_held_down = this.manipulator.to_if_held_down || [];
     const events = Array.isArray(event) ? event : [event];
     for (const e of events) {
@@ -289,12 +350,42 @@ export class BasicManipulatorBuilder {
     return this;
   }
 
-  toAfterKeyUp(event: string | ToEvent | (string | ToEvent)[]): this {
+  toAfterKeyUp(event: KeyCode | ToEvent | (KeyCode | ToEvent)[]): this {
     this.manipulator.to_after_key_up = this.manipulator.to_after_key_up || [];
     const events = Array.isArray(event) ? event : [event];
     for (const e of events) {
       this.manipulator.to_after_key_up.push(normalizeToEvent(e));
     }
+    return this;
+  }
+
+  /**
+   * Rewrite the held `from` key itself when one of `otherKeys` is pressed.
+   *
+   * The documented fix for the `option+tab -> command+tab` trap: remapping via
+   * `from.modifiers.mandatory` changes only the `tab` output, so pressing a
+   * further modifier releases `left_command` and closes the app switcher
+   * (gotcha 7.7). This channel rewrites the modifier key instead.
+   *
+   * Additive to `to` rather than replacing it, and stackable — call it once per
+   * chord target. Both fields must be arrays and the entry rejects a
+   * `description` key, which is this channel's one deviation from the
+   * single-object shorthand every other `to*` channel accepts (gotcha 5.13).
+   */
+  toIfOtherKeyPressed(
+    otherKeys: FromEvent | FromEvent[],
+    to: KeyCode | ToEvent | (KeyCode | ToEvent)[],
+  ): this {
+    const keys = Array.isArray(otherKeys) ? otherKeys : [otherKeys];
+    if (keys.length === 0) {
+      throw new Error("toIfOtherKeyPressed: other_keys must name at least one key");
+    }
+    const events = (Array.isArray(to) ? to : [to]).map(normalizeToEvent);
+    this.manipulator.to_if_other_key_pressed = this.manipulator.to_if_other_key_pressed ?? [];
+    this.manipulator.to_if_other_key_pressed.push({
+      other_keys: keys,
+      to: events,
+    });
     return this;
   }
 
@@ -345,7 +436,8 @@ export class BasicManipulatorBuilder {
     return this;
   }
 
-  build(): Manipulator[] {
+  /** Always a `basic` manipulator — the builder cannot produce another kind. */
+  build(): BasicManipulator[] {
     return [this.manipulator];
   }
 

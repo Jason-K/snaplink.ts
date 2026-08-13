@@ -6,7 +6,13 @@ export type { CommandSpec } from "./commands";
 export type { MapSpec, Map } from "./maps";
 export type { VarSpec, VarValueSpec } from "./vars";
 export type { DeviceSpec } from "./devices";
-export type { Action, ActionKeyModifier, ActionSpec, AppTarget } from "./actions";
+export type {
+  Action,
+  ActionEventOptions,
+  ActionKeyModifier,
+  ActionSpec,
+  AppTarget,
+} from "./actions";
 export type { ProfileSpec, SimpleModificationPair } from "./profiles";
 export type {
   Binding,

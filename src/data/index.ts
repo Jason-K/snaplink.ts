@@ -18,6 +18,7 @@ export type {
   VarValueSpec,
   Action,
   ActionKeyModifier,
+  ActionEventOptions,
   ActionSpec,
   AppTarget,
   Binding,
