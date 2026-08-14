@@ -1,7 +1,7 @@
 import { APPS } from "./apps";
 import { VM } from "../constants/keys";
 import type { MapSpec, Map } from "../primitives/maps";
-import { mapSpec, type ComboOpts, type HkInput } from "../../engine/resolve-to-action/resolve-map";
+import { mapSpec, type ComboOpts, type HkInput } from "./map-builder";
 
 // ---------------------------------------------------------
 // Registry

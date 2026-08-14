@@ -30,6 +30,8 @@ import type { AcceptUndefined } from "../types/util";
 import type { SimpleModificationPair } from "../data/primitives/profiles";
 import type { DeviceConfig } from "./resolve-trigger/device-config";
 import { expandDeviceConfigs, getDeviceKey } from "./resolve-trigger/device-config";
+import type { ProfileSpec } from "../data/primitives/profiles";
+import { PROFILES } from "../data/registries/profiles";
 
 /** Karabiner-Elements writes this file with 4-space indentation; match it so
  * hand edits and generated writes produce minimal diffs. */
@@ -40,6 +42,15 @@ const BACKUP_RETENTION = 10;
 
 const BACKUP_PREFIX = "karabiner.json.bak_";
 const BACKUP_NAME_PATTERN = /^karabiner\.json\.bak_\d{8}_\d{6}$/;
+
+/**
+ * Resolves a ProfileSpec by profile name, defaulting to the preferred profile (`jjkDefault`).
+ */
+export function getProfileSpec(name?: string): ProfileSpec {
+  if (!name) return PROFILES.jjkDefault;
+  const found = Object.values(PROFILES).find((p) => p.name === name);
+  return found ?? PROFILES.jjkDefault;
+}
 
 /** Thrown when the requested profile does not exist in the config file. */
 export class ProfileNotFoundError extends Error {

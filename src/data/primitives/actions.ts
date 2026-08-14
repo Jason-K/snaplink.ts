@@ -5,7 +5,8 @@ import type { MapSpec } from "./maps";
 import type { PathSpec } from "./paths";
 import type { UrlSpec } from "./urls";
 import type { VarSpec } from "./vars";
-import type { ModComboAlias, ModKey } from "../constants/keys";
+import type { ModKey } from "./keys";
+import type { ModComboAlias } from "../constants/keys";
 
 /**
  * Target reference accepted by application actions (`app`).
@@ -15,6 +16,9 @@ export type AppTarget = AppSpec | PathSpec | string;
 
 /** Valid modifier key specifier for actions: individual modifier or virtual modifier alias (`"CO__"`, `"COCS"`). */
 export type ActionKeyModifier = ModKey | ModComboAlias;
+
+/** Folder-open strategy: a Finder replacement app, or plain Finder. */
+export type FolderOpener = "bloom" | "qspace" | "finder";
 
 /**
  * High-level action specifications evaluated by the synthesizer into Karabiner `to` events.

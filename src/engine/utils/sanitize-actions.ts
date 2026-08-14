@@ -1,5 +1,5 @@
 import type { Manipulator } from "../../types/karabiner";
-import { SHELL_ENV } from "../../data/constants/global";
+import { SHELL_ENV } from "../../data/constants/env";
 
 export { SHELL_ENV };
 

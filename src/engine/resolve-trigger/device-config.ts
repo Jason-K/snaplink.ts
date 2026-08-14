@@ -27,6 +27,15 @@ export type DeviceConfig = {
 };
 
 import type { DeviceSpec } from "../../data";
+import type {
+  DeviceDefaults,
+  DeviceOverrides,
+  KbDefaults,
+  KbOverrides,
+  MouseDefaults,
+  MouseOverrides,
+} from "../../data/primitives/devices";
+import { DEFAULTS, KB_DEFAULTS, MOUSE_DEFAULTS } from "../../data/constants/devices";
 
 /**
  * Strip a `DeviceSpec` to the shape Karabiner accepts as a device identifier.
@@ -112,4 +121,23 @@ export function expandDeviceConfigs(configs: ReadonlyArray<DeviceConfig>): Devic
   return expanded;
 }
 
+/**
+ * Resolves mouse settings by applying user-specified overrides onto MOUSE_DEFAULTS.
+ */
+export function getMouseSettings(overrides?: MouseOverrides): MouseDefaults {
+  return { ...MOUSE_DEFAULTS, ...overrides };
+}
 
+/**
+ * Resolves keyboard settings by applying user-specified overrides onto KB_DEFAULTS.
+ */
+export function getKbSettings(overrides?: KbOverrides): KbDefaults {
+  return { ...KB_DEFAULTS, ...overrides };
+}
+
+/**
+ * Resolves device settings by applying user-specified overrides onto DEFAULTS.
+ */
+export function getDeviceSettings(overrides?: DeviceOverrides): DeviceDefaults {
+  return { ...DEFAULTS, ...overrides };
+}

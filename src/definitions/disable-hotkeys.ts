@@ -1,3 +1,4 @@
+import { VM } from "../data";
 import { bind, from, noop, press, to, type Binding } from "../engine";
 
 // Disabled shortcuts swallow the chord entirely (noop = no `to` events).
@@ -9,9 +10,9 @@ import { bind, from, noop, press, to, type Binding } from "../engine";
 export const disabledHotkeys: Binding[] = [
   bind(from("h", ["L.cmd"]),
     to(press(noop()))),
-  bind(from("h", ["L.cmd", "L.opt"]),
+  bind(from("h", VM.CO__),
     to(press(noop()))),
-  bind(from("m", ["L.cmd", "L.opt"]),
+  bind(from("m", VM.CO__),
     to(press(noop()))),
 ];
 

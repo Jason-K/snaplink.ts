@@ -67,4 +67,52 @@ export default defineConfig([
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
+
+  {
+    // Layering boundary: `src/data/**` is a dependency of `src/engine/**`,
+    // never the reverse. This is the rule that was actually broken twice
+    // before this config existed — `data/constants/env.ts` imported a type
+    // from `engine/resolve-to-action`, and `data/registries/combos.ts`
+    // imported `mapSpec` from `engine/resolve-to-action/resolve-map` to
+    // build its own registry data — both silent until someone traced the
+    // import graph by hand. `src/index.ts` is the one file allowed to see
+    // both sides; it is not under `src/data/**`.
+    files: ['src/data/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/engine', '**/engine/**'],
+              message:
+                'src/data/** must not import from src/engine/**. Data is a dependency of the engine, never the reverse — move the compiled/derived logic into src/engine and have it import the data instead.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  {
+    // Sub-boundary within data: constants stay context-free scalars with zero
+    // dependency on named content tables. Registries (APPS, DEVICES, BUTTONS,
+    // COMBOS, ...) may depend on constants — PROFILES already does, for
+    // DEFAULT_PROFILE/PREFERRED_PROFILE — but not the other way around.
+    files: ['src/data/constants/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/registries', '**/registries/**'],
+              message:
+                'src/data/constants/** must not import from src/data/registries/**. If a type needs a registry (e.g. it is keyed off a specific registry\'s entries), it belongs in src/data/registries/, not here.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 ]);

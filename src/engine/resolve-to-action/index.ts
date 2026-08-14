@@ -8,7 +8,6 @@ export * from "./action-handlers";
 export * from "./resolve-app";
 export * from "./resolve-conditions";
 export * from "./resolve-folder";
-export * from "./resolve-map";
 export * from "./resolve-script";
 
 /** Normalize path quoting inside any shell command an action produced. */

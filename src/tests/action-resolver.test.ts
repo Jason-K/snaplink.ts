@@ -1,11 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { Manipulator } from "../types/karabiner";
-import {
-  ensurePathQuotingInCommand,
-  ensurePathQuotingInManipulators,
-  resolveActionToEvents,
-} from "../engine/resolve-to-action";
+import { ensurePathQuotingInCommand, ensurePathQuotingInManipulators } from "../engine/utils";
+import { resolveActionToEvents } from "../engine/resolve-to-action";
 
 test("ensurePathQuotingInCommand encloses unquoted paths in quotes", () => {
   assert.equal(

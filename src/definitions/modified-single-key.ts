@@ -29,6 +29,7 @@ const modNumBindings: Binding[] = [
   bind(from("keypad_1", VM.COCS), to(release(url(URLS.winBottomLeftEighth, true)))),
   bind(from("keypad_3", VM.COCS), to(release(url(URLS.winBottomRightEighth, true)))),
   bind(from("keypad_5", VM.COCS), to(release(url(URLS.winMaximize, true)))),
+  bind(from("keypad_5", VM.COC_), to(release(cmd(CMDS.mimiWinFill)))),
   bind(from("keypad_7", VM.COCS), to(release(url(URLS.winTopLeftEighth, true)))),
   bind(from("keypad_9", VM.COCS), to(release(url(URLS.winTopRightEighth, true)))),
 ];

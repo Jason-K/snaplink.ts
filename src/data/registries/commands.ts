@@ -182,6 +182,16 @@ const App_Specific = {
 
 };
 
+const Mimi_Commands = {
+  mimiWinSpaceRight: cmdEntry(`mimi action move_window_to_space next`, "move window to next space"),
+  mimiWinSpaceLeft: cmdEntry(`mimi action move_window_to_space prev`, "move window to previous space"),
+  mimiWinLeftHalf: cmdEntry(`mimi action resize_window left-half`, "resize window to left half"),
+  mimiWinRightHalf: cmdEntry(`mimi action resize_window right-half`, "resize window to right half"),
+  mimiWinTopHalf: cmdEntry(`mimi action resize_window top-half`, "resize window to top half"),
+  mimiWinBottomHalf: cmdEntry(`mimi action resize_window bottom-half`, "resize window to bottom half"),
+  mimiWinFill: cmdEntry(`mimi action resize_window fill`, "resize window to fill screen"),
+};
+
 const Misc_Scripts = {
   ocrToMd: cmdEntry(
     `'${PATHS.binSharedVenv.path}' '${PATHS.scriptsDir.path}/ui/screenshot_to_md/shot_to_md.py'`,
@@ -203,6 +213,7 @@ export const CMDS = {
   ...Windows,
   ...Get_Recents,
   ...App_Specific,
+  ...Mimi_Commands,
   ...Misc_Scripts,
 } as const;
 

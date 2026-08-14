@@ -77,3 +77,26 @@ export interface DeviceSpec {
   /** Ignore all input events from this device. */
   ignore?: boolean;
 }
+
+// ── Per-Device Default Settings & Overrides ─────────────────────────────────
+
+export interface MouseDefaults {
+  flip_vertical_wheel: boolean;
+  flip_horizontal_wheel: boolean;
+  xy_multiplier: number;
+  wheels_multiplier: number;
+}
+
+export interface KbDefaults {
+  modify_events: boolean;
+  use_caps_led: boolean;
+}
+
+export type DeviceDefaults = MouseDefaults & KbDefaults;
+
+export type DeviceKey = keyof DeviceDefaults;
+
+export type MouseOverrides = Partial<MouseDefaults>;
+export type KbOverrides = Partial<KbDefaults>;
+export type DeviceOverrides = Partial<DeviceDefaults>;
+

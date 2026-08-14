@@ -1,4 +1,4 @@
-import type { AppSpec, Map, MapSpec, PathSpec } from "../../data";
+import type { AppSpec, Map, MapSpec, PathSpec } from "../primitives";
 
 export type ComboOpts = {
   app?: AppSpec | PathSpec | string;
@@ -73,15 +73,3 @@ export function mapSpec(
     ...(opts?.options ? { options: opts.options } : {}),
   };
 }
-
-export {
-  getModComboAliasCanonicalKey,
-  isModComboAlias,
-  resolveModComboAlias,
-} from "../utils";
-
-export {
-  ensurePathQuoting,
-  ensurePathQuotingInCommand,
-  ensurePathQuotingInManipulators,
-} from "../utils";

@@ -28,11 +28,3 @@ export const PROFILES = {
   },
 } as const satisfies Record<string, ProfileSpec>;
 
-/**
- * Resolves a ProfileSpec by profile name, defaulting to the preferred profile (`jjkDefault`).
- */
-export function getProfileSpec(name?: string): ProfileSpec {
-  if (!name) return PROFILES.jjkDefault;
-  const found = Object.values(PROFILES).find((p) => p.name === name);
-  return found ?? PROFILES.jjkDefault;
-}

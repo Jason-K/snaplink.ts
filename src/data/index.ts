@@ -8,6 +8,13 @@ export type {
   BaseSpec,
   CommandSpec,
   DeviceSpec,
+  DeviceDefaults,
+  DeviceKey,
+  DeviceOverrides,
+  KbDefaults,
+  KbOverrides,
+  MouseDefaults,
+  MouseOverrides,
   Map,
   MapSpec,
   PathSpec,
@@ -31,22 +38,18 @@ export type {
   SimOrder,
   Trigger,
   TriggerModifiers,
+  ModAlias,
+  FolderOpener,
 } from "./primitives";
 
 // SETTINGS
 export { DESCRIPTION_SEPARATOR, KEY_SYMBOLS } from "./constants/descriptions";
-export { SHELL_ENV, GLOBAL_SETTINGS, FINDER_REPLACEMENT, HOME, HOMEBREW_PREFIX, SHARED_VENV, TP_CLI, TMPDIR, USER } from "./constants/global";
-export { DEFAULT_PROFILE, DEFAULT_TIMINGS, PREFERRED_PROFILE } from "./constants/profiles";
+export { GLOBAL_SETTINGS } from "./constants/global";
+export { SHELL_ENV, FINDER_REPLACEMENT, HOME, HOMEBREW_PREFIX, SHARED_VENV, TP_CLI, TMPDIR, USER } from "./constants/env";
+export { DEFAULT_PROFILE, PREFERRED_PROFILE } from "./constants/profiles";
+export { DEFAULTS, KB_DEFAULTS, MOUSE_DEFAULTS } from "./constants/devices";
 export {
-  KB_MODIFY_EVENTS,
-  KB_USE_CAPS_LED,
-  MOUSE_MODIFY_EVENTS,
-  mouse_flip_horizontal_wheel,
-  mouse_flip_vertical_wheel,
-  pointing_motion_wheels_multiplier,
-  pointing_motion_xy_multiplier,
-} from "./constants/devices";
-export {
+  DEFAULT_TIMINGS,
   KB_TIMINGS,
   MOUSE_TIMINGS,
   TIMINGS,
@@ -57,35 +60,34 @@ export {
   type KeyCode,
   type ModComboAlias,
   type ModKey,
-  type TriggerKey,
   type StandardKeyCode,
 } from "./constants/keys";
+export {
+  ACCESSIBILITY_ROLES,
+  INPUT_SOURCES,
+  VAR_STATE,
+  type AccessibilityRole,
+  type InputSourceId,
+} from "./constants/var-states";
+
+// REGISTRIES
+export { DEVICES } from "./registries/devices";
 export {
   BUTTONS,
   BUTTON_DESCS,
   type ButtonSpec,
-  type DeviceName,
   type ButtonAlias,
+  type DeviceName,
   type KnownPointerButton,
   type PointerButtonAlias,
-} from "./constants/mouse";
-
-// REGISTRIES
-export { DEVICES } from "./registries/devices";
+  type TriggerKey,
+} from "./registries/buttons";
 export { VARS } from "./registries/vars";
-export {
-  ACCESSIBILITY_ROLES,
-  INPUT_SOURCES,
-  STATES,
-  STATE_GROUPS,
-  VAR_STATE,
-  varState,
-  type AccessibilityRole,
-  type InputSourceId,
-} from "./registries/var-states";
+export { STATES, STATE_GROUPS } from "./registries/var-states";
 export { APPS, PW_IDS } from "./registries/apps";
 export { CMDS } from "./registries/commands";
-export { COMBOS, mapSpec, type ComboOpts, type HkInput } from "./registries/combos";
-export { PROFILES, getProfileSpec } from "./registries/profiles";
+export { COMBOS } from "./registries/combos";
+export { mapSpec, type ComboOpts, type HkInput } from "./registries/map-builder";
+export { PROFILES } from "./registries/profiles";
 export { PATHS } from "./registries/paths";
 export { URLS } from "./registries/urls";

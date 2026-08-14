@@ -1,5 +1,7 @@
+import type { KeyCode } from "../../types/karabiner";
+import type { ModKey } from "../constants/keys";
 import type { PointingButton } from "../../types/karabiner";
-import { type DEVICES } from "../registries/devices";
+import { type DEVICES } from "./devices";
 
 // ── Button registry (replaces g502xButtons) ────────────────────────────────
 
@@ -85,3 +87,22 @@ export type PointerButtonAlias = PointingButton | ButtonAlias;
 /** @deprecated Use {@link PointerButtonAlias}, or {@link ButtonAlias} for just our names. */
 export type KnownPointerButton = PointerButtonAlias;
 
+/**
+ * Anything nameable as a trigger key.
+ *
+ * Three vocabularies meet here and all three are legal: a Karabiner key code
+ * (`"a"`, `"escape"`), a modifier name or one of our aliases for one
+ * (`"left_option"`, `"L.shift"`, `"cmd"`) since modifiers are triggerable keys,
+ * and a pointer button or alias (`"button4"`, `"back"`). `resolveKeyAlias()`
+ * and `resolveButton()` collapse the second and third onto the first, and a
+ * `Trigger` may hold either form — `{ keys: ["R.cmd"] }` is resolved during
+ * manipulator generation, not at construction.
+ *
+ * Composed here rather than in `data/primitives` or `data/constants`: it
+ * spans a types-layer union (KeyCode), a constants-layer union (ModKey), and
+ * this registry's own PointerButtonAlias. Keeping it beside PointerButtonAlias
+ * is what lets it stay derived instead of a hand-duplicated union that can
+ * silently fall behind BUTTONS, the same drift {@link ButtonAlias} above was
+ * written to prevent.
+ */
+export type TriggerKey = KeyCode | ModKey | PointerButtonAlias;

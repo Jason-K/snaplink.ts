@@ -11,7 +11,7 @@
 
 import type { ToEvent, ToMouseKey } from "../../types/karabiner";
 import type { Action, ActionSpec } from "../../data";
-import { FINDER_REPLACEMENT } from "../../data/constants/global";
+import { FINDER_REPLACEMENT } from "../../data/constants/env";
 import { expandModifiers, resolveButton, resolveKeyAlias } from "../utils";
 import { keyTokenToLabel, modifierTokenToSymbols } from "../resolve-description/rule-descriptions";
 import { toKey, toPointingButton } from "../karabiner-helpers";

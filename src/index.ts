@@ -23,10 +23,10 @@ import {
   DEFAULT_TIMINGS,
   PATHS,
   PREFERRED_PROFILE,
-  getProfileSpec,
 } from "./data";
 import { buildRules, DEVICE_CONFIGS } from "./config";
 import {
+  getProfileSpec,
   readKarabinerConfig,
   resolveProfileName,
   writeKarabinerConfig,

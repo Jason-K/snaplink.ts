@@ -16654,23 +16654,15 @@
                 ]
               }
             },
-            "description": "Caps lock pressed",
-            "conditions": [
+            "to_if_alone": [
               {
-                "type": "variable_if",
-                "name": "caps_lock_pressed",
-                "value": 1
+                "shell_command": "mimi action resize_window fill"
               }
             ],
-            "to": [
+            "to_if_held_down": [
               {
-                "set_variable": {
-                  "name": "caps_lock_used",
-                  "value": 1
-                }
-              },
-              {
-                "repeat": true,
+                "halt": true,
+                "repeat": false,
                 "key_code": "keypad_5",
                 "modifiers": [
                   "left_command",
@@ -16678,7 +16670,31 @@
                   "left_control"
                 ]
               }
-            ]
+            ],
+            "to_delayed_action": {
+              "to_if_invoked": [],
+              "to_if_canceled": [
+                {
+                  "shell_command": "mimi action resize_window fill"
+                }
+              ]
+            },
+            "to": [
+              {
+                "set_variable": {
+                  "name": "caps_lock_used",
+                  "value": 1
+                }
+              }
+            ],
+            "conditions": [
+              {
+                "type": "variable_if",
+                "name": "caps_lock_pressed",
+                "value": 1
+              }
+            ],
+            "description": "Caps lock pressed"
           },
           {
             "type": "basic",
@@ -24179,6 +24195,48 @@
         ]
       },
       {
+        "description": "[⌘⌥⌃]+[KEYPAD 5]:\n---\n\tOn Tap:\n\t\tAlways:\tRun command 'resize window to fill screen'",
+        "manipulators": [
+          {
+            "type": "basic",
+            "from": {
+              "key_code": "keypad_5",
+              "modifiers": {
+                "mandatory": [
+                  "command",
+                  "option",
+                  "control"
+                ]
+              }
+            },
+            "to_if_alone": [
+              {
+                "shell_command": "mimi action resize_window fill"
+              }
+            ],
+            "to_if_held_down": [
+              {
+                "halt": true,
+                "key_code": "keypad_5",
+                "modifiers": [
+                  "command",
+                  "option",
+                  "control"
+                ]
+              }
+            ],
+            "to_delayed_action": {
+              "to_if_invoked": [],
+              "to_if_canceled": [
+                {
+                  "shell_command": "mimi action resize_window fill"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
         "description": "[⌘⌥]+[H]:\n---\n\tOn Tap:\n\t\tAlways:\tNo operation",
         "manipulators": [
           {
@@ -24187,8 +24245,8 @@
               "key_code": "h",
               "modifiers": {
                 "mandatory": [
-                  "left_command",
-                  "left_option"
+                  "command",
+                  "option"
                 ]
               }
             }
@@ -24204,8 +24262,8 @@
               "key_code": "m",
               "modifiers": {
                 "mandatory": [
-                  "left_command",
-                  "left_option"
+                  "command",
+                  "option"
                 ]
               }
             }
@@ -25853,55 +25911,6 @@
         ]
       },
       {
-        "description": "[FN]:\n---\n\tOn Hold:\n\t\tnot Caps lock pressed:\tEmit ⌘⌥⌃ + 'F5'",
-        "manipulators": [
-          {
-            "type": "basic",
-            "from": {
-              "key_code": "fn",
-              "modifiers": {
-                "optional": []
-              }
-            },
-            "to_if_alone": [
-              {
-                "halt": true,
-                "key_code": "fn"
-              }
-            ],
-            "to_if_held_down": [
-              {
-                "halt": true,
-                "repeat": false,
-                "key_code": "f5",
-                "modifiers": [
-                  "command",
-                  "option",
-                  "control"
-                ]
-              }
-            ],
-            "to_delayed_action": {
-              "to_if_invoked": [],
-              "to_if_canceled": [
-                {
-                  "halt": true,
-                  "key_code": "fn"
-                }
-              ]
-            },
-            "conditions": [
-              {
-                "type": "variable_unless",
-                "name": "caps_lock_pressed",
-                "value": 1
-              }
-            ],
-            "description": "not Caps lock pressed"
-          }
-        ]
-      },
-      {
         "description": "[G]:\n---\n\tOn Hold:\n\t\tAlways:\tmap 'show glyphlow'",
         "manipulators": [
           {
@@ -26470,156 +26479,6 @@
                 }
               ]
             }
-          }
-        ]
-      },
-      {
-        "description": "[⌘]:\n---\n\tOn Tap:\n\t\tnot Caps lock pressed:\tEmit '⌘'\n\tOn Hold:\n\t\tnot Caps lock pressed:\tEmit '⌘'\n\tOn Double Tap:\n\t\tnot Caps lock pressed:\tGo back 1 apps",
-        "manipulators": [
-          {
-            "type": "basic",
-            "from": {
-              "key_code": "left_command",
-              "modifiers": {}
-            },
-            "conditions": [
-              {
-                "type": "variable_if",
-                "name": "multi_tap_left_command",
-                "value": 1
-              },
-              {
-                "type": "variable_unless",
-                "name": "caps_lock_pressed",
-                "value": 1
-              }
-            ],
-            "parameters": {
-              "basic.to_if_alone_timeout_milliseconds": 300,
-              "basic.to_if_held_down_threshold_milliseconds": 300
-            },
-            "description": "not Caps lock pressed",
-            "to": [
-              {
-                "lazy": true,
-                "key_code": "left_command",
-                "modifiers": []
-              }
-            ],
-            "to_if_alone": [
-              {
-                "set_variable": {
-                  "name": "multi_tap_left_command",
-                  "value": 0
-                }
-              },
-              {
-                "software_function": {
-                  "open_application": {
-                    "frontmost_application_history_index": 1
-                  }
-                }
-              }
-            ],
-            "to_if_held_down": [
-              {
-                "set_variable": {
-                  "name": "multi_tap_left_command",
-                  "value": 0
-                }
-              }
-            ],
-            "to_delayed_action": {
-              "to_if_invoked": [
-                {
-                  "set_variable": {
-                    "name": "multi_tap_left_command",
-                    "value": 0
-                  }
-                }
-              ],
-              "to_if_canceled": [
-                {
-                  "set_variable": {
-                    "name": "multi_tap_left_command",
-                    "value": 0
-                  }
-                }
-              ]
-            }
-          },
-          {
-            "type": "basic",
-            "from": {
-              "key_code": "left_command",
-              "modifiers": {}
-            },
-            "parameters": {
-              "basic.to_delayed_action_delay_milliseconds": 300,
-              "basic.to_if_held_down_threshold_milliseconds": 300,
-              "basic.to_if_alone_timeout_milliseconds": 300
-            },
-            "description": "not Caps lock pressed",
-            "to": [
-              {
-                "set_variable": {
-                  "name": "multi_tap_left_command",
-                  "value": 1
-                }
-              },
-              {
-                "lazy": true,
-                "key_code": "left_command",
-                "modifiers": []
-              }
-            ],
-            "to_if_alone": [
-              {
-                "set_variable": {
-                  "name": "multi_tap_left_command",
-                  "value": 1
-                }
-              },
-              {
-                "key_code": "left_command"
-              }
-            ],
-            "to_if_held_down": [
-              {
-                "set_variable": {
-                  "name": "multi_tap_left_command",
-                  "value": 0
-                }
-              },
-              {
-                "key_code": "left_command"
-              }
-            ],
-            "to_delayed_action": {
-              "to_if_invoked": [
-                {
-                  "set_variable": {
-                    "name": "multi_tap_left_command",
-                    "value": 0
-                  }
-                }
-              ],
-              "to_if_canceled": [
-                {
-                  "set_variable": {
-                    "name": "multi_tap_left_command",
-                    "value": 0
-                  }
-                }
-              ]
-            },
-            "conditions": [
-              {
-                "type": "variable_unless",
-                "name": "caps_lock_pressed",
-                "value": 1
-              }
-            ]
           }
         ]
       },

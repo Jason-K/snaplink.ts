@@ -2,7 +2,6 @@ import { APPS, CMDS, COMBOS, URLS, VM } from "../data";
 import { capsVars } from "./caps-lock";
 import {
   actHere,
-  appHistory,
   bind,
   map,
   from,
@@ -144,32 +143,15 @@ const functionKeyBindings: Binding[] = [
 
 const modifierKeyBindings: Binding[] = [
   bind(
-    from("fn"),
-    to(hold(key("f5", VM.COC_))),
-    when(condNotVar(capsVars.pressed, 1)),
-  ),
-  bind(
-    from("left_command"),
-    to(
-      release(key("left_command")),
-      hold(key("left_command")),
-      release(appHistory(1)).withTapCount(2),
-    ),
-    // Do not intercept left_command while caps lock is held: caps emits
-    // left_command as its hyper-modifier key_code, and this rule's lazy
-    // transform would otherwise drop cmd from the caps modifier set.
-    when(condNotVar(capsVars.pressed, 1)),
-    options({
-      multiTap: { allowPassThrough: true, mods: [] },
-    }),
-  ),
-  bind(
     from("left_shift"),
     to(
       release(key("left_shift")),
       hold(key("left_shift")),
       release(url(URLS.rayClipboard)).withTapCount(2),
     ),
+    // Do not intercept left_command while caps lock is held: caps emits
+    // left_command as its hyper-modifier key_code, and this rule's lazy
+    // transform would otherwise drop cmd from the caps modifier set.
     when(condNotVar(capsVars.pressed, 1)),
     options({
       multiTap: { allowPassThrough: true, mods: [] },

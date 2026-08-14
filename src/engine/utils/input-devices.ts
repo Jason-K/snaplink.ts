@@ -1,7 +1,6 @@
 import type { Trigger } from "../../data";
 import type { PointingButton } from "../../types/karabiner";
-import type { PointerButtonAlias } from "../../data/constants/mouse";
-import { BUTTONS, BUTTON_DESCS, type ButtonSpec } from "../../data/constants/mouse";
+import { BUTTONS, BUTTON_DESCS, type ButtonSpec, type PointerButtonAlias } from "../../data/registries/buttons";
 import { resolveModifiers } from "./modifier-utils";
 
 export function getTriggerKeys(trigger: Trigger): string[] {

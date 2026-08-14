@@ -1,5 +1,6 @@
-/** Folder-open strategy: a Finder replacement app, or plain Finder. */
-export type FolderOpener = "bloom" | "qspace" | "finder";
+import type { FolderOpener } from "../../data/primitives/actions";
+
+export type { FolderOpener };
 
 /**
  * Generate a shell command to open a folder, using the given opener app.

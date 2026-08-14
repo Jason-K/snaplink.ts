@@ -4,8 +4,10 @@ import type {
   InputSourceSpecifier,
   KeyboardType,
 } from "../../types/karabiner";
-import type { TriggerKey } from "../constants/keys";
-import type { PointerButtonAlias } from "../constants/mouse";
+// TriggerKey/PointerButtonAlias are registry-derived (they depend on BUTTONS,
+// which depends on DEVICES) rather than pure primitives; imported here as the
+// one documented exception rather than hand-duplicating the button union.
+import type { PointerButtonAlias, TriggerKey } from "../registries/buttons";
 import type { Action } from "./actions";
 import type { AppSpec } from "./apps";
 import type { DeviceSpec } from "./devices";
