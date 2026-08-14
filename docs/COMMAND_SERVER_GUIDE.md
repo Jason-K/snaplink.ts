@@ -5,20 +5,19 @@
 > in the build as of 2026-08-12 — their only consumer was the leader layer,
 > which was removed. The server, the receiver and the launch agent still work;
 > nothing is asking them to. See
-> [MISSING_FEATURES.md](./MISSING_FEATURES.md) — *Orphaned*.
-
+> [MISSING_FEATURES.md](./MISSING_FEATURES.md) — _Orphaned_.
 
 This guide explains when and how to use the user command server versus traditional shell commands, and how to extend it with new endpoints.
 
 ## Quick Reference: Server vs Shell
 
-| Criterion     | Command Server                            | Shell Command                       |
-| ------------- | ----------------------------------------- | ----------------------------------- |
-| **Latency**   | ~50ms (persistent daemon, pre-warmed)     | ~100–200ms (subprocess spawn)       |
-| **Frequency** | High (10+/second)                         | Low (occasional, <5/second)         |
-| **Safety**    | Allowlist-based endpoint registry         | Direct shell execution              |
-| **State**     | Can maintain session state                | Stateless                           |
-| **Use cases** | Layer indicator, notifications, app focus | One-off operations, complex logic   |
+| Criterion     | Command Server                            | Shell Command                     |
+| ------------- | ----------------------------------------- | --------------------------------- |
+| **Latency**   | ~50ms (persistent daemon, pre-warmed)     | ~100–200ms (subprocess spawn)     |
+| **Frequency** | High (10+/second)                         | Low (occasional, <5/second)       |
+| **Safety**    | Allowlist-based endpoint registry         | Direct shell execution            |
+| **State**     | Can maintain session state                | Stateless                         |
+| **Use cases** | Layer indicator, notifications, app focus | One-off operations, complex logic |
 
 ---
 
@@ -74,9 +73,7 @@ Start: I need to execute an operation from a Karabiner rule
 import { layerIndicatorCommand } from "../core/scripts";
 
 rule("Show layer indicator on activation").manipulators([
-  map("space_key")
-    .to(layerIndicatorCommand("show", "space_layer"))
-    .build(),
+  map("space_key").to(layerIndicatorCommand("show", "space_layer")).build(),
   // ... other manipulators
 ]);
 ```
@@ -282,9 +279,10 @@ Most use cases work well with fire-and-forget (the current model).
 
 The declarative mouse infrastructure lives in:
 
-- `src/data/constants/mouse.ts` — button alias tables and device IDs
+- `src/data/constants/devices.ts` — default mouse settings
+- `src/data/primitives/devices.ts` — type definitions for mouse and keyboard devices
+- `src/data/registries/buttons.ts` - button alias tables and device IDs
 - `src/definitions/mouse.ts` — per-device tap-hold and double-tap mappings (the user edit surface)
-- `src/definitions/mouse.ts` — per-device tap-hold and double-tap mappings, compiled by the standard pipeline
 
 Button tap-hold and double-tap mappings are fully supported there. Scroll-up/down chord triggers are not expressible as basic `from` events in Karabiner-Elements, so they live outside the rule pipeline. Use the command server or a Hammerspoon-side bridge for scroll-chord behaviours until a native declarative trigger path is available.
 
@@ -337,10 +335,7 @@ import { showNotification } from "../core/scripts";
 
 test("showNotification emits correct payload structure", () => {
   const result = showNotification("Test", { subtitle: "Sub" });
-  assert.match(
-    JSON.stringify(result),
-    /hammerspoon.*showNotification.*function/,
-  );
+  assert.match(JSON.stringify(result), /hammerspoon.*showNotification.*function/);
 });
 ```
 
@@ -445,14 +440,14 @@ open -g 'hammerspoon://layer_indicator?action=show&layer=test'
 
 ## Summary: When to Use What
 
-| Operation       | Best tool                          | Example                                   |
-| --------------- | ---------------------------------- | ----------------------------------------- |
-| Layer show/hide | Command server (fast)              | Space bar indicator                       |
-| Notifications   | Hybrid (Hammerspoon + fallback)    | Key macro confirmations                   |
-| App focus       | Native `open -b`                   | Cmd+Alt+S → Safari                        |
-| Clipboard       | Native `pbcopy`                    | Macro paste templates                     |
-| Complex logic   | Shell command                      | Multi-step scripts, conditional execution |
-| One-off launch  | Shell command                      | `open -a AppName`                         |
-| Error handling  | Shell command                      | Check exit code, conditional flows        |
+| Operation       | Best tool                       | Example                                   |
+| --------------- | ------------------------------- | ----------------------------------------- |
+| Layer show/hide | Command server (fast)           | Space bar indicator                       |
+| Notifications   | Hybrid (Hammerspoon + fallback) | Key macro confirmations                   |
+| App focus       | Native `open -b`                | Cmd+Alt+S → Safari                        |
+| Clipboard       | Native `pbcopy`                 | Macro paste templates                     |
+| Complex logic   | Shell command                   | Multi-step scripts, conditional execution |
+| One-off launch  | Shell command                   | `open -a AppName`                         |
+| Error handling  | Shell command                   | Check exit code, conditional flows        |
 
 **Golden rule:** If you're calling Hammerspoon URL schemes from rules, migrate to the command server for better latency and maintainability.

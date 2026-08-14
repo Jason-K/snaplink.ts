@@ -16,528 +16,144 @@ const url = (urlStr: string, refDesc: string, category?: string): UrlSpec => ({
   ...(category ? { category } : {}),
 });
 
+// Scoped factory helpers for concise single-line registry definitions
+const sidenotes = (action: string, refDesc: string): UrlSpec => url(`sidenotes://${action}`, refDesc, "sidenotes");
+
+const ray = (path: string, refDesc: string): UrlSpec => url(`raycast-x://extensions/${path}`, refDesc, "raycast");
+
+const rect = (action: string, refDesc: string): UrlSpec =>
+  url(`rectangle-pro://execute-action?name=${action}`, refDesc, "rectangle");
+
+const csx = (action: string, refDesc: string): UrlSpec => url(`cleanshot://${action}`, refDesc, "cleanshot");
+
+const antinote = (action: string, refDesc: string): UrlSpec => url(`antinote://${action}`, refDesc, "antinote");
+
 // ---------------------------------------------------------
 // Registry
 // ---------------------------------------------------------
 
 const SidenotesUrls = {
-  newClientNote: url("sidenotes://add-note-with-text/DATE%3A%20%0ACLIENT%3A%20%0ATOPIC%3A%20%0A%0A", "new client note template")
+  newClientNote: sidenotes("add-note-with-text/DATE%3A%20%0ACLIENT%3A%20%0ATOPIC%3A%20%0A%0A", "new client note template"),
 };
 
 const RaycastUrls = {
-  rayClipboard: url(
-    "raycast-x://extensions/raycast/clipboard-history/clipboard-history",
-    "open Raycast clipboard manager",
-    "raycast",
-  ),
-  rayHere2There: url(
-    "raycast-x://extensions/Jason/here-to-there/activeToTarget",
-    "call Raycast Here2There",
-    "raycast",
-  ),
-  rayRecentApps: url(
-    "raycast-x://extensions/jason/recents/recentApplications",
-    "show recent applications",
-    "raycast",
-  ),
-  rayRecentCustom: url(
-    "raycast-x://extensions/jason/recents/recentCustom",
-    "show recent files",
-    "raycast",
-  ),
-  rayRecentDownloads: url(
-    "raycast-x://extensions/jason/recents/recentDownloads",
-    "show recent downloads",
-    "raycast",
-  ),
-  rayRecentFiles: url(
-    "raycast-x://extensions/jason/recents/recents",
-    "show recent files",
-    "raycast",
-  ),
-  rayRecentFolders: url(
-    "raycast-x://extensions/jason/recents/recentFolders",
-    "show recent folders",
-    "raycast",
-  ),
-  raySpotifyPlayPause: url(
-    "raycast-x://extensions/mattisssa/spotify-player/togglePlayPause",
-    "toggle Spotify",
-    "raycast",
-  ),
-  raySpotifySearch: url(
-    "raycast-x://extensions/mattisssa/spotify-player/search",
-    "search Spotify",
-    "raycast",
-  ),
-  rayZoxideSearchDirs: url(
-    "raycast-x://extensions/mrpunkin/raycast-zoxide/search-directories",
-    "search directories using zoxide",
-    "raycast",
-  ),
+  rayClipboard: ray("raycast/clipboard-history/clipboard-history", "open Raycast clipboard manager"),
+  rayHere2There: ray("Jason/here-to-there/activeToTarget", "call Raycast Here2There"),
+  rayRecentApps: ray("jason/recents/recentApplications", "show recent applications"),
+  rayRecentCustom: ray("jason/recents/recentCustom", "show recent files"),
+  rayRecentDownloads: ray("jason/recents/recentDownloads", "show recent downloads"),
+  rayRecentFiles: ray("jason/recents/recents", "show recent files"),
+  rayRecentFolders: ray("jason/recents/recentFolders", "show recent folders"),
+  raySpotifyPlayPause: ray("mattisssa/spotify-player/togglePlayPause", "toggle Spotify"),
+  raySpotifySearch: ray("mattisssa/spotify-player/search", "search Spotify"),
+  rayZoxideSearchDirs: ray("mrpunkin/raycast-zoxide/search-directories", "search directories using zoxide"),
 };
 
 const rectangleUrls = {
-  rectAppLeftHalf: url(
-    "rectangle-pro://execute-action?name=app-left-half",
-    "App to ◧",
-    "rectangle",
-  ),
-  rectAppNextDisplay: url(
-    "rectangle-pro://execute-action?name=app-next-display",
-    "App to display →",
-    "rectangle",
-  ),
-  rectAppPrevDisplay: url(
-    "rectangle-pro://execute-action?name=app-prev-display",
-    "App to display ←",
-    "rectangle",
-  ),
-  rectAppRightHalf: url(
-    "rectangle-pro://execute-action?name=app-right-half",
-    "App to ◨",
-    "rectangle",
-  ),
-  rectCascadeAll: url(
-    "rectangle-pro://execute-action?name=cascade-all",
-    "Cascade all windows",
-    "rectangle",
-  ),
-  rectCascadeApp: url(
-    "rectangle-pro://execute-action?name=cascade-app",
-    "Cascade app windows",
-    "rectangle",
-  ),
-  rectCenterHalf: url(
-    "rectangle-pro://execute-action?name=center-half",
-    "Window center 1/2",
-    "rectangle",
-  ),
-  rectCycleStashed: url(
-    "rectangle-pro://execute-action?name=cycle-stashed",
-    "Cycle stashed windows",
-    "rectangle",
-  ),
-  rectDisplayNext: url(
-    "rectangle-pro://execute-action?name=next-display",
-    "Display →",
-    "rectangle",
-  ),
-  rectDisplayPrev: url(
-    "rectangle-pro://execute-action?name=previous-display",
-    "Display ←",
-    "rectangle",
-  ),
-  winFullscreen: url(
-    "rectangle-pro://execute-action?name=fullscreen",
-    "Fullscreen",
-    "rectangle",
-  ),
-  rectHideApp: url("rectangle-pro://execute-action?name=hide-app", "Hide app", "rectangle"),
-  rectSpaceNext: url(
-    "rectangle-pro://execute-action?name=next-space",
-    "Space →",
-    "rectangle",
-  ),
-  rectSpacePrev: url(
-    "rectangle-pro://execute-action?name=prev-space",
-    "Last space",
-    "rectangle",
-  ),
-  winBottomHalf: url(
-    "rectangle-pro://execute-action?name=bottom-half",
-    "Window to ⬓",
-    "rectangle",
-  ),
-  winBottomLeft: url(
-    "rectangle-pro://execute-action?name=bottom-left",
-    "Window ◱",
-    "rectangle",
-  ),
-  winBottomLeftSixth: url(
-    "rectangle-pro://execute-action?name=bottom-left-sixth",
-    "Window ↓← 1/6",
-    "rectangle",
-  ),
-  winBottomLeftThird: url(
-    "rectangle-pro://execute-action?name=bottom-left-third",
-    "Window ↓← 1/3",
-    "rectangle",
-  ),
-  winBottomRight: url(
-    "rectangle-pro://execute-action?name=bottom-right",
-    "Window ◲",
-    "rectangle",
-  ),
-  winBottomRightSixth: url(
-    "rectangle-pro://execute-action?name=bottom-right-sixth",
-    "Window ↓→ 1/6",
-    "rectangle",
-  ),
-  winBottomRightThird: url(
-    "rectangle-pro://execute-action?name=bottom-right-third",
-    "Window ↓→ 1/3",
-    "rectangle",
-  ),
-  winCenter: url(
-    "rectangle-pro://execute-action?name=center",
-    "Center window",
-    "rectangle",
-  ),
-  winCenterThird: url(
-    "rectangle-pro://execute-action?name=center-third",
-    "Window center 1/3",
-    "rectangle",
-  ),
-  winCenterTwoThirds: url(
-    "rectangle-pro://execute-action?name=center-two-thirds",
-    "Window center 2/3",
-    "rectangle",
-  ),
-  winClose: url(
-    "rectangle-pro://execute-action?name=close",
-    "Close window",
-    "rectangle",
-  ),
-  winFillBottomLeft: url(
-    "rectangle-pro://execute-action?name=fill-bottom-left",
-    "Window fill ◲",
-    "rectangle",
-  ),
-  winFillBottomRight: url(
-    "rectangle-pro://execute-action?name=fill-bottom-right",
-    "Window fill ◲",
-    "rectangle",
-  ),
-  winFillLeft: url(
-    "rectangle-pro://execute-action?name=fill-left",
-    "Window fill ←",
-    "rectangle",
-  ),
-  winFillRight: url(
-    "rectangle-pro://execute-action?name=fill-right",
-    "Window fill →",
-    "rectangle",
-  ),
-  winFillTopLeft: url(
-    "rectangle-pro://execute-action?name=fill-top-left",
-    "Window fill ◰",
-    "rectangle",
-  ),
-  winFillTopRight: url(
-    "rectangle-pro://execute-action?name=fill-top-right",
-    "Window fill ◱",
-    "rectangle",
-  ),
-  winFirstFourth: url(
-    "rectangle-pro://execute-action?name=first-fourth",
-    "Window to ◰",
-    "rectangle",
-  ),
-  winFirstSixth: url(
-    "rectangle-pro://execute-action?name=first-sixth",
-    "Window first 1/6",
-    "rectangle",
-  ),
-  winFirstThird: url(
-    "rectangle-pro://execute-action?name=first-third",
-    "Window first 1/3",
-    "rectangle",
-  ),
-  winFirstThreeFourths: url(
-    "rectangle-pro://execute-action?name=first-three-fourths",
-    "Window first 3/4",
-    "rectangle",
-  ),
-  winFirstTwoThirds: url(
-    "rectangle-pro://execute-action?name=first-two-thirds",
-    "Window first 2/3",
-    "rectangle",
-  ),
-  winLarger: url(
-    "rectangle-pro://execute-action?name=larger",
-    "Make window larger",
-    "rectangle",
-  ),
-  winLast: url(
-    "rectangle-pro://execute-action?name=last",
-    "Go to last window",
-    "rectangle",
-  ),
-  winLastFourth: url(
-    "rectangle-pro://execute-action?name=last-fourth",
-    "Window ◲",
-    "rectangle",
-  ),
-  winLastSixth: url(
-    "rectangle-pro://execute-action?name=last-sixth",
-    "Window last 1/6",
-    "rectangle",
-  ),
-  winLastThird: url(
-    "rectangle-pro://execute-action?name=last-third",
-    "Window last 1/3",
-    "rectangle",
-  ),
-  winLastThreeFourths: url(
-    "rectangle-pro://execute-action?name=last-three-fourths",
-    "Window last 3/4",
-    "rectangle",
-  ),
-  winLastTwoThirds: url(
-    "rectangle-pro://execute-action?name=last-two-thirds",
-    "Window last 2/3",
-    "rectangle",
-  ),
-  winLeftHalf: url(
-    "rectangle-pro://execute-action?name=left-half",
-    "Window ◨",
-    "rectangle",
-  ),
-  winMaximize: url(
-    "rectangle-pro://execute-action?name=maximize",
-    "Window ✥",
-    "rectangle",
-  ),
-  winMaximizeHeight: url(
-    "rectangle-pro://execute-action?name=maximize-height",
-    "Max window height",
-    "rectangle",
-  ),
-  winMinimize: url(
-    "rectangle-pro://execute-action?name=minimize",
-    "Window ⇣",
-    "rectangle",
-  ),
-  winMoveDown: url(
-    "rectangle-pro://execute-action?name=move-down",
-    "Move window ↓",
-    "rectangle",
-  ),
-  winMoveLeft: url(
-    "rectangle-pro://execute-action?name=move-left",
-    "Move window ←",
-    "rectangle",
-  ),
-  winMoveRight: url(
-    "rectangle-pro://execute-action?name=move-right",
-    "Move window →",
-    "rectangle",
-  ),
-  winMoveUp: url(
-    "rectangle-pro://execute-action?name=move-up",
-    "Move window ↑",
-    "rectangle",
-  ),
-  winNudgeDown: url(
-    "rectangle-pro://execute-action?name=nudge-down",
-    "Nudge window ↓",
-    "rectangle",
-  ),
-  winNudgeLeft: url(
-    "rectangle-pro://execute-action?name=nudge-left",
-    "Nudge window ←",
-    "rectangle",
-  ),
-  winNudgeRight: url(
-    "rectangle-pro://execute-action?name=nudge-right",
-    "Nudge window →",
-    "rectangle",
-  ),
-  winNudgeUp: url(
-    "rectangle-pro://execute-action?name=nudge-up",
-    "Nudge window ↑",
-    "rectangle",
-  ),
-  winPin: url("rectangle-pro://execute-action?name=pin", "Pin window", "rectangle"),
-  winRestore: url(
-    "rectangle-pro://execute-action?name=restore",
-    "Restore window",
-    "rectangle",
-  ),
-  winRightHalf: url(
-    "rectangle-pro://execute-action?name=right-half",
-    "Window ◧",
-    "rectangle",
-  ),
-  winSecondFourth: url(
-    "rectangle-pro://execute-action?name=second-fourth",
-    "Window ◳",
-    "rectangle",
-  ),
-  winSmaller: url(
-    "rectangle-pro://execute-action?name=smaller",
-    "Make window smaller",
-    "rectangle",
-  ),
-  winSnapBottomLeft: url(
-    "rectangle-pro://execute-action?name=snap-bottom-left",
-    "Snap window ◱",
-    "rectangle",
-  ),
-  winSnapBottomRight: url(
-    "rectangle-pro://execute-action?name=snap-bottom-right",
-    "Snap window to ◲",
-    "rectangle",
-  ),
-  winSnapTopLeft: url(
-    "rectangle-pro://execute-action?name=snap-top-left",
-    "Snap window to ◰",
-    "rectangle",
-  ),
-  winSnapTopRight: url(
-    "rectangle-pro://execute-action?name=snap-top-right",
-    "Snap window to ◳",
-    "rectangle",
-  ),
-  winsReflowPin: url(
-    "rectangle-pro://execute-action?name=reflow-pin",
-    "Reflow pin",
-    "rectangle",
-  ),
-  winsStashAllButFront: url(
-    "rectangle-pro://execute-action?name=stash-all-but-front",
-    "Stash all but front",
-    "rectangle",
-  ),
-  winStashAll: url(
-    "rectangle-pro://execute-action?name=stash-all",
-    "Stash all",
-    "rectangle",
-  ),
-  winStashDown: url(
-    "rectangle-pro://execute-action?name=stash-down",
-    "Stash ↓",
-    "rectangle",
-  ),
-  winStashLeft: url(
-    "rectangle-pro://execute-action?name=stash-left",
-    "Stash ←",
-    "rectangle",
-  ),
-  winStashRight: url(
-    "rectangle-pro://execute-action?name=stash-right",
-    "Stash →",
-    "rectangle",
-  ),
-  winStashUp: url(
-    "rectangle-pro://execute-action?name=stash-up",
-    "Stash ↑",
-    "rectangle",
-  ),
-  winsTile2x2: url("rectangle-pro://execute-action?name=tile2x2", "Tile ⊞", "rectangle"),
-  winsTile2x3: url(
-    "rectangle-pro://execute-action?name=tile2x3",
-    "Tile 2x3",
-    "rectangle",
-  ),
-  winsToggleStashed: url(
-    "rectangle-pro://execute-action?name=toggle-stashed",
-    "Toggle stashed",
-    "rectangle",
-  ),
-  winsUnstash: url(
-    "rectangle-pro://execute-action?name=unstash",
-    "Unstash",
-    "rectangle",
-  ),
-  winsUnstashAll: url(
-    "rectangle-pro://execute-action?name=unstash-all",
-    "Unstash all",
-    "rectangle",
-  ),
-  winThirdFourth: url(
-    "rectangle-pro://execute-action?name=third-fourth",
-    "Window to ◳",
-    "rectangle",
-  ),
-  winTopCenterSixth: url(
-    "rectangle-pro://execute-action?name=top-center-sixth",
-    "Window to top center 1/6",
-    "rectangle",
-  ),
-  winTopHalf: url(
-    "rectangle-pro://execute-action?name=top-half",
-    "Window ⬒",
-    "rectangle",
-  ),
-  winTopLeft: url(
-    "rectangle-pro://execute-action?name=top-left",
-    "Window to ◰",
-    "rectangle",
-  ),
-  winTopLeftSixth: url(
-    "rectangle-pro://execute-action?name=top-left-sixth",
-    "Window to ↑← 1/6",
-    "rectangle",
-  ),
-  winTopLeftThird: url(
-    "rectangle-pro://execute-action?name=top-left-third",
-    "Window to ↑← 1/3",
-    "rectangle",
-  ),
-  winTopRight: url(
-    "rectangle-pro://execute-action?name=top-right",
-    "Window to ◳",
-    "rectangle",
-  ),
-  winTopRightSixth: url(
-    "rectangle-pro://execute-action?name=top-right-sixth",
-    "Window to ↑→ 1/6",
-    "rectangle",
-  ),
-  winTopRightThird: url(
-    "rectangle-pro://execute-action?name=top-right-third",
-    "Window to ↑→ 1/3",
-    "rectangle",
-  ),
-  winUpperCenter: url(
-    "rectangle-pro://execute-action?name=upper-center",
-    "Window to upper center",
-    "rectangle",
-  ),
-  winBottomRightEighth: url(
-    "rectangle-pro://execute-action?name=bottom-right-eighth",
-    "Window to bottom right 1/8",
-    "rectangle",
-  ),
-  winBottomLeftEighth: url(
-    "rectangle-pro://execute-action?name=bottom-left-eighth",
-    "Window to bottom left 1/8",
-    "rectangle",
-  ),
-  winTopRightEighth: url(
-    "rectangle-pro://execute-action?name=top-right-eighth",
-    "Window to top right 1/8",
-    "rectangle",
-  ),
-  winTopLeftEighth: url(
-    "rectangle-pro://execute-action?name=top-left-eighth",
-    "Window to top left 1/8",
-    "rectangle",
-  ),
+  rectAppLeftHalf: rect("app-left-half", "App to ◧"),
+  rectAppNextDisplay: rect("app-next-display", "App to display →"),
+  rectAppPrevDisplay: rect("app-prev-display", "App to display ←"),
+  rectAppRightHalf: rect("app-right-half", "App to ◨"),
+  rectCascadeAll: rect("cascade-all", "Cascade all windows"),
+  rectCascadeApp: rect("cascade-app", "Cascade app windows"),
+  rectCenterHalf: rect("center-half", "Window center 1/2"),
+  rectCycleStashed: rect("cycle-stashed", "Cycle stashed windows"),
+  rectDisplayNext: rect("next-display", "Display →"),
+  rectDisplayPrev: rect("previous-display", "Display ←"),
+  winFullscreen: rect("fullscreen", "Fullscreen"),
+  rectHideApp: rect("hide-app", "Hide app"),
+  rectSpaceNext: rect("next-space", "Space →"),
+  rectSpacePrev: rect("prev-space", "Last space"),
+  winBottomHalf: rect("bottom-half", "Window to ⬓"),
+  winBottomLeft: rect("bottom-left", "Window ◱"),
+  winBottomLeftSixth: rect("bottom-left-sixth", "Window ↓← 1/6"),
+  winBottomLeftThird: rect("bottom-left-third", "Window ↓← 1/3"),
+  winBottomRight: rect("bottom-right", "Window ◲"),
+  winBottomRightSixth: rect("bottom-right-sixth", "Window ↓→ 1/6"),
+  winBottomRightThird: rect("bottom-right-third", "Window ↓→ 1/3"),
+  winCenter: rect("center", "Center window"),
+  winCenterThird: rect("center-third", "Window center 1/3"),
+  winCenterTwoThirds: rect("center-two-thirds", "Window center 2/3"),
+  winClose: rect("close", "Close window"),
+  winFillBottomLeft: rect("fill-bottom-left", "Window fill ◲"),
+  winFillBottomRight: rect("fill-bottom-right", "Window fill ◲"),
+  winFillLeft: rect("fill-left", "Window fill ←"),
+  winFillRight: rect("fill-right", "Window fill →"),
+  winFillTopLeft: rect("fill-top-left", "Window fill ◰"),
+  winFillTopRight: rect("fill-top-right", "Window fill ◱"),
+  winFirstFourth: rect("first-fourth", "Window to ◰"),
+  winFirstSixth: rect("first-sixth", "Window first 1/6"),
+  winFirstThird: rect("first-third", "Window first 1/3"),
+  winFirstThreeFourths: rect("first-three-fourths", "Window first 3/4"),
+  winFirstTwoThirds: rect("first-two-thirds", "Window first 2/3"),
+  winLarger: rect("larger", "Make window larger"),
+  winLast: rect("last", "Go to last window"),
+  winLastFourth: rect("last-fourth", "Window ◲"),
+  winLastSixth: rect("last-sixth", "Window last 1/6"),
+  winLastThird: rect("last-third", "Window last 1/3"),
+  winLastThreeFourths: rect("last-three-fourths", "Window last 3/4"),
+  winLastTwoThirds: rect("last-two-thirds", "Window last 2/3"),
+  winLeftHalf: rect("left-half", "Window ◨"),
+  winMaximize: rect("maximize", "Window ✥"),
+  winMaximizeHeight: rect("maximize-height", "Max window height"),
+  winMinimize: rect("minimize", "Window ⇣"),
+  winMoveDown: rect("move-down", "Move window ↓"),
+  winMoveLeft: rect("move-left", "Move window ←"),
+  winMoveRight: rect("move-right", "Move window →"),
+  winMoveUp: rect("move-up", "Move window ↑"),
+  winNudgeDown: rect("nudge-down", "Nudge window ↓"),
+  winNudgeLeft: rect("nudge-left", "Nudge window ←"),
+  winNudgeRight: rect("nudge-right", "Nudge window →"),
+  winNudgeUp: rect("nudge-up", "Nudge window ↑"),
+  winPin: rect("pin", "Pin window"),
+  winRestore: rect("restore", "Restore window"),
+  winRightHalf: rect("right-half", "Window ◧"),
+  winSecondFourth: rect("second-fourth", "Window ◳"),
+  winSmaller: rect("smaller", "Make window smaller"),
+  winSnapBottomLeft: rect("snap-bottom-left", "Snap window ◱"),
+  winSnapBottomRight: rect("snap-bottom-right", "Snap window to ◲"),
+  winSnapTopLeft: rect("snap-top-left", "Snap window to ◰"),
+  winSnapTopRight: rect("snap-top-right", "Snap window to ◳"),
+  winsReflowPin: rect("reflow-pin", "Reflow pin"),
+  winsStashAllButFront: rect("stash-all-but-front", "Stash all but front"),
+  winStashAll: rect("stash-all", "Stash all"),
+  winStashDown: rect("stash-down", "Stash ↓"),
+  winStashLeft: rect("stash-left", "Stash ←"),
+  winStashRight: rect("stash-right", "Stash →"),
+  winStashUp: rect("stash-up", "Stash ↑"),
+  winsTile2x2: rect("tile2x2", "Tile ⊞"),
+  winsTile2x3: rect("tile2x3", "Tile 2x3"),
+  winsToggleStashed: rect("toggle-stashed", "Toggle stashed"),
+  winsUnstash: rect("unstash", "Unstash"),
+  winsUnstashAll: rect("unstash-all", "Unstash all"),
+  winThirdFourth: rect("third-fourth", "Window to ◳"),
+  winTopCenterSixth: rect("top-center-sixth", "Window to top center 1/6"),
+  winTopHalf: rect("top-half", "Window ⬒"),
+  winTopLeft: rect("top-left", "Window to ◰"),
+  winTopLeftSixth: rect("top-left-sixth", "Window to ↑← 1/6"),
+  winTopLeftThird: rect("top-left-third", "Window to ↑← 1/3"),
+  winTopRight: rect("top-right", "Window to ◳"),
+  winTopRightSixth: rect("top-right-sixth", "Window to ↑→ 1/6"),
+  winTopRightThird: rect("top-right-third", "Window to ↑→ 1/3"),
+  winUpperCenter: rect("upper-center", "Window to upper center"),
+  winBottomRightEighth: rect("bottom-right-eighth", "Window to bottom right 1/8"),
+  winBottomLeftEighth: rect("bottom-left-eighth", "Window to bottom left 1/8"),
+  winTopRightEighth: rect("top-right-eighth", "Window to top right 1/8"),
+  winTopLeftEighth: rect("top-left-eighth", "Window to top left 1/8"),
 };
 
 const CsxUrls = {
-  csxArea: url("cleanshot://capture-area", "Capture area", "cleanshot"),
-  csxScreen: url(
-    "cleanshot://capture-fullscreen",
-    "Capture fullscreen",
-    "cleanshot",
-  ),
-  csxOcr: url("cleanshot://capture-text", "OCR text", "cleanshot"),
-  csxOcrNoLinebreaks: url(
-    "cleanshot://capture-text?linebreaks=false",
-    "OCR text (no line breaks)",
-    "cleanshot",
-  ),
-  csxWindow: url("cleanshot://capture-window", "Capture window", "cleanshot"),
-  csxRecord: url("cleanshot://record-screen", "Record screen", "cleanshot"),
+  csxArea: csx("capture-area", "Capture area"),
+  csxScreen: csx("capture-fullscreen", "Capture fullscreen"),
+  csxOcr: csx("capture-text", "OCR text"),
+  csxOcrNoLinebreaks: csx("capture-text?linebreaks=false", "OCR text (no line breaks)"),
+  csxWindow: csx("capture-window", "Capture window"),
+  csxRecord: csx("record-screen", "Record screen"),
 };
 
 const AntiNoteUrls = {
-  antinote: url("antinote://", "Open AntiNote"),
-  antinoteNewNote: url("antinote://new-note", "Create new note"),
+  antinote: antinote("", "Open AntiNote"),
+  antinoteNewNote: antinote("new-note", "Create new note"),
 };
 
 // EXPORTS

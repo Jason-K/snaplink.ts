@@ -48,78 +48,55 @@ const BIN_DIRS = {
   brewBin: path(`${ENV_DIRS.brewDir.path}/bin`, "Brew bins"),
 };
 
+// Scoped factory helpers for concise single-line path definitions
+const script = (relPath: string, desc: string): PathSpec =>
+  path(`${ENV_DIRS.scriptsDir.path}/${relPath}`, desc);
+
+const brewBin = (binName: string, desc: string): PathSpec =>
+  path(`${BIN_DIRS.brewBin.path}/${binName}`, desc);
+
+const xdgBin = (binName: string, desc: string): PathSpec =>
+  path(`${ENV_DIRS.xdgBin.path}/${binName}`, desc);
+
+const workDoc = (relPath: string, desc: string): PathSpec =>
+  path(`${ENV_DIRS.onedriveWork.path}/Documents/${relPath}`, desc);
+
 const SCRIPT_DIR = {
-  stringThingsDir: path(
-    `${ENV_DIRS.scriptsDir.path}/strings/text_processor`,
-    "Text Processor script folder",
-  ),
+  stringThingsDir: script("strings/text_processor", "Text Processor script folder"),
   dirGits: path("$HOME/gits", "Gits"),
-  dirWorkspaces: path("$HOME/Scripts/workspaces", "VSC workspaces folder"),
+  dirWorkspaces: script("workspaces", "VSC workspaces folder"),
 };
 
 const WORK_DIRS = {
-  myCases: path(
-    `${ENV_DIRS.onedriveWork.path}/Documents/0-myCases`,
-    "my cases",
-  ),
-  workLib: path(
-    `${ENV_DIRS.onedriveWork.path}/Documents/1-firmLibrary`,
-    "work library",
-  ),
+  myCases: workDoc("0-myCases", "my cases"),
+  workLib: workDoc("1-firmLibrary", "work library"),
 };
 
 const SCRIPT_FILES = {
-  here2there: path(
-    `${ENV_DIRS.scriptsDir.path}/active_process/take_action_here/take_action_here.sh`,
-    "Here2There script",
-  ),
-  recentDls: path(
-    `${ENV_DIRS.scriptsDir.path}/filesystem/recent_changes/recent_dl.sh`,
-    "Recent Dls script",
-  ),
-  stringThings: path(
-    `${ENV_DIRS.scriptsDir.path}/strings/text_processor/interfaces/cli.py`,
-    "Text Processor CLI entrypoint",
-  ),
-  lastTypinatorRule: path(
-    `${ENV_DIRS.scriptsDir.path}/apps/Typinator/Edit_Last_Typinator_Expansion.applescript`,
-    "edit the last Typinator rule",
-  ),
-  newTypinatorRule: path(
-    `${ENV_DIRS.scriptsDir.path}/apps/Typinator/new_rule/new_rule.py`,
-    "create a new Typinator rule",
-  ),
-  getDocPath: path(
-    `${HOME}/Scripts/apps/karabiner/snaplink.ts/scripts/applescripts/get-word-document-path.applescript`,
-    "get path to active word document",
-  ),
+  here2there: script("active_process/take_action_here/take_action_here.sh", "Here2There script"),
+  recentDls: script("filesystem/recent_changes/recent_dl.sh", "Recent Dls script"),
+  stringThings: script("strings/text_processor/interfaces/cli.py", "Text Processor CLI entrypoint"),
+  lastTypinatorRule: script("apps/Typinator/Edit_Last_Typinator_Expansion.applescript", "edit the last Typinator rule"),
+  newTypinatorRule: script("apps/Typinator/new_rule/new_rule.py", "create a new Typinator rule"),
+  getDocPath: path(`${HOME}/Scripts/apps/karabiner/snaplink.ts/scripts/applescripts/get-word-document-path.applescript`, "get path to active word document"),
 };
 
 const CONFIG_FILES = {
-  configKE: path(
-    `${ENV_DIRS.xdgConfig.path}/karabiner/karabiner.json`,
-    "Karabiner configuration file",
-  ),
+  configKE: path(`${ENV_DIRS.xdgConfig.path}/karabiner/karabiner.json`, "Karabiner configuration file"),
 };
 
 const BIN_FILES = {
-  binCliClick: path(`${ENV_DIRS.xdgBin.path}/binCliClick`, "Cliclick binary"),
+  binCliClick: xdgBin("binCliClick", "Cliclick binary"),
   binHSBridge: path("$HOME/Hammer-Console/cli/hammer", "Hammer CLI bin"),
-  binAppKill: path(`${ENV_DIRS.xdgBin.path}/kill-app`, "Kill App binary"),
-  binAppOpen: path(`${ENV_DIRS.xdgBin.path}/open-app`, "Open App binary"),
-  binPrivCLI: path(
-    `/Applications/Privileges.app/Contents/MacOS/PrivilegesCLI`,
-    "PrivilegesCLI",
-  ),
-  binHS: path(`${BIN_DIRS.brewBin.path}/hs`, "Hammerspoon binary"),
-  binNeru: path(`${BIN_DIRS.brewBin.path}/neru`, "Neru binary"),
-  binSendKeys: path(`${BIN_DIRS.brewBin.path}/SendKeys`, "Sendkeys"),
+  binAppKill: xdgBin("kill-app", "Kill App binary"),
+  binAppOpen: xdgBin("open-app", "Open App binary"),
+  binPrivCLI: path("/Applications/Privileges.app/Contents/MacOS/PrivilegesCLI", "PrivilegesCLI"),
+  binHS: brewBin("hs", "Hammerspoon binary"),
+  binNeru: brewBin("neru", "Neru binary"),
+  binSendKeys: brewBin("SendKeys", "Sendkeys"),
   binSharedVenv: path(`${ENV_DIRS.sharedVenv.path}/bin/python`, "shared venv python"),
-  binTypinatorVenv: path(
-    `${ENV_DIRS.typinatorVenv.path}/bin/python`,
-    "python bin for Typinator",
-  ),
-  binUV: path(`${ENV_DIRS.xdgBin.path}/uv`, "UV binary"),
+  binTypinatorVenv: path(`${ENV_DIRS.typinatorVenv.path}/bin/python`, "python bin for Typinator"),
+  binUV: xdgBin("uv", "UV binary"),
 };
 
 // ---------------------------------------------------------

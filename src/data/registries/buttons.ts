@@ -13,50 +13,35 @@ export type ButtonSpec = {
   desc: string;
 };
 
+// Scoped factory helpers for concise single-line button definitions
+const globalBtn = (button: PointingButton, desc: string): ButtonSpec => ({
+  button,
+  nameScope: "global",
+  desc,
+});
+
+const g502xBtn = (button: PointingButton, desc: string): ButtonSpec => ({
+  button,
+  nameScope: ["g502X"],
+  desc,
+});
+
 export const BUTTONS = {
   // Physically standard (most pointing devices) → global. Bindings that must
   // restrict them add an explicit `device` condition.
-  left: { button: "button1", nameScope: "global", desc: "Left click" },
-  right: { button: "button2", nameScope: "global", desc: "Right click" },
-  middle: { button: "button3", nameScope: "global", desc: "Middle click" },
-  wheel: { button: "button3", nameScope: "global", desc: "Wheel click" },
-  back: { button: "button4", nameScope: "global", desc: "Back button" },
+  left: globalBtn("button1", "Left click"),
+  right: globalBtn("button2", "Right click"),
+  middle: globalBtn("button3", "Middle click"),
+  wheel: globalBtn("button3", "Wheel click"),
+  back: globalBtn("button4", "Back button"),
   // G502X-specific extra buttons → auto-scope to the G502X.
-  shift_button: {
-    button: "button5",
-    nameScope: ["g502X"],
-    desc: "Shift button",
-  },
-  forward: {
-    button: "button6",
-    nameScope: ["g502X"],
-    desc: "Forward button",
-  },
-  wheelLeft: {
-    button: "button7",
-    nameScope: ["g502X"],
-    desc: "Wheel left",
-  },
-  wheelRight: {
-    button: "button8",
-    nameScope: ["g502X"],
-    desc: "Wheel right",
-  },
-  middleBack: {
-    button: "button9",
-    nameScope: ["g502X"],
-    desc: "Middle-back (G9)",
-  },
-  leftForward: {
-    button: "button10",
-    nameScope: ["g502X"],
-    desc: "Left-forward (G8)",
-  },
-  leftBack: {
-    button: "button11",
-    nameScope: ["g502X"],
-    desc: "Left-back (G7)",
-  },
+  shift_button: g502xBtn("button5", "Shift button"),
+  forward: g502xBtn("button6", "Forward button"),
+  wheelLeft: g502xBtn("button7", "Wheel left"),
+  wheelRight: g502xBtn("button8", "Wheel right"),
+  middleBack: g502xBtn("button9", "Middle-back (G9)"),
+  leftForward: g502xBtn("button10", "Left-forward (G8)"),
+  leftBack: g502xBtn("button11", "Left-back (G7)"),
 } as const satisfies Record<string, ButtonSpec>;
 
 /** Fallback descriptions for buttons no {@link BUTTONS} entry names. */

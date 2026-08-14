@@ -26629,7 +26629,7 @@
         ]
       },
       {
-        "description": "[N]:\n---\n\tOn Hold:\n\t\tAlways:\tRun 'Show Neru Hints'",
+        "description": "[N]:\n---\n\tOn Hold:\n\t\tAlways:\tRun 'activate Neru's hints mode'",
         "manipulators": [
           {
             "type": "basic",
@@ -26648,7 +26648,7 @@
             "to_if_held_down": [
               {
                 "halt": true,
-                "shell_command": "'/opt/homebrew/bin/neru' hints"
+                "shell_command": "\"/opt/homebrew/bin/neru\" hints"
               }
             ],
             "to_delayed_action": {

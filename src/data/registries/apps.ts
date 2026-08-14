@@ -48,10 +48,7 @@ export const APPS = {
   ringCentral: app("com.ringcentral.glip", "RingCentral"),
   securityAgent: app("com.apple.SecurityAgent", "Security Agent"),
   settings: app("com.apple.systempreferences", "System Settings"),
-  settingsPrivacy: app(
-    "com.apple.settings.PrivacySecurity",
-    "System Settings, security",
-  ),
+  settingsPrivacy: app("com.apple.settings.PrivacySecurity", "System Settings, security"),
   sidenotes: app("com.apptorium.SideNotes-setapp", "Sidenotes"),
   skim: app("net.sourceforge.skim-app.skim", "Skim"),
   spotify: app("com.spotify.client", "Spotify"),

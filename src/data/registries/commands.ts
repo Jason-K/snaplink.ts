@@ -3,9 +3,9 @@ import type { CommandSpec } from "../primitives/commands";
 import { TIMINGS } from "../constants/timings";
 import { URLS } from "./urls";
 
-// --------------------------------------------------------- 
+// ---------------------------------------------------------
 // BUILDERS
-// --------------------------------------------------------- 
+// ---------------------------------------------------------
 
 // PRIVILEGES
 const rmPriv = `'${PATHS.binPrivCLI.path}' -r && sleep ${TIMINGS.privDelaySec}`;
@@ -40,23 +40,38 @@ const cmdEntry = (commandStr: string, refDesc: string): CommandSpec => ({
   refDesc,
 });
 
+// Scoped factory helpers for concise single-line command definitions
+const hsEval = (fn: string, desc: string): CommandSpec => cmdEntry(`${runHs} '${fn}'`, desc);
+
+const textClip = (action: string, desc: string): CommandSpec =>
+  cmdEntry(`${stringThings} ${action} --source clipboard --dest paste`, desc);
+
+const recentDls = (flag: string, desc: string): CommandSpec => cmdEntry(`${PATHS.recentDls.path} ${flag}`, desc);
+
+const mimi = (action: string, target: string, desc: string): CommandSpec =>
+  cmdEntry(`mimi action ${action} ${target}`, desc);
+
+const neru = (action: string, desc: string): CommandSpec => cmdEntry(`${PATHS.binNeru.path} ${action}`, desc);
+
+// ---------------------------------------------------------
+// Registries
+// ---------------------------------------------------------
 
 const Passwords_Privileges = {
-  // PASSWORDS AND PRIVILEGES
   getPrivileges: cmdEntry(`${getPriv}`, "Get privileges"),
   fillPw: cmdEntry(`${getPriv} && ${fillPw}`, "Fill password"),
   fillUnPw: cmdEntry(`${getPriv} && ${fillUnAndPw}`, "Fill username and password"),
 };
 
 const Kill_Apps = {
-  killForeground: cmdEntry(`${PATHS.binAppKill.path} --foreground`, "Kill front app",),
+  killForeground: cmdEntry(`${PATHS.binAppKill.path} --foreground`, "Kill front app"),
   killAll: cmdEntry(`${PATHS.binAppKill.path}`, "Kill all applications"),
   killAllApps: cmdEntry(`${PATHS.binAppKill.path}`, "Kill all applications"),
 };
 
 const Hs_Functions = {
-  evalSelection: cmdEntry(`${runHs} 'FormatSelection()'`, "Format selection using hsStringEval",),
-  evalSelectionPart: cmdEntry(`${runHs} 'FormatCutSeed()'`, "Format substrings within selection",),
+  evalSelection: hsEval("FormatSelection()", "Format selection using hsStringEval"),
+  evalSelectionPart: hsEval("FormatCutSeed()", "Format substrings within selection"),
 };
 
 const Typinator_Scripts = {
@@ -64,10 +79,7 @@ const Typinator_Scripts = {
     `'${PATHS.binTypinatorVenv.path}' '${PATHS.newTypinatorRule.path}'`,
     "Create new Typinator rule",
   ),
-  lastTypinatorRule: cmdEntry(
-    `osascript '${PATHS.lastTypinatorRule.path}'`,
-    "Edit last Typinator expansion",
-  ),
+  lastTypinatorRule: cmdEntry(`osascript '${PATHS.lastTypinatorRule.path}'`, "Edit last Typinator expansion"),
 };
 
 const Spotify = {
@@ -82,42 +94,15 @@ const Text_Processor = {
     `${stringThings} quick_date --source cut --dest paste`,
     "Insert today's date in yyyy-mm-dd format at the cursor.",
   ),
-  toUpper: cmdEntry(
-    `${stringThings} uppercase --source clipboard --dest paste`,
-    "Convert clipboard to uppercase.",
-  ),
-  toLower: cmdEntry(
-    `${stringThings} lower_case --source clipboard --dest paste`,
-    "Convert clipboard to lowercase.",
-  ),
-  toTitle: cmdEntry(
-    `${stringThings} title_case --source clipboard --dest paste`,
-    "Convert clipboard to title case.",
-  ),
-  wrapQuotes: cmdEntry(
-    `${stringThings} wrap_quotes --source clipboard --dest paste`,
-    "Wrap clipboard in quotes.",
-  ),
-  wrapSingleQuotes: cmdEntry(
-    `${stringThings} wrap_single_quotes --source clipboard --dest paste`,
-    "Wrap clipboard in single quotes.",
-  ),
-  wrapParens: cmdEntry(
-    `${stringThings} wrap_parentheses --source clipboard --dest paste`,
-    "Wrap clipboard in parentheses.",
-  ),
-  wrapBrackets: cmdEntry(
-    `${stringThings} wrap_brackets --source clipboard --dest paste`,
-    "Wrap clipboard in brackets.",
-  ),
-  wrapBraces: cmdEntry(
-    `${stringThings} wrap_braces --source clipboard --dest paste`,
-    "Wrap clipboard in braces.",
-  ),
-  wrapAngleBrackets: cmdEntry(
-    `${stringThings} wrap_angle_brackets --source clipboard --dest paste`,
-    "Wrap clipboard in angle brackets.",
-  ),
+  toUpper: textClip("uppercase", "Convert clipboard to uppercase."),
+  toLower: textClip("lower_case", "Convert clipboard to lowercase."),
+  toTitle: textClip("title_case", "Convert clipboard to title case."),
+  wrapQuotes: textClip("wrap_quotes", "Wrap clipboard in quotes."),
+  wrapSingleQuotes: textClip("wrap_single_quotes", "Wrap clipboard in single quotes."),
+  wrapParens: textClip("wrap_parentheses", "Wrap clipboard in parentheses."),
+  wrapBrackets: textClip("wrap_brackets", "Wrap clipboard in brackets."),
+  wrapBraces: textClip("wrap_braces", "Wrap clipboard in braces."),
+  wrapAngleBrackets: textClip("wrap_angle_brackets", "Wrap clipboard in angle brackets."),
 };
 
 const Windows = {
@@ -136,60 +121,41 @@ const Windows = {
 };
 
 const Get_Recents = {
-  recentFiles: cmdEntry(
-    `${raycastExt}/jason/recents/recentCustom`,
-    "Get recent items from Raycast",
-  ),
-  recentAdditions: cmdEntry(
-    `${PATHS.recentDls.path} -a`,
-    "Get recent items from script",
-  ),
-  recentMods: cmdEntry(
-    `${PATHS.recentDls.path} -m`,
-    "Get recent mods from script",
-  ),
-  recentCreations: cmdEntry(
-    `${PATHS.recentDls.path} -c`,
-    "Get new files from script",
-  ),
+  recentFiles: cmdEntry(`${raycastExt}/jason/recents/recentCustom`, "Get recent items from Raycast"),
+  recentAdditions: recentDls("-a", "Get recent items from script"),
+  recentMods: recentDls("-m", "Get recent mods from script"),
+  recentCreations: recentDls("-c", "Get new files from script"),
 };
 
 const App_Specific = {
-  wordPrint: cmdEntry(
-    `${getDocxPath} && ${sendKeys} -c "<c:p:command>"`,
-    "get file path and print in word",
-  ),
-  wordGetPath: cmdEntry(
-    `${getDocxPath}`,
-    "get file path in word",
-  ),
-  showSidenotes: cmdEntry(
-    `osascript -e 'tell application "SideNotes" to show all folders'`,
-    "show Sidenotes",
-  ),
-  showPopclip: cmdEntry(
-    `osascript -e 'tell application "Popclip" to appear'`,
-    "Show Popclip at cursor position",
-  ),
-  neruGrid: cmdEntry(
-    `'${PATHS.binNeru.path}' grid`,
-    "Show Neru Grid"
-  ),
-  neruHints: cmdEntry(
-    `'${PATHS.binNeru.path}' hints`,
-    "Show Neru Hints"
-  ),
-
+  wordPrint: cmdEntry(`${getDocxPath} && ${sendKeys} -c "<c:p:command>"`, "get file path and print in word"),
+  wordGetPath: cmdEntry(`${getDocxPath}`, "get file path in word"),
+  showSidenotes: cmdEntry(`osascript -e 'tell application "SideNotes" to show all folders'`, "show Sidenotes"),
+  showPopclip: cmdEntry(`osascript -e 'tell application "Popclip" to appear'`, "Show Popclip at cursor position"),
 };
 
+const Neru_Commands = {
+  neruGrid: neru("grid", "activate Neru's grid mode"),
+  neruHints: neru("hints", "activate Neru's hints mode"),
+  neruRecursiveGrid: neru("recursive_grid", "activate Neru's recursive grid mode"),
+  neruScroll: neru("scroll", "activate Neru's scroll mode"),
+  neruDisplay: neru("monitor_select", "activate Neru's monitor selection mode"),
+  neruLeftClick: neru("-a left_click", "left click"),
+  neruDoubleClick: neru("-a left_click,left_click", "double click"),
+  neruRightClick: neru("-a right_click", "right click"),
+  neruMiddleClick: neru("-a middle_click", "middle click"),
+  neruStartDrag: neru("-a left_mouse_down", "start drag"),
+  neruStopDrag: neru("-a left_mouse_up", "stop drag"),
+  neruSelectText: neru("-a left_mouse_toggle --modifier shift", "toggle text selection"),
+};
 const Mimi_Commands = {
-  mimiWinSpaceRight: cmdEntry(`mimi action move_window_to_space next`, "move window to next space"),
-  mimiWinSpaceLeft: cmdEntry(`mimi action move_window_to_space prev`, "move window to previous space"),
-  mimiWinLeftHalf: cmdEntry(`mimi action resize_window left-half`, "resize window to left half"),
-  mimiWinRightHalf: cmdEntry(`mimi action resize_window right-half`, "resize window to right half"),
-  mimiWinTopHalf: cmdEntry(`mimi action resize_window top-half`, "resize window to top half"),
-  mimiWinBottomHalf: cmdEntry(`mimi action resize_window bottom-half`, "resize window to bottom half"),
-  mimiWinFill: cmdEntry(`mimi action resize_window fill`, "resize window to fill screen"),
+  mimiSpaceRight: mimi("move_window_to_space", "next", "move window to next space"),
+  mimiSpaceLeft: mimi("move_window_to_space", "prev", "move window to previous space"),
+  mimiLeftHalf: mimi("resize_window", "left-half", "resize window to left half"),
+  mimiRightHalf: mimi("resize_window", "right-half", "resize window to right half"),
+  mimiTopHalf: mimi("resize_window", "top-half", "resize window to top half"),
+  mimiBottomHalf: mimi("resize_window", "bottom-half", "resize window to bottom half"),
+  mimiFill: mimi("resize_window", "fill", "resize window to fill screen"),
 };
 
 const Misc_Scripts = {
@@ -213,6 +179,7 @@ export const CMDS = {
   ...Windows,
   ...Get_Recents,
   ...App_Specific,
+  ...Neru_Commands,
   ...Mimi_Commands,
   ...Misc_Scripts,
 } as const;

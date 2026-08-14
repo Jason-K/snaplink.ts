@@ -6,6 +6,22 @@ import type { VarSpec } from "../primitives/vars";
  */
 const varId = (name: string, varDesc: string): VarSpec => ({ name, varDesc });
 
+// Scoped factory helpers for concise single-line variable definitions
+const axVar = (sub: string, desc: string): VarSpec =>
+  varId(`accessibility.focused_ui_element.${sub}`, desc);
+
+const appVar = (sub: string, desc: string): VarSpec =>
+  varId(`frontmost_application.${sub}`, desc);
+
+const inputVar = (sub: string, desc: string): VarSpec =>
+  varId(`input_source.${sub}`, desc);
+
+const sysVar = (sub: string, desc: string): VarSpec =>
+  varId(`system.${sub}`, desc);
+
+const vhidVar = (sub: string, desc: string): VarSpec =>
+  varId(`virtual_hid_devices_state.${sub}`, desc);
+
 // ---------------------------------------------------------
 // VARS Registry
 // ---------------------------------------------------------
@@ -18,117 +34,57 @@ export const VARS = {
 
   // accessibility.focused_ui_element.*
   /** Role of the focused UI element (e.g. "AXTextArea", "AXTextField"). */
-  elementType: varId(
-    "accessibility.focused_ui_element.role_string",
-    "UI element role is",
-  ),
+  elementType: axVar("role_string", "UI element role is"),
   /** Subrole of the focused UI element (e.g. "AXSecureTextField"). */
-  elementSubtype: varId(
-    "accessibility.focused_ui_element.subrole_string",
-    "UI element subrole is",
-  ),
+  elementSubtype: axVar("subrole_string", "UI element subrole is"),
   /** Title / label of the focused UI element. */
-  elementTitle: varId(
-    "accessibility.focused_ui_element.title_string",
-    "UI element title is",
-  ),
+  elementTitle: axVar("title_string", "UI element title is"),
   /** X position of the focused element's window. */
-  winPosX: varId(
-    "accessibility.focused_ui_element.window_position_x",
-    "Window X position",
-  ),
+  winPosX: axVar("window_position_x", "Window X position"),
   /** Y position of the focused element's window. */
-  winPosY: varId(
-    "accessibility.focused_ui_element.window_position_y",
-    "Window Y position",
-  ),
+  winPosY: axVar("window_position_y", "Window Y position"),
   /** Height of the focused element's window. */
-  winHeight: varId(
-    "accessibility.focused_ui_element.window_size_height",
-    "Window height",
-  ),
+  winHeight: axVar("window_size_height", "Window height"),
   /** Width of the focused element's window. */
-  winWidth: varId(
-    "accessibility.focused_ui_element.window_size_width",
-    "Window width",
-  ),
+  winWidth: axVar("window_size_width", "Window width"),
 
   // ── Frontmost application ──────────────────────────────────────────────────
 
   /** Bundle identifier of the frontmost application. */
-  foremostAppID: varId(
-    "frontmost_application.bundle_identifier",
-    "Frontmost app bundle ID",
-  ),
+  foremostAppID: appVar("bundle_identifier", "Frontmost app bundle ID"),
   /** Bundle path of the frontmost application. */
-  foremostAppPath: varId(
-    "frontmost_application.bundle_path",
-    "Frontmost app bundle path",
-  ),
+  foremostAppPath: appVar("bundle_path", "Frontmost app bundle path"),
   /** Detection source used to identify the frontmost application. */
-  foremostAppDetectionSource: varId(
-    "frontmost_application.detection_source",
-    "Frontmost app detection source",
-  ),
+  foremostAppDetectionSource: appVar("detection_source", "Frontmost app detection source"),
   /** Executable file path of the frontmost application. */
-  foremostAppFilePath: varId(
-    "frontmost_application.file_path",
-    "Frontmost app file path",
-  ),
+  foremostAppFilePath: appVar("file_path", "Frontmost app file path"),
   /** Process ID (PID) of the frontmost application. */
-  foremostAppPID: varId(
-    "frontmost_application.pid",
-    "Frontmost app PID",
-  ),
+  foremostAppPID: appVar("pid", "Frontmost app PID"),
 
   // ── Input source ──────────────────────────────────────────────────────────
 
   /** Input source identifier (e.g. "com.apple.keylayout.US"). */
-  inputSource: varId(
-    "input_source.input_source_id",
-    "Input source ID",
-  ),
+  inputSource: inputVar("input_source_id", "Input source ID"),
   /** BCP-47 language tag of the active input source (e.g. "en"). */
-  inputLanguage: varId(
-    "input_source.language",
-    "Input source language",
-  ),
+  inputLanguage: inputVar("language", "Input source language"),
 
   // ── System ────────────────────────────────────────────────────────────────
 
   /** Current time in milliseconds since the Unix epoch. */
-  systemTime: varId(
-    "system.now.milliseconds",
-    "System time (ms)",
-  ),
+  systemTime: sysVar("now.milliseconds", "System time (ms)"),
   /** Whether natural (macOS) scroll direction is active. */
-  naturalScroll: varId(
-    "system.scroll_direction_is_natural",
-    "Natural scroll direction",
-  ),
+  naturalScroll: sysVar("scroll_direction_is_natural", "Natural scroll direction"),
   /** Whether all devices are temporarily ignored by Karabiner. */
-  tempIgnoreDevices: varId(
-    "system.temporarily_ignore_all_devices",
-    "Temporarily ignore all devices",
-  ),
+  tempIgnoreDevices: sysVar("temporarily_ignore_all_devices", "Temporarily ignore all devices"),
   /** Whether the F-keys are configured as standard function keys. */
-  fnKeysForFunctions: varId(
-    "system.use_fkeys_as_standard_function_keys",
-    "F-keys as function keys",
-  ),
+  fnKeysForFunctions: sysVar("use_fkeys_as_standard_function_keys", "F-keys as function keys"),
 
   // ── Virtual HID device state ───────────────────────────────────────────────
 
   /** Whether the virtual HID keyboard is ready. */
-  vhidKeyboardReady: varId(
-    "virtual_hid_devices_state.virtual_hid_keyboard_ready",
-    "Virtual HID keyboard ready",
-  ),
+  vhidKeyboardReady: vhidVar("virtual_hid_keyboard_ready", "Virtual HID keyboard ready"),
   /** Whether the virtual HID pointing device is ready. */
-  vhidPointingReady: varId(
-    "virtual_hid_devices_state.virtual_hid_pointing_ready",
-    "Virtual HID pointing ready",
-  ),
+  vhidPointingReady: vhidVar("virtual_hid_pointing_ready", "Virtual HID pointing ready"),
 
   // ── User-Assigned / Signal Variables ───────────────────────────────────────
 
