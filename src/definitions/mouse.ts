@@ -54,15 +54,11 @@ export const mouseBindings: Binding[] = [
       // emitted manipulator order matches (groupByConditions keeps declaration
       // order between condition sets that neither implies the other).
       // Zen + right-button + wheel-up → prev workspace
-      press(key("left_arrow", VM.C_CS)).when(
-        state([APPS.zen, VARS.rButtonDown, [VARS.wheelDown, 0]]),
-      ),
+      press(key("left_arrow", VM.C_CS)).when(state([APPS.zen, VARS.rButtonDown, [VARS.wheelDown, 0]])),
       // wheel held down → swallow (the wheel-as-button mapping handles it)
       press([]).when(state("wheelDown")),
       // base hold — wheel guards on the base only (matches bespoke injection)
-      hold(shell(CMDS.winLOrTop)).when(
-        state([VARS.wheelDown, false], [VARS.rButtonDown, false]),
-      ),
+      hold(shell(CMDS.winLOrTop)).when(state([VARS.wheelDown, false], [VARS.rButtonDown, false])),
     ),
     timing({
       aloneMs: TIMINGS.timeoutWheelChordMs,
@@ -75,12 +71,8 @@ export const mouseBindings: Binding[] = [
   bind(
     from("wheelRight"),
     to(
-      press(key("right_arrow", VM.C_CS)).when(
-        state([APPS.zen, VARS.rButtonDown, [VARS.wheelDown, 0]]),
-      ),
-      hold(shell(CMDS.winROrBottom)).when(
-        state([VARS.wheelDown, false], [VARS.rButtonDown, false]),
-      ),
+      press(key("right_arrow", VM.C_CS)).when(state([APPS.zen, VARS.rButtonDown, [VARS.wheelDown, 0]])),
+      hold(shell(CMDS.winROrBottom)).when(state([VARS.wheelDown, false], [VARS.rButtonDown, false])),
     ),
     timing({
       aloneMs: TIMINGS.timeoutWheelChordMs,
@@ -93,9 +85,9 @@ export const mouseBindings: Binding[] = [
   bind(
     from("wheel"),
     to(
-      press([
-        { pointing_button: "button1", modifiers: ["option"], repeat: false },
-      ]).when(state(APPS.zen, VARS.rButtonDown)),
+      press([{ pointing_button: "button1", modifiers: ["option"], repeat: false }]).when(
+        state(APPS.zen, VARS.rButtonDown),
+      ),
       release([{ pointing_button: "button3", repeat: false }]),
       hold(shell(CMDS.winMaxToggle)),
     ),
@@ -107,23 +99,11 @@ export const mouseBindings: Binding[] = [
   // -------------------------------------------------------------
   // G7 (left_back) — Fill screen (tap) / Move window to next display (hold)
   // -------------------------------------------------------------
-  bind(
-    from("leftBack"),
-    to(
-      release(shell(CMDS.winMaxToggle)),
-      hold(url(URLS.rectDisplayNext)),
-    ),
-  ),
+  bind(from("leftBack"), to(release(shell(CMDS.winMaxToggle)), hold(url(URLS.rectDisplayNext)))),
   // -------------------------------------------------------------
   // G8 (left_forward) — Activate Popclip (tap) / Activate Sidenote (hold)
   // -------------------------------------------------------------
-  bind(
-    from("leftForward"),
-    to(
-      release(shell(CMDS.showPopclip)),
-      hold(map(COMBOS.showSidenotes)),
-    ),
-  ),
+  bind(from("leftForward"), to(release(shell(CMDS.showPopclip)), hold(map(COMBOS.showSidenotes)))),
   // -------------------------------------------------------------
   // G9 (middle_back) — Screenshot to text (tap) / markdown (hold)
   // -------------------------------------------------------------
@@ -136,12 +116,13 @@ export const mouseBindings: Binding[] = [
     ),
   ),
   // -------------------------------------------------------------
-  // BACK — Back (tap) / Window switch (hold); Zen+rbutton → next tab
+  // BACK — Back (tap) / Window switch (hold); Browsers+rbutton → next tab
   // -------------------------------------------------------------
   bind(
     from("back"),
     to(
       press(key("close_bracket", VM.C__S, { repeat: true })).when(state(APPS.zen, VARS.rButtonDown)),
+      press(key("tab", ["L.ctrl"], { repeat: true })).when(state(APPS.brave, VARS.rButtonDown)),
       release(button("button4", { repeat: false })),
       hold(key("tab", ["L.cmd"])),
     ),
@@ -151,12 +132,13 @@ export const mouseBindings: Binding[] = [
     }),
   ),
   // -------------------------------------------------------------
-  // FORWARD — Show windows of active app (hold) / Cycle tabs (rbutton+forward in Zen)
+  // FORWARD — Show windows of active app (hold) / Cycle tabs (rbutton+forward in Browsers)
   // -------------------------------------------------------------
   bind(
     from("forward"),
     to(
       press(key("open_bracket", VM.C__S, { repeat: true })).when(state(APPS.zen, VARS.rButtonDown)),
+      press(key("tab", VM.__CS, { repeat: true })).when(state(APPS.brave, VARS.rButtonDown)),
       release(button("button5", { repeat: false })),
       hold(key("down_arrow", ["control"], { repeat: false })),
     ),
@@ -165,17 +147,14 @@ export const mouseBindings: Binding[] = [
     }),
   ),
   // -------------------------------------------------------------
-  // RIGHT — Right click (tap) / Zen chord modifier (hold).
+  // RIGHT — Right click (tap) / Browser chord modifier (hold).
   // whileHoldVar signals right_button_pressed; suppressCancelFallback drops
   // the stray click on a canceled hold (halt on to_if_held_down can't be used
   // here — it would also cancel the to_after_key_up that clears the var).
   // -------------------------------------------------------------
   bind(
-    from("right"),
-    to(
-      release(button("button2", { repeat: false })),
-      hold([]),
-    ),
+    from("button2"),
+    to(release(button("button2", { repeat: false })), hold([])),
     when(condDevice(DEVICES.g502X)),
     options({
       whileHoldVar: VARS.rButtonDown,
@@ -184,29 +163,22 @@ export const mouseBindings: Binding[] = [
   ),
   // -------------------------------------------------------------
   // LEFT BUTTON (right-button held) — single action by app (tap) / double tap
-  // → next display. Zen vs non-Zen split into condition-groups; the single tap
+  // → next display. Browser vs non-browser split into condition-groups; the single tap
   // is DELAYED (fires via to_if_invoked after the timer) so a true double-tap
   // can still win. firstTapPendingVar is shared across both groups.
   // -------------------------------------------------------------
   bind(
-    from("left"),
+    from("button1"),
     to(
       // Zen — tap = cmd+click (delayed), hold = option+click, double = next display
       release(button("button1", ["left_command"], { repeat: false }))
         .when(condApp(APPS.zen))
         .withDelayed(),
-      hold(button("button1", ["option"], { repeat: false }))
-        .when(condApp(APPS.zen)),
-      release(url(URLS.rectDisplayNext))
-        .when(condApp(APPS.zen))
-        .withTapCount(2),
+      hold(button("button1", ["option"], { repeat: false })).when(condApp(APPS.zen)),
+      release(url(URLS.rectDisplayNext)).when(condApp(APPS.zen)).withTapCount(2),
       // Non-Zen — tap = maximize (delayed), double = next display
-      release(shell(CMDS.winMaxToggle))
-        .when(condApp(APPS.zen, false))
-        .withDelayed(),
-      release(url(URLS.rectDisplayNext))
-        .when(condApp(APPS.zen, false))
-        .withTapCount(2),
+      release(shell(CMDS.winMaxToggle)).when(condApp(APPS.zen, false)).withDelayed(),
+      release(url(URLS.rectDisplayNext)).when(condApp(APPS.zen, false)).withTapCount(2),
     ),
     when(state(DEVICES.g502X, VARS.rButtonDown)),
     options({
@@ -218,10 +190,7 @@ export const mouseBindings: Binding[] = [
   // -------------------------------------------------------------
   bind(
     from("left"),
-    to(
-      release(key("return_or_enter")).when(state(APPS.onePiece, [APPS.onePiecePrefs, false])),
-      hold([toTrigger()]),
-    ),
+    to(release(key("return_or_enter")).when(state(APPS.onePiece, [APPS.onePiecePrefs, false])), hold([toTrigger()])),
     when(state(DEVICES.g502X, [VARS.rButtonDown, false])),
     options({
       whileHoldVar: VARS.lButtonDown,

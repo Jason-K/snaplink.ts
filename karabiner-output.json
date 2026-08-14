@@ -27989,7 +27989,7 @@
         ]
       },
       {
-        "description": "Back button:\n---\n\tOn Tap:\n\t\ton Logitech G502 X and In Zen and Right button held:\tEmit ⌘⇧ + ']'\n\t\ton Logitech G502 X:\tClick button 'button4'\n\tOn Hold:\n\t\ton Logitech G502 X:\tEmit ⌘ + '⇥'",
+        "description": "Back button:\n---\n\tOn Tap:\n\t\ton Logitech G502 X and In Zen and Right button held:\tEmit ⌘⇧ + ']'\n\t\ton Logitech G502 X and In Brave and Right button held:\tEmit ⌃ + '⇥'\n\t\ton Logitech G502 X:\tClick button 'button4'\n\tOn Hold:\n\t\ton Logitech G502 X:\tEmit ⌘ + '⇥'",
         "manipulators": [
           {
             "type": "basic",
@@ -28012,6 +28012,45 @@
                 "type": "frontmost_application_if",
                 "bundle_identifiers": [
                   "app.zen-browser.zen"
+                ]
+              },
+              {
+                "type": "variable_if",
+                "name": "right_button_pressed",
+                "value": 1
+              },
+              {
+                "type": "device_if",
+                "identifiers": [
+                  {
+                    "product_id": 49305,
+                    "vendor_id": 1133,
+                    "is_pointing_device": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "basic",
+            "from": {
+              "pointing_button": "button4"
+            },
+            "to": [
+              {
+                "repeat": true,
+                "key_code": "tab",
+                "modifiers": [
+                  "left_control"
+                ]
+              }
+            ],
+            "description": "on Logitech G502 X and In Brave and Right button held",
+            "conditions": [
+              {
+                "type": "frontmost_application_if",
+                "bundle_identifiers": [
+                  "com.brave.Browser"
                 ]
               },
               {
@@ -28176,7 +28215,7 @@
         ]
       },
       {
-        "description": "Forward button:\n---\n\tOn Tap:\n\t\tIn Zen and Right button held:\tEmit ⌘⇧ + '['\n\t\tAlways:\tClick button 'button5'\n\tOn Hold:\n\t\tAlways:\tEmit ⌃ + '↓'",
+        "description": "Forward button:\n---\n\tOn Tap:\n\t\tIn Zen and Right button held:\tEmit ⌘⇧ + '['\n\t\tIn Brave and Right button held:\tEmit ⌃⇧ + '⇥'\n\t\tAlways:\tClick button 'button5'\n\tOn Hold:\n\t\tAlways:\tEmit ⌃ + '↓'",
         "manipulators": [
           {
             "type": "basic",
@@ -28199,6 +28238,46 @@
                 "type": "frontmost_application_if",
                 "bundle_identifiers": [
                   "app.zen-browser.zen"
+                ]
+              },
+              {
+                "type": "variable_if",
+                "name": "right_button_pressed",
+                "value": 1
+              },
+              {
+                "type": "device_if",
+                "identifiers": [
+                  {
+                    "product_id": 49305,
+                    "vendor_id": 1133,
+                    "is_pointing_device": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "basic",
+            "from": {
+              "pointing_button": "button6"
+            },
+            "to": [
+              {
+                "repeat": true,
+                "key_code": "tab",
+                "modifiers": [
+                  "control",
+                  "shift"
+                ]
+              }
+            ],
+            "description": "In Brave and Right button held",
+            "conditions": [
+              {
+                "type": "frontmost_application_if",
+                "bundle_identifiers": [
+                  "com.brave.Browser"
                 ]
               },
               {

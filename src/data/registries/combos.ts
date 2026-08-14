@@ -72,7 +72,17 @@ const BROWSER_HKS = {
   zenPreviousTab: mapSpec("close_bracket", VM.C__S, "activate previous tab in Zen", {
     app: APPS.zen,
     activeAppOnly: true,
-    options: { repeat: false },
+    options: { repeat: true },
+  }),
+  braveNextTab: mapSpec("tab", ["L.ctrl"], "activate next tab in Brave", {
+    app: APPS.brave,
+    activeAppOnly: true,
+    options: { repeat: true },
+  }),
+  bravePreviousTab: mapSpec("tab", VM.__CS, "activate previous tab in Brave", {
+    app: APPS.brave,
+    activeAppOnly: true,
+    options: { repeat: true },
   }),
 };
 

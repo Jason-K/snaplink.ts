@@ -9,11 +9,7 @@ import type { AppSpec } from "../primitives/apps";
  *  @param refDesc  - human label used in descriptions
  *  @param path     - optional file path or list of file paths
  */
-const app = (
-  bundleId: string | string[],
-  refDesc: string,
-  path?: string | string[],
-): AppSpec => ({
+const app = (bundleId: string | string[], refDesc: string, path?: string | string[]): AppSpec => ({
   type: "app",
   bundleId,
   ...(path ? { path } : {}),
@@ -29,6 +25,7 @@ export const APPS = {
   antinote: app("com.chabomakers.Antinote", "Antinote"),
   brewUpdater: app("org.gpgtools.pinentry-mac", "Brew auto-updater"),
   browser: app("app.zen-browser.zen", "Zen"),
+  brave: app("com.brave.Browser", "Brave"),
   calendar: app("com.busymac.busycal-setapp", "BusyCal"),
   claude: app("com.anthropic.claudefordesktop", "Claude"),
   code: app("com.microsoft.VSCode", "Code"),
