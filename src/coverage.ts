@@ -244,7 +244,17 @@ export function schemaCoverage(): Coverage {
 
   for (const name of props(schema, "toEventDefinition")) {
     if (TO_EVENT_OPTIONS.has(name)) continue;
+    // `software_function` is itself an `ExactlyOne` union of four sub-actions
+    // (see $defs.softwareFunction) — folded into "to action" as one entry it
+    // reads as wired the moment any one sub-action is (it is, via `toApp()`'s
+    // `open_application`), which hides that the other three have no handler
+    // at all. Drilled in separately below, the same way `conditionDefs` is.
+    if (name === "software_function") continue;
     add("to action", name, namedInSource(name), keyCounts.get(name) ?? 0);
+  }
+
+  for (const name of props(schema, "softwareFunction")) {
+    add("to action:software_function", name, namedInSource(name), keyCounts.get(name) ?? 0);
   }
 
   for (const name of props(schema, "toEventDefinition")) {

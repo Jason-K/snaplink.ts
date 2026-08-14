@@ -1,4 +1,4 @@
-import type { ToEvent, ToMouseKey } from "../../types/karabiner";
+import type { ConsumerKeyCode, StickyModifierName, ToEvent, ToMouseKey } from "../../types/karabiner";
 import type { AppSpec } from "./apps";
 import type { CommandSpec } from "./commands";
 import type { MapSpec } from "./maps";
@@ -100,12 +100,51 @@ export type ActionSpec =
       actionDesc?: string;
     }
   | {
+      /**
+       * Emit a consumer-control event (media/volume/brightness key) —
+       * `to.consumer_key_code`, a namespace distinct from `to.key_code`.
+       */
+      type: "consumerKey";
+      key: ConsumerKeyCode | number;
+      modifiers?: ActionKeyModifier[];
+      options?: ActionEventOptions;
+      actionDesc?: string;
+    }
+  | {
       /** Copy active selection to clipboard (`Cmd+C`). */
       type: "copy";
     }
   | {
+      /**
+       * Move the mouse cursor to an absolute or screen-relative position
+       * (`software_function.set_mouse_cursor_position`).
+       */
+      type: "cursorTo";
+      /** Points (`100`) or percent (`"50%"`). */
+      x: number | string;
+      /** Points (`100`) or percent (`"50%"`). */
+      y: number | string;
+      screen?: number;
+      relativeTo?: "screen" | "focused_window";
+      fallbackTo?: "none" | "screen";
+      actionDesc?: string;
+    }
+  | {
       /** Cut active selection to clipboard (`Cmd+X`). */
       type: "cut";
+    }
+  | {
+      /**
+       * Simulate a mouse double-click via the OS event system rather than two
+       * hardware clicks (`software_function.cg_event_double_click`). Laggier
+       * than `sequence([button(...), button(...)])` and needs Accessibility
+       * permission for `karabiner_console_user_server` — prefer two real
+       * clicks unless this is specifically required.
+       */
+      type: "doubleClick";
+      /** CGMouseButton: 0 left (default), 1 right, 2 middle, 3+ other. */
+      button?: number;
+      actionDesc?: string;
     }
   | {
       /** Emit a hotkey map specification. */
@@ -167,6 +206,24 @@ export type ActionSpec =
       /** Execute a raw shell command string or command primitive. */
       type: "shell";
       command: string | CommandSpec;
+      actionDesc?: string;
+    }
+  | {
+      /** Put the Mac to sleep (`software_function.iokit_power_management_sleep_system`). */
+      type: "sleepSystem";
+      /** Delay before sleeping, in milliseconds. Karabiner defaults to 500. */
+      delayMilliseconds?: number;
+      actionDesc?: string;
+    }
+  | {
+      /**
+       * Toggle a modifier key sticky — it stays "held" until pressed again or
+       * cleared, rather than releasing with the key event (`to.sticky_modifier`).
+       * Karabiner does not accept booleans here; use `"on"` / `"off"` / `"toggle"`.
+       */
+      type: "sticky";
+      flag: StickyModifierName;
+      toggle?: "on" | "off" | "toggle";
       actionDesc?: string;
     }
   | {

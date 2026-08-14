@@ -9,7 +9,7 @@ becomes reachable without being struck off, and if a wired feature loses its
 wrapper. Re-run it after any upstream refresh
 (`make -C schema keycodes KE_SRC=/path/to/Karabiner-Elements`).
 
-**57 of 67 schema features reachable** as of 2026-08-13.
+**60 of 70 schema features reachable** as of 2026-08-14.
 
 Parenthesised numbers cite [karabiner-gotchas.md](./karabiner_docs/karabiner-gotchas.md).
 
@@ -296,6 +296,32 @@ avoid: every claim here is checked by `npm run coverage` on every `npm run check
   scrolls down but `horizontal_wheel > 0` scrolls **left** (gotcha 6.10), and
   that asymmetry is the kind of thing you get wrong once and then debug for an
   hour.
+
+- **`to.consumer_key_code`** (2026-08-14) — `consumerKey()`. Previously a
+  false positive in `npm run coverage`: a type-import mention was enough for
+  `namedInSource()` to report it wired, though no `ActionSpec` variant or
+  handler existed. Media/volume/brightness keys, not the `key_code` alias
+  table — `consumerKey("volume_increment")`, not `key("volume_up")`.
+
+- **`to.sticky_modifier`** (2026-08-14) — `sticky()`, surfacing the
+  `toStickyModifier()` builder in `karabiner-helpers.ts`, which existed and
+  typechecked but had no caller and no wrapper (the same false-positive
+  pattern as `consumer_key_code` above). Booleans are not accepted upstream
+  (6.9); the wrapper's `toggle` parameter is typed to the `"on" | "off" |
+  "toggle"` string union only — `toStickyModifier()` itself still accepts a
+  looser `boolean` in its own signature and casts around the mismatch, which
+  is pre-existing and untouched here.
+
+- **`to.software_function` sub-actions** (2026-08-14) — `cg_event_double_click`,
+  `iokit_power_management_sleep_system`, and `set_mouse_cursor_position`, via
+  `doubleClick()`, `sleepSystem()`, and `cursorTo()`. `software_function` is
+  itself an `ExactlyOne` union of four sub-actions (5.2); `npm run coverage`
+  measured it as one lumped feature, so it read as fully wired the moment any
+  one sub-action was (it was, via `toApp()`'s `open_application`), hiding that
+  the other three had no handler at all. `src/coverage.ts` now drills into
+  `$defs.softwareFunction` the same way it already drills into
+  `conditionDefs`, so each sub-action is measured on its own. All four are now
+  wired; `software_function` is 4/4.
 
 ### Orphaned
 

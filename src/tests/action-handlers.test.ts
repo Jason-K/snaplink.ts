@@ -5,11 +5,16 @@ import {
   ACTION_HANDLERS,
   ACTION_SPEC_TYPES,
   actionToEvents,
+  consumerKey,
+  cursorTo,
   describeAction,
+  doubleClick,
   isActionSpec,
   resolveActionToEvents,
   key,
   resolveShellCommand,
+  sleepSystem,
+  sticky,
 } from "../engine";
 
 /**
@@ -139,4 +144,84 @@ test("hold_down_milliseconds survives modifiers and coexists with halt", () => {
 test("omitting hold_down_milliseconds emits no such key", () => {
   const [event] = resolveActionToEvents(key("a"));
   assert.ok(event && !("hold_down_milliseconds" in event));
+});
+
+/**
+ * Phase 1-3 additions: `consumer_key_code`, `sticky_modifier`, and the three
+ * previously-unwired `software_function` sub-actions (`cg_event_double_click`,
+ * `iokit_power_management_sleep_system`, `set_mouse_cursor_position`). See
+ * docs/MISSING_FEATURES.md's "Shipped" entries dated 2026-08-14.
+ */
+
+test("consumerKey emits a bare consumer_key_code event from a raw spec", () => {
+  const [event] = actionToEvents({ type: "consumerKey", key: "volume_increment" });
+  assert.deepEqual(event, { consumer_key_code: "volume_increment" });
+});
+
+test("consumerKey wrapper defaults repeat to false, like key()", () => {
+  const [event] = resolveActionToEvents(consumerKey("mute"));
+  assert.deepEqual(event, { consumer_key_code: "mute", repeat: false });
+});
+
+test("sticky emits a sticky_modifier event keyed by flag", () => {
+  const [event] = actionToEvents({ type: "sticky", flag: "left_shift", toggle: "on" });
+  assert.deepEqual(event, { sticky_modifier: { left_shift: "on" } });
+});
+
+test("sticky wrapper defaults toggle to 'toggle'", () => {
+  const [event] = resolveActionToEvents(sticky("fn"));
+  assert.deepEqual(event, { sticky_modifier: { fn: "toggle" } });
+});
+
+test("doubleClick emits software_function.cg_event_double_click, defaulting to the left button", () => {
+  const [event] = resolveActionToEvents(doubleClick());
+  assert.deepEqual(event, { software_function: { cg_event_double_click: { button: 0 } } });
+});
+
+test("doubleClick accepts an explicit CGMouseButton", () => {
+  const [event] = actionToEvents({ type: "doubleClick", button: 1 });
+  assert.deepEqual(event, { software_function: { cg_event_double_click: { button: 1 } } });
+});
+
+test("doubleClick's actionDesc is appended to its derived description", () => {
+  assert.equal(
+    describeAction({ type: "doubleClick", actionDesc: "context menu trick" }),
+    "Double-click button 0 | context menu trick",
+  );
+});
+
+test("sleepSystem emits software_function.iokit_power_management_sleep_system with no delay by default", () => {
+  const [event] = actionToEvents({ type: "sleepSystem" });
+  assert.deepEqual(event, { software_function: { iokit_power_management_sleep_system: {} } });
+});
+
+test("sleepSystem wrapper carries an explicit delay", () => {
+  const [event] = resolveActionToEvents(sleepSystem(2000));
+  assert.deepEqual(event, {
+    software_function: { iokit_power_management_sleep_system: { delay_milliseconds: 2000 } },
+  });
+});
+
+test("cursorTo emits software_function.set_mouse_cursor_position", () => {
+  const [event] = actionToEvents({ type: "cursorTo", x: 100, y: "50%" });
+  assert.deepEqual(event, {
+    software_function: { set_mouse_cursor_position: { x: 100, y: "50%" } },
+  });
+});
+
+test("cursorTo wrapper carries screen and relative-positioning options", () => {
+  const [event] = resolveActionToEvents(
+    cursorTo(0, 0, { screen: 1, relativeTo: "focused_window", fallbackTo: "screen" }),
+  );
+  assert.deepEqual(event, {
+    software_function: {
+      set_mouse_cursor_position: {
+        x: 0,
+        y: 0,
+        screen: 1,
+        relative_to: "focused_window",
+        fallback_to: "screen",
+      },
+    },
+  });
 });

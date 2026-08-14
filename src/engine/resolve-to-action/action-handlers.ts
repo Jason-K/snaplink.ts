@@ -9,12 +9,12 @@
  * hand-maintained `Set` of tag strings that nothing kept in sync.
  */
 
-import type { ToEvent, ToMouseKey } from "../../types/karabiner";
+import type { ConsumerKeyCode, ToEvent, ToMouseKey } from "../../types/karabiner";
 import type { Action, ActionSpec } from "../../data";
 import { FINDER_REPLACEMENT } from "../../data/constants/env";
 import { expandModifiers, resolveButton, resolveKeyAlias } from "../utils";
 import { keyTokenToLabel, modifierTokenToSymbols } from "../resolve-description/rule-descriptions";
-import { toKey, toPointingButton } from "../karabiner-helpers";
+import { toConsumerKey, toKey, toPointingButton, toStickyModifier } from "../karabiner-helpers";
 
 import { resolveAppTarget, toApp, toAppId, toAppPath } from "./resolve-app";
 import { toVar } from "./resolve-conditions";
@@ -65,6 +65,23 @@ function describeKeyEmit(key: string, modifiers?: string[]): string {
     ? expandModifiers(modifiers).map(modifierTokenToSymbols).join("")
     : "";
   return mods ? `Emit ${mods} + '${label}'` : `Emit '${label}'`;
+}
+
+function consumerKeyEvent(
+  key: ConsumerKeyCode | number,
+  modifiers?: string[],
+  options?: { repeat?: boolean; halt?: boolean; lazy?: boolean },
+): ToEvent {
+  const mods = modifiers?.length ? expandModifiers(modifiers) : undefined;
+  return toConsumerKey(key, mods?.length ? mods : undefined, nonEmpty(options));
+}
+
+function describeConsumerKeyEmit(key: ConsumerKeyCode | number, modifiers?: string[]): string {
+  const label = typeof key === "number" ? `usage ${key}` : keyTokenToLabel(key);
+  const mods = modifiers?.length
+    ? expandModifiers(modifiers).map(modifierTokenToSymbols).join("")
+    : "";
+  return mods ? `Emit media ${mods} + '${label}'` : `Emit media key '${label}'`;
 }
 
 function urlString(url: OfType<"url">["url"]): string {
@@ -162,14 +179,43 @@ export const ACTION_HANDLERS = {
     shellCommand: (a) => a.ref.command,
   },
 
+  consumerKey: {
+    toEvents: (a) => [consumerKeyEvent(a.key, a.modifiers, a.options)],
+    describe: (a) => withDesc(describeConsumerKeyEmit(a.key, a.modifiers), a.actionDesc),
+  },
+
   copy: {
     toEvents: () => [toKey("c", ["command"])],
     describe: () => "Copy selection",
   },
 
+  cursorTo: {
+    toEvents: (a) => [
+      {
+        software_function: {
+          set_mouse_cursor_position: {
+            x: a.x,
+            y: a.y,
+            ...(a.screen !== undefined ? { screen: a.screen } : {}),
+            ...(a.relativeTo !== undefined ? { relative_to: a.relativeTo } : {}),
+            ...(a.fallbackTo !== undefined ? { fallback_to: a.fallbackTo } : {}),
+          },
+        },
+      },
+    ],
+    describe: (a) => withDesc(`Move cursor to (${a.x}, ${a.y})`, a.actionDesc),
+  },
+
   cut: {
     toEvents: () => [toKey("x", ["command"])],
     describe: () => "Cut selection",
+  },
+
+  doubleClick: {
+    toEvents: (a) => [
+      { software_function: { cg_event_double_click: { button: a.button ?? 0 } } },
+    ],
+    describe: (a) => withDesc(`Double-click button ${a.button ?? 0}`, a.actionDesc),
   },
 
   folder: {
@@ -242,6 +288,28 @@ export const ACTION_HANDLERS = {
         a.actionDesc,
       ),
     shellCommand: (a) => (typeof a.command === "string" ? a.command : a.command.command),
+  },
+
+  sleepSystem: {
+    toEvents: (a) => [
+      {
+        software_function: {
+          iokit_power_management_sleep_system:
+            a.delayMilliseconds !== undefined ? { delay_milliseconds: a.delayMilliseconds } : {},
+        },
+      },
+    ],
+    describe: (a) =>
+      withDesc(
+        `Sleep system${a.delayMilliseconds !== undefined ? ` (after ${a.delayMilliseconds}ms)` : ""}`,
+        a.actionDesc,
+      ),
+  },
+
+  sticky: {
+    toEvents: (a) => [toStickyModifier(a.flag, a.toggle ?? "toggle")],
+    describe: (a) =>
+      withDesc(`Sticky ${modifierTokenToSymbols(a.flag)} (${a.toggle ?? "toggle"})`, a.actionDesc),
   },
 
   url: {

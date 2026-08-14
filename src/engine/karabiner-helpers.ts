@@ -6,6 +6,7 @@ import type {
   BasicManipulator,
   BasicParameters,
   Condition,
+  ConsumerKeyCode,
   DeviceIdentifier,
   FromEvent,
   FromKeyType,
@@ -128,6 +129,25 @@ export function toPointingButton(
   return {
     ...options,
     pointing_button,
+    ...(mods ? { modifiers: mods } : {}),
+  };
+}
+
+export function toConsumerKey(
+  consumer_key_code: ConsumerKeyCode | number,
+  modifiers?: Modifier[] | string,
+  options?: ToEventOptions,
+): ToEvent {
+  const mods = modifiers
+    ? Array.isArray(modifiers)
+      ? modifiers
+      : [modifiers as Modifier]
+    : undefined;
+  // Spread rather than `consumer_key_code: ...` alongside a possibly-`undefined`
+  // `modifiers`: see the identical note on `toKey` above.
+  return {
+    ...options,
+    consumer_key_code,
     ...(mods ? { modifiers: mods } : {}),
   };
 }

@@ -14,7 +14,7 @@ import type {
   UrlSpec,
   VarSpec,
 } from "../../data";
-import type { ToMouseKey } from "../../types/karabiner";
+import type { ConsumerKeyCode, StickyModifierName, ToMouseKey } from "../../types/karabiner";
 import { resolveKeyAlias } from "../utils";
 
 /**
@@ -535,6 +535,47 @@ export function url(
  */
 export type KeyOptions = ActionEventOptions;
 
+/**
+ * Creates an action spec for a consumer-control key press event — media,
+ * volume, and brightness keys (`to.consumer_key_code`), a namespace distinct
+ * from `to.key_code` and not covered by {@link key}'s alias table.
+ *
+ * @param keyName - Consumer key code name (e.g. "volume_increment", "mute", "play_or_pause") or a raw usage integer.
+ * @param modifiersOrOptions - Optional array of modifier keys or a `KeyOptions` configuration.
+ * @param options - Key options (`repeat`, `halt`, `lazy`) when modifiers are provided as 2nd parameter.
+ * @param actionDesc - Optional human-readable description for the action.
+ * @returns An `ActionSpec` of type "consumerKey".
+ *
+ * @example
+ * ```ts
+ * consumerKey("volume_increment")
+ * consumerKey("play_or_pause", { halt: true })
+ * ```
+ */
+export function consumerKey(
+  keyName: ConsumerKeyCode | number,
+  modifiersOrOptions?: ActionKeyModifier[] | KeyOptions,
+  options?: KeyOptions,
+  actionDesc?: string,
+): ActionSpec {
+  let modifiers: ActionKeyModifier[] | undefined;
+  let opts: KeyOptions | undefined;
+  if (Array.isArray(modifiersOrOptions)) {
+    modifiers = modifiersOrOptions.map((m) => resolveKeyAlias(m as string)) as ActionKeyModifier[];
+    opts = options;
+  } else {
+    opts = modifiersOrOptions;
+    modifiers = undefined;
+  }
+  const finalOptions: KeyOptions = { ...opts, repeat: opts?.repeat ?? false };
+  return {
+    type: "consumerKey",
+    key: keyName,
+    ...(modifiers?.length ? { modifiers } : {}),
+    options: finalOptions,
+    ...(actionDesc ? { actionDesc } : {}),
+  };
+}
 
 /**
  * Creates an action spec for a key press event.
@@ -894,6 +935,58 @@ export function noop(): ActionSpec {
 }
 
 /**
+ * Creates an action spec that toggles a modifier key sticky — it stays "held"
+ * until pressed again or cleared, rather than releasing with the key event
+ * (`to.sticky_modifier`). Karabiner does not accept booleans here (6.9); use
+ * `"on"` / `"off"` / `"toggle"`.
+ *
+ * @param flag - Which modifier goes sticky.
+ * @param toggle - `"on"`, `"off"`, or `"toggle"` (default).
+ * @param actionDesc - Optional human-readable description for the action.
+ * @returns An `ActionSpec` of type "sticky".
+ *
+ * @example
+ * ```ts
+ * sticky("left_shift")
+ * sticky("fn", "off")
+ * ```
+ */
+export function sticky(
+  flag: StickyModifierName,
+  toggle: "on" | "off" | "toggle" = "toggle",
+  actionDesc?: string,
+): ActionSpec {
+  return {
+    type: "sticky",
+    flag,
+    toggle,
+    ...(actionDesc ? { actionDesc } : {}),
+  };
+}
+
+/**
+ * Creates an action spec that puts the Mac to sleep
+ * (`software_function.iokit_power_management_sleep_system`).
+ *
+ * @param delayMilliseconds - Delay before sleeping. Karabiner defaults to 500.
+ * @param actionDesc - Optional human-readable description for the action.
+ * @returns An `ActionSpec` of type "sleepSystem".
+ *
+ * @example
+ * ```ts
+ * sleepSystem()
+ * sleepSystem(2000, "Sleep after a 2s delay")
+ * ```
+ */
+export function sleepSystem(delayMilliseconds?: number, actionDesc?: string): ActionSpec {
+  return {
+    type: "sleepSystem",
+    ...(delayMilliseconds !== undefined ? { delayMilliseconds } : {}),
+    ...(actionDesc ? { actionDesc } : {}),
+  };
+}
+
+/**
  * Creates an action spec to set or toggle a Karabiner variable.
  *
  * @param varSpec - Variable specification target.
@@ -932,6 +1025,66 @@ export function setVar(
  */
 export function cut(): ActionSpec {
   return { type: "cut" };
+}
+
+/**
+ * Creates an action spec that moves the mouse cursor to an absolute or
+ * screen-relative position (`software_function.set_mouse_cursor_position`).
+ *
+ * @param x - Points (`100`) or percent (`"50%"`).
+ * @param y - Points (`100`) or percent (`"50%"`).
+ * @param opts - Screen index and relative-positioning options.
+ * @param actionDesc - Optional human-readable description for the action.
+ * @returns An `ActionSpec` of type "cursorTo".
+ *
+ * @example
+ * ```ts
+ * cursorTo(100, 100)
+ * cursorTo("50%", "50%", { screen: 1 })
+ * ```
+ */
+export function cursorTo(
+  x: number | string,
+  y: number | string,
+  opts?: {
+    screen?: number;
+    relativeTo?: "screen" | "focused_window";
+    fallbackTo?: "none" | "screen";
+  },
+  actionDesc?: string,
+): ActionSpec {
+  return {
+    type: "cursorTo",
+    x,
+    y,
+    ...opts,
+    ...(actionDesc ? { actionDesc } : {}),
+  };
+}
+
+/**
+ * Creates an action spec that simulates a mouse double-click via the OS event
+ * system (`software_function.cg_event_double_click`) rather than two hardware
+ * clicks. Laggier than `sequence([button(...), button(...)])` and needs
+ * Accessibility permission for `karabiner_console_user_server` — prefer two
+ * real clicks unless this is specifically required.
+ *
+ * @param button - CGMouseButton: 0 left (default), 1 right, 2 middle, 3+ other.
+ * @param actionDesc - Optional human-readable description for the action.
+ * @returns An `ActionSpec` of type "doubleClick".
+ *
+ * @example
+ * ```ts
+ * doubleClick()
+ * doubleClick(1, "Double right-click")
+ * ```
+ */
+export function doubleClick(button = 0, actionDesc?: string): ActionSpec {
+  return {
+    type: "doubleClick",
+    button,
+    ...(actionDesc ? { actionDesc } : {}),
+  };
 }
 
 /**
