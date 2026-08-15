@@ -434,12 +434,13 @@ export function doubleTap(
  * // Before:
  * bind(from("leftBack"), to(release(shell(CMDS.winMaxToggle)), hold(url(URLS.rectDisplayNext))))
  * // After:
- * bind(from("leftBack"), to(tapAndHold(shell(CMDS.winMaxToggle), URLS.rectDisplayNext)))
- * // Note: CMDS.winMaxToggle stays wrapped in shell() here — a bare
- * // CommandSpec auto-infers to cmd() (ActionSpec type "command"), a
- * // different variant than shell()'s type "shell". Only bare-ify a
- * // CommandSpec at a call site that already used cmd(), never one that
- * // used shell().
+ * bind(from("leftBack"), to(tapAndHold(CMDS.winMaxToggle, URLS.rectDisplayNext)))
+ * // Note: a bare CommandSpec auto-infers to cmd() (ActionSpec type
+ * // "command"), not shell() (type "shell") — a different variant. For a
+ * // CommandSpec (not a raw string), both handlers resolve to the same
+ * // to_shell_command, so this is safe either way; the only observable
+ * // difference is the compiled description ("Run command 'X'" vs
+ * // "Run 'X'"). Prefer bare unless that description text matters to you.
  * ```
  */
 export function tapAndHold(

@@ -12,7 +12,6 @@ import {
   options,
   press,
   release,
-  shell,
   tapAndHold,
   to,
   when,
@@ -44,11 +43,11 @@ const letterBindings: Binding[] = [
     h: URLS.rayHere2There,
     j: URLS.rayRecentDownloads,
     k: APPS.kitty,
-    n: shell(CMDS.neruHints),
+    n: CMDS.neruHints,
     o: URLS.csxOcrNoLinebreaks,
     p: COMBOS.showPopclip,
     q: APPS.qspace,
-    r: shell(CMDS.recentFiles),
+    r: CMDS.recentFiles,
     s: URLS.csxArea,
     t: COMBOS.showKittyQuakeTerm,
     v: URLS.rayClipboard,
@@ -64,14 +63,14 @@ const letterBindings: Binding[] = [
 const symbolBindings: Binding[] = [
   bind(
     from("keypad_equal_sign"),
-    to(tapAndHold(key("keypad_equal_sign", { halt: true }), [COMBOS.selectWordLeft, shell(CMDS.quickDate)])),
+    to(tapAndHold(key("keypad_equal_sign", { halt: true }), [COMBOS.selectWordLeft, CMDS.quickDate])),
     options({
       timing: { aloneMs: 200, holdMs: 200 },
     }),
   ),
   bind(
     from("equal_sign"),
-    to(tapAndHold(key("keypad_equal_sign", { halt: true }), [COMBOS.selectWordLeft, shell(CMDS.quickDate)])),
+    to(tapAndHold(key("keypad_equal_sign", { halt: true }), [COMBOS.selectWordLeft, CMDS.quickDate])),
     options({
       timing: { aloneMs: 200, holdMs: 200 },
     }),
@@ -85,7 +84,7 @@ const nonCharBindings: Binding[] = [
     from("keypad_enter"),
     to(
       release(key("keypad_enter", { halt: true })),
-      hold(shell(CMDS.evalSelectionPart)).when(unlessApp(APPS.excel)),
+      hold(CMDS.evalSelectionPart).when(unlessApp(APPS.excel)),
       hold(key("f2")).when(APPS.excel),
     ),
     options({
@@ -96,7 +95,7 @@ const nonCharBindings: Binding[] = [
     from("return_or_enter"),
     to(
       release(key("return_or_enter", { halt: true })),
-      hold(shell(CMDS.evalSelectionPart)).when(unlessApp(APPS.excel)),
+      hold(CMDS.evalSelectionPart).when(unlessApp(APPS.excel)),
       hold(key("f2")).when(APPS.excel),
     ),
     options({
@@ -108,8 +107,8 @@ const nonCharBindings: Binding[] = [
     from("escape"),
     to(
       release(key("escape")),
-      hold(shell(CMDS.killForeground)),
-      hold(shell(CMDS.killAllApps)).withTapCount(2),
+      hold(CMDS.killForeground),
+      hold(CMDS.killAllApps).withTapCount(2),
     ),
     options({
       multiTap: { mods: [] },

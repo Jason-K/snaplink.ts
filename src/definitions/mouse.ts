@@ -9,7 +9,6 @@ import {
   options,
   press,
   release,
-  shell,
   tapAndHold,
   timing,
   to,
@@ -55,7 +54,7 @@ export const mouseBindings: Binding[] = [
       // wheel held down → swallow (the wheel-as-button mapping handles it)
       press([]).when("wheelDown"),
       // base hold — wheel guards on the base only (matches bespoke injection)
-      hold(shell(CMDS.winLOrTop)).when([VARS.wheelDown, false], [VARS.rButtonDown, false]),
+      hold(CMDS.winLOrTop).when([VARS.wheelDown, false], [VARS.rButtonDown, false]),
     ),
     timing({
       aloneMs: TIMINGS.timeoutWheelChordMs,
@@ -69,7 +68,7 @@ export const mouseBindings: Binding[] = [
     from("wheelRight"),
     to(
       press(key("right_arrow", VM.C_CS)).when([APPS.zen, VARS.rButtonDown, [VARS.wheelDown, 0]]),
-      hold(shell(CMDS.winROrBottom)).when([VARS.wheelDown, false], [VARS.rButtonDown, false]),
+      hold(CMDS.winROrBottom).when([VARS.wheelDown, false], [VARS.rButtonDown, false]),
     ),
     timing({
       aloneMs: TIMINGS.timeoutWheelChordMs,
@@ -84,7 +83,7 @@ export const mouseBindings: Binding[] = [
     to(
       press([{ pointing_button: "button1", modifiers: ["option"], repeat: false }]).when(APPS.zen, VARS.rButtonDown),
       release([{ pointing_button: "button3", repeat: false }]),
-      hold(shell(CMDS.winMaxToggle)),
+      hold(CMDS.winMaxToggle),
     ),
     when(DEVICES.g502X),
     options({
@@ -94,11 +93,11 @@ export const mouseBindings: Binding[] = [
   // -------------------------------------------------------------
   // G7 (left_back) — Fill screen (tap) / Move window to next display (hold)
   // -------------------------------------------------------------
-  bind(from("leftBack"), to(tapAndHold(shell(CMDS.winMaxToggle), URLS.rectDisplayNext))),
+  bind(from("leftBack"), to(tapAndHold(CMDS.winMaxToggle, URLS.rectDisplayNext))),
   // -------------------------------------------------------------
   // G8 (left_forward) — Activate Popclip (tap) / Activate Sidenote (hold)
   // -------------------------------------------------------------
-  bind(from("leftForward"), to(tapAndHold(shell(CMDS.showPopclip), COMBOS.showSidenotes))),
+  bind(from("leftForward"), to(tapAndHold(CMDS.showPopclip, COMBOS.showSidenotes))),
   // -------------------------------------------------------------
   // G9 (middle_back) — Screenshot to text (tap) / markdown (hold)
   // -------------------------------------------------------------
@@ -107,7 +106,7 @@ export const mouseBindings: Binding[] = [
     to(
       release([URLS.csxOcrNoLinebreaks]).when([VARS.lButtonDown, false]),
       release([URLS.csxOcr]).when(VARS.lButtonDown),
-      hold([shell(CMDS.ocrToMd)]),
+      hold([CMDS.ocrToMd]),
     ),
   ),
   // -------------------------------------------------------------
@@ -172,7 +171,7 @@ export const mouseBindings: Binding[] = [
       hold(button("button1", ["option"], { repeat: false })).when(APPS.zen),
       release(URLS.rectDisplayNext).when(APPS.zen).withTapCount(2),
       // Non-Zen — tap = maximize (delayed), double = next display
-      release(shell(CMDS.winMaxToggle)).when(condApp(APPS.zen, false)).withDelayed(),
+      release(CMDS.winMaxToggle).when(condApp(APPS.zen, false)).withDelayed(),
       release(URLS.rectDisplayNext).when(condApp(APPS.zen, false)).withTapCount(2),
     ),
     when(DEVICES.g502X, VARS.rButtonDown),

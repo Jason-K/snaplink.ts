@@ -8,7 +8,6 @@ import {
   hold,
   press,
   release,
-  shell,
   tapAndHold,
   to,
   url,
@@ -28,7 +27,7 @@ const modNumBindings: Binding[] = [
     },
     VM.COCS,
   ),
-  bind(from("keypad_5", VM.COC_), to(release(shell(CMDS.winMaxToggle)))),
+  bind(from("keypad_5", VM.COC_), to(release(CMDS.winMaxToggle))),
 ];
 
 const modLetterBindings: Binding[] = [
@@ -44,7 +43,7 @@ const modLetterBindings: Binding[] = [
       f: COMBOS.focusWinBottom,
       q: COMBOS.focusWinLeft,
       r: COMBOS.focusWinTop,
-      s: press(shell(CMDS.evalSelection)),
+      s: press(CMDS.evalSelection),
     },
     VM.COCS,
   ),
@@ -55,8 +54,8 @@ const modLetterBindings: Binding[] = [
   // side, so this stays as two explicit cases rather than tapAndHold() —
   // tapAndHold() would apply state(APPS.word) to both.
   bind(from("p", ["L.cmd"]), to(release(CMDS.wordPrint).when(APPS.word), hold(COMBOS.showPopclip))),
-  bind(from("s", ["R.opt"]), to(tapAndHold(shell(CMDS.spotifyToggle), URLS.raySpotifySearch))),
-  bind(from("t", VM.COCS), to(tapAndHold(shell(CMDS.newTypinatorRule), shell(CMDS.lastTypinatorRule)))),
+  bind(from("s", ["R.opt"]), to(tapAndHold(CMDS.spotifyToggle, URLS.raySpotifySearch))),
+  bind(from("t", VM.COCS), to(tapAndHold(CMDS.newTypinatorRule, CMDS.lastTypinatorRule))),
   bind(from("u", ["L.cmd"]), to(press(COMBOS.skimUnderline)), when(APPS.skim)),
 ];
 
@@ -79,15 +78,15 @@ const modNonCharBindings: Binding[] = [
   bind(from("escape", ["control"]), to(tapAndHold(APPS.activityMonitor, APPS.processSpy))),
   bind(from("escape", VM.COCS), to(press(APPS.activityMonitor))),
   bind(from("home", ["shift"]), to(press(COMBOS.selectHome))),
-  bind(from("left_arrow", VM.COCS), to(tapAndHold(shell(CMDS.winLOrTop), url(URLS.rectAppPrevDisplay, true)))),
+  bind(from("left_arrow", VM.COCS), to(tapAndHold(CMDS.winLOrTop, url(URLS.rectAppPrevDisplay, true)))),
   bind(from("left_arrow", VM.C__S), to(press(COMBOS.zenNextTab)), when(APPS.zen)),
-  bind(from("right_arrow", VM.COCS), to(tapAndHold(shell(CMDS.winROrBottom), url(URLS.rectAppNextDisplay, true)))),
+  bind(from("right_arrow", VM.COCS), to(tapAndHold(CMDS.winROrBottom, url(URLS.rectAppNextDisplay, true)))),
   bind(from("right_arrow", VM.C__S), to(press(COMBOS.zenPreviousTab)), when(APPS.zen)),
-  bind(from("spacebar", VM.COCS), to(release(shell(CMDS.winMaxToggle)))),
+  bind(from("spacebar", VM.COCS), to(release(CMDS.winMaxToggle))),
   bind(from("tab", VM.COCS), to(release(url(URLS.rectAppNextDisplay, true)))),
 ];
 
-const modFunctionKeyBindings: Binding[] = [bind(from("f12", VM.COCS), to(press(shell(CMDS.lastTypinatorRule))))];
+const modFunctionKeyBindings: Binding[] = [bind(from("f12", VM.COCS), to(press(CMDS.lastTypinatorRule)))];
 
 export const modifiedSingleKeyTapHoldBindings: Binding[] = [
   ...modNumBindings,
