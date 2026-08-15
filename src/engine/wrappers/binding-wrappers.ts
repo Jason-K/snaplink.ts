@@ -3,6 +3,7 @@ import type {
   Case,
   Condition,
   KeyCode,
+  Phase,
   PointerButtonAlias,
   TriggerModifiers,
 } from "../../data";
@@ -10,7 +11,7 @@ import type { AcceptUndefined } from "../../types/util";
 import type { WhenWrapper } from "./condition-wrappers";
 import { conditionKind } from "../resolve-conditions";
 import { from, type FromInput, triggerKeys, triggerPointer } from "./from-action-wrappers";
-import { CaseBuilder, type ToWrapper } from "./to-action-wrappers";
+import { CaseBuilder, type ActionInput, type ToWrapper } from "./to-action-wrappers";
 
 export type BindingOptionsSpec = Partial<Omit<Binding, "trigger" | "cases">>;
 
@@ -94,6 +95,12 @@ function isCase(val: unknown): val is Case {
     val !== null &&
     ("do" in val || "phase" in val || val instanceof CaseBuilder)
   );
+}
+
+/** `true` for a single `Case`/`CaseBuilder`, or a non-empty array of them. */
+function isCaseOrCaseArray(val: unknown): val is Case | Case[] {
+  if (Array.isArray(val)) return val.length > 0 && isCase(val[0]);
+  return isCase(val);
 }
 
 /**
@@ -322,3 +329,67 @@ export function bindPointer(
   return bind(triggerPointer(pointer, modifiers), cases, restOpts);
 }
 
+/**
+ * Creates one `Binding` per table entry, all sharing the same trigger phase,
+ * modifiers, and options — the case where a whole family of keys wraps one
+ * action the same way (`focusWinRight`/`focusWinLeft`/`focusWinTop`/...).
+ *
+ * A table value is either an action — auto-normalized the same way
+ * `press()`/`release()`/`hold()`/`tap()` normalize registry primitives (see
+ * {@link ActionInput}) — wrapped in `phase` for that entry, or an
+ * already-built `Case`/`Case[]` (from `press()`, `hold()`, `.when(...)`,
+ * `tapAndHold()`, etc.) used as-is. That escape hatch means one entry needing
+ * its own condition, or a different phase than the rest of the table, does
+ * not force the whole table back to individual `bind()` calls.
+ *
+ * @param phase - Trigger phase applied to every entry that is a bare action rather than a pre-built `Case`.
+ * @param table - Map of key code to action(s) or pre-built case(s).
+ * @param modifiersOrOptions - Optional trigger modifiers, shared by every entry, or `BindingOptions`.
+ * @param options - Additional binding options, shared by every entry, if modifiers were supplied as the 3rd argument.
+ * Inherited from `bindKeys()`: to skip modifiers and pass options, pass
+ * `options` as the 3rd argument, not the 4th — an explicit `undefined` 3rd
+ * argument is not equivalent to omitting it, and the 4th argument is
+ * silently dropped in that case.
+ * @returns One `Binding` per table entry. Order follows JavaScript's own
+ * object-key iteration — ascending numeric-string keys (`"0"`-`"9"`, etc.)
+ * first, then the rest in declaration order — not necessarily literal table
+ * order when the two are mixed. Harmless for these bindings since each entry
+ * targets a distinct key trigger, but worth knowing if diffing exact array
+ * position (e.g. against a golden-output fixture).
+ *
+ * @example
+ * ```ts
+ * // Before:
+ * bind(from("e", VM.COCS), to(release(map(COMBOS.focusWinRight)))),
+ * bind(from("f", VM.COCS), to(release(map(COMBOS.focusWinBottom)))),
+ * bind(from("q", VM.COCS), to(release(map(COMBOS.focusWinLeft)))),
+ * bind(from("r", VM.COCS), to(release(map(COMBOS.focusWinTop)))),
+ * // After:
+ * bindTable("release", {
+ *   e: COMBOS.focusWinRight,
+ *   f: COMBOS.focusWinBottom,
+ *   q: COMBOS.focusWinLeft,
+ *   r: COMBOS.focusWinTop,
+ * }, VM.COCS)
+ *
+ * // A pre-built Case overrides the table's phase/conditions for one entry:
+ * bindTable("hold", {
+ *   n: shell(CMDS.neruHints),
+ *   p: hold(map(COMBOS.showPopclip)).when(condApp(APPS.finder)),
+ * })
+ * ```
+ */
+export function bindTable(
+  phase: Phase,
+  table: Partial<Record<KeyCode, ActionInput | ActionInput[] | Case | Case[]>>,
+  modifiersOrOptions?: TriggerModifiers | BindingOptions,
+  options?: BindingOptions,
+): Binding[] {
+  return (Object.keys(table) as KeyCode[]).map((keyCode) => {
+    const value = table[keyCode] as ActionInput | ActionInput[] | Case | Case[];
+    const cases = isCaseOrCaseArray(value)
+      ? value
+      : new CaseBuilder(phase, value as ActionInput | ActionInput[]);
+    return bindKeys(keyCode, cases, modifiersOrOptions, options);
+  });
+}

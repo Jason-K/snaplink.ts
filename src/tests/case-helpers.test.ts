@@ -4,6 +4,7 @@ import { APPS, CMDS, COMBOS, URLS, VARS } from "../data";
 import {
   bind,
   bindKeys,
+  bindTable,
   cmd,
   condApp,
   condNotApp,
@@ -486,4 +487,86 @@ test("constructor-level conditions param on press/release/hold still only accept
   const cond = condApp(APPS.skim);
   const c = press(key("a"), cond);
   assert.deepEqual(c.conditions, [cond]);
+});
+
+test("bindTable() produces one bindKeys()-equivalent Binding per entry, sharing phase and modifiers", () => {
+  const table = bindTable(
+    "hold",
+    {
+      h: URLS.rayHere2There,
+      j: URLS.rayRecentDownloads,
+    },
+    ["shift"],
+  );
+
+  assert.deepEqual(table, [
+    bindKeys("h", hold(url(URLS.rayHere2There)), ["shift"]),
+    bindKeys("j", hold(url(URLS.rayRecentDownloads)), ["shift"]),
+  ]);
+});
+
+test("bindTable() auto-normalizes bare registry primitives the same way hold()/press() do", () => {
+  const [b] = bindTable("release", { e: COMBOS.focusWinRight });
+  assert.deepEqual(b, bindKeys("e", release(map(COMBOS.focusWinRight))));
+});
+
+test("bindTable() lets one entry override phase/conditions with a pre-built Case, unwrapped", () => {
+  const cond = condApp(APPS.skim);
+  const custom = hold(map(COMBOS.showPopclip)).when(cond);
+  const table = bindTable("hold", {
+    n: shell(CMDS.neruHints),
+    p: custom,
+  });
+
+  assert.deepEqual(table[0], bindKeys("n", hold(shell(CMDS.neruHints))));
+  // The table's "hold" phase is ignored for `p` — the pre-built Case is used
+  // as-is, conditions included (already proven by the deepEqual above).
+  assert.deepEqual(table[1], bindKeys("p", custom));
+});
+
+test("bindTable() accepts an ActionInput[] as a single multi-action case for one entry", () => {
+  const [b] = bindTable("hold", {
+    keypad_equal_sign: [map(COMBOS.selectWordLeft), shell(CMDS.quickDate)],
+  });
+  assert.deepEqual(
+    b,
+    bindKeys("keypad_equal_sign", hold([map(COMBOS.selectWordLeft), shell(CMDS.quickDate)])),
+  );
+});
+
+test("bindTable() accepts a Case[] as multiple cases for one entry, e.g. a per-key tap/hold pair", () => {
+  const [b] = bindTable("release", {
+    equal_sign: [release(key("keypad_equal_sign", { halt: true })), hold(map(COMBOS.selectWordLeft))],
+  });
+  assert.deepEqual(
+    b,
+    bindKeys("equal_sign", [release(key("keypad_equal_sign", { halt: true })), hold(map(COMBOS.selectWordLeft))]),
+  );
+});
+
+test("bindTable() forwards shared BindingOptions to every entry", () => {
+  // No modifiers: options is passed as the 3rd positional argument, same as
+  // bindKeys() — bindKeys()'s own modifiers-vs-options disambiguation only
+  // recognizes options in the 4th slot when the 3rd slot is real
+  // TriggerModifiers; an explicit `undefined` 3rd arg is not equivalent to
+  // omitting it, so options must not be passed 4th here.
+  const table = bindTable(
+    "press",
+    { a: key("a"), b: key("b") },
+    { description: "letters" },
+  );
+  assert.equal(table[0]?.description, "letters");
+  assert.equal(table[1]?.description, "letters");
+});
+
+test("bindTable() forwards shared BindingOptions alongside real modifiers in the 4th slot", () => {
+  const table = bindTable(
+    "press",
+    { a: key("a"), b: key("b") },
+    ["shift"],
+    { description: "letters" },
+  );
+  assert.deepEqual(table[0]?.trigger, { keys: ["a"], modifiers: ["shift"] });
+  assert.equal(table[0]?.description, "letters");
+  assert.equal(table[1]?.description, "letters");
 });
