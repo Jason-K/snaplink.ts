@@ -3,6 +3,7 @@ import type {
   ActionEventOptions,
   ActionKeyModifier,
   ActionSpec,
+  AppSpec,
   AppTarget,
   Case,
   CommandSpec,
@@ -16,6 +17,55 @@ import type {
 } from "../../data";
 import type { ConsumerKeyCode, StickyModifierName, ToMouseKey } from "../../types/karabiner";
 import { resolveKeyAlias } from "../utils";
+
+/**
+ * Anything `press()`/`release()`/`hold()`/`tap()`/`doubleTap()`/`guard()` accept
+ * as an action: a built {@link Action} (an `ActionSpec` or a raw `ToEvent`), or
+ * a raw registry primitive (`URLS.*`, `COMBOS.*`, `CMDS.*`, `APPS.*`) that gets
+ * promoted to its corresponding `ActionSpec` automatically. `PathSpec` is
+ * deliberately excluded — it is ambiguous between "open in Finder" (`folder()`)
+ * and an `AppTarget` for `app()`, and nothing in this codebase disambiguates
+ * that today, so it stays wrapper-explicit.
+ */
+export type ActionInput = Action | UrlSpec | MapSpec | CommandSpec | AppSpec;
+
+/**
+ * `true` for a raw registry primitive (something with `refDesc`, per
+ * `BaseSpec`) rather than a built `Action`.
+ *
+ * Deliberately NOT based on the `type` tag: `UrlSpec`/`MapSpec`/`CommandSpec`/
+ * `AppSpec` reuse the same `type` string as their corresponding `ActionSpec`
+ * variant ("map", "url", "command", "app" — see `isActionSpec()` in
+ * `action-handlers.ts`), so a tag-only check would misidentify a raw
+ * `MapSpec` as an already-built `map` action and hand it to `actionToEvents()`
+ * with no `.ref`, crashing at `resolveKeyAlias(a.ref.keyCode)`. `refDesc`
+ * (required by `BaseSpec` on every registry primitive, and never present on a
+ * built `ActionSpec`, which uses `actionDesc` instead) is collision-free.
+ */
+function isRawRegistrySpec(x: ActionInput): x is UrlSpec | MapSpec | CommandSpec | AppSpec {
+  return typeof x === "object" && x !== null && "refDesc" in x;
+}
+
+/** Promote a raw registry primitive to its `ActionSpec`; pass built actions through untouched. */
+function normalizeAction(action: ActionInput): Action {
+  if (!isRawRegistrySpec(action)) return action;
+  switch (action.type) {
+    case "url":
+      return url(action);
+    case "map":
+      return map(action);
+    case "command":
+      return cmd(action);
+    case "app":
+      return app(action);
+    default: {
+      const exhaustive: never = action;
+      throw new Error(
+        `normalizeAction: unrecognized registry spec type '${(exhaustive as { type?: string }).type}'`,
+      );
+    }
+  }
+}
 
 /**
  * Fluent builder for `Case` items in Karabiner bindings.
@@ -40,11 +90,11 @@ export class CaseBuilder implements Case {
    */
   constructor(
     phase: Phase,
-    actions: Action | Action[],
+    actions: ActionInput | ActionInput[],
     conditions?: Condition | Condition[],
   ) {
     this.phase = phase;
-    this.do = Array.isArray(actions) ? actions : [actions];
+    this.do = (Array.isArray(actions) ? actions : [actions]).map(normalizeAction);
     delete this.conditions;
     delete this.tapCount;
     delete this.description;
@@ -188,7 +238,11 @@ export class CaseBuilder implements Case {
  * - `actHere()` — in-place context action spec
  * - `appHistory()` — navigate app history stack
  *
- * @param actions - Action or list of actions to execute on press.
+ * Registry primitives (`URLS.*`, `COMBOS.*`, `CMDS.*`, `APPS.*`) can be passed
+ * directly too — `press(COMBOS.x)` is `press(map(COMBOS.x))`. `PathSpec`
+ * (`PATHS.*`) is not inferred; use `folder()` explicitly.
+ *
+ * @param actions - Action, registry primitive, or list of either, to execute on press.
  * @param conditions - Optional condition or list of conditions.
  * @returns A `CaseBuilder` for chaining options.
  *
@@ -196,10 +250,11 @@ export class CaseBuilder implements Case {
  * ```ts
  * press(key("a"))
  * press([key("c", ["cmd"])], { app: "com.apple.finder" })
+ * press(COMBOS.showPopclip)
  * ```
  */
 export function press(
-  actions: Action | Action[],
+  actions: ActionInput | ActionInput[],
   conditions?: Condition | Condition[],
 ): CaseBuilder {
   return new CaseBuilder("press", actions, conditions);
@@ -226,17 +281,22 @@ export function press(
  * - `actHere()` — in-place context action spec
  * - `appHistory()` — navigate app history stack
  *
- * @param actions - Action or list of actions to execute on release.
+ * Registry primitives (`URLS.*`, `COMBOS.*`, `CMDS.*`, `APPS.*`) can be passed
+ * directly too — `release(COMBOS.x)` is `release(map(COMBOS.x))`. `PathSpec`
+ * (`PATHS.*`) is not inferred; use `folder()` explicitly.
+ *
+ * @param actions - Action, registry primitive, or list of either, to execute on release.
  * @param conditions - Optional condition or list of conditions.
  * @returns A `CaseBuilder` for chaining options.
  *
  * @example
  * ```ts
  * release(key("b"))
+ * release(URLS.rectDisplayNext)
  * ```
  */
 export function release(
-  actions: Action | Action[],
+  actions: ActionInput | ActionInput[],
   conditions?: Condition | Condition[],
 ): CaseBuilder {
   return new CaseBuilder("release", actions, conditions);
@@ -249,8 +309,10 @@ export function release(
  * - `key()`, `button()`, `app()`, `url()`, `folder()`, `cmd()`, `shell()`,
  *   `python()`, `osascript()`, `setVar()`, `cut()`, `copy()`, `paste()`, `sequence()`,
  *   `map()`, `noop()`, `actHere()`, `appHistory()`
+ * - Registry primitives (`URLS.*`, `COMBOS.*`, `CMDS.*`, `APPS.*`) directly —
+ *   promoted the same way as in `press()`/`release()`.
  *
- * @param actions - Action or list of actions to execute on tap.
+ * @param actions - Action, registry primitive, or list of either, to execute on tap.
  * @param conditions - Optional condition or list of conditions.
  * @returns A `CaseBuilder` for chaining options.
  *
@@ -260,7 +322,7 @@ export function release(
  * ```
  */
 export function tap(
-  actions: Action | Action[],
+  actions: ActionInput | ActionInput[],
   conditions?: Condition | Condition[],
 ): CaseBuilder {
   return release(actions, conditions);
@@ -287,17 +349,22 @@ export function tap(
  * - `actHere()` — in-place context action spec
  * - `appHistory()` — navigate app history stack
  *
- * @param actions - Action or list of actions to execute when held down.
+ * Registry primitives (`URLS.*`, `COMBOS.*`, `CMDS.*`, `APPS.*`) can be passed
+ * directly too — `hold(COMBOS.x)` is `hold(map(COMBOS.x))`. `PathSpec`
+ * (`PATHS.*`) is not inferred; use `folder()` explicitly.
+ *
+ * @param actions - Action, registry primitive, or list of either, to execute when held down.
  * @param conditions - Optional condition or list of conditions.
  * @returns A `CaseBuilder` for chaining options.
  *
  * @example
  * ```ts
  * hold(key("left_shift"))
+ * hold(APPS.kitty)
  * ```
  */
 export function hold(
-  actions: Action | Action[],
+  actions: ActionInput | ActionInput[],
   conditions?: Condition | Condition[],
 ): CaseBuilder {
   return new CaseBuilder("hold", actions, conditions);
@@ -310,8 +377,10 @@ export function hold(
  * - `key()`, `button()`, `app()`, `url()`, `folder()`, `cmd()`, `shell()`,
  *   `python()`, `osascript()`, `setVar()`, `cut()`, `copy()`, `paste()`, `sequence()`,
  *   `map()`, `noop()`, `actHere()`, `appHistory()`
+ * - Registry primitives (`URLS.*`, `COMBOS.*`, `CMDS.*`, `APPS.*`) directly —
+ *   promoted the same way as in `press()`/`release()`.
  *
- * @param actions - Action or list of actions to execute on double tap.
+ * @param actions - Action, registry primitive, or list of either, to execute on double tap.
  * @param conditions - Optional condition or list of conditions.
  * @returns A `CaseBuilder` initialized with tap count 2.
  *
@@ -321,10 +390,47 @@ export function hold(
  * ```
  */
 export function doubleTap(
-  actions: Action | Action[],
+  actions: ActionInput | ActionInput[],
   conditions?: Condition | Condition[],
 ): CaseBuilder {
   return press(actions, conditions).withTapCount(2);
+}
+
+/**
+ * Shorthand for the tap/hold pair that runs through this codebase's bindings
+ * far more often than any other shape: a `release()` case for the plain tap
+ * and a `hold()` case for the held key, both under the same optional
+ * conditions.
+ *
+ * Named `tapAndHold` rather than `tapHold` to avoid colliding with the
+ * lower-level manipulator builder of that name in
+ * `engine/resolve-trigger/tap-hold.ts` (a different API: it builds a raw
+ * tap-hold manipulator from `{key, alone, hold, ...}`, not a `Case[]`).
+ *
+ * `to(tapAndHold(a, b))` is exactly `to(release(a), hold(b))` — nothing new
+ * is modeled, this only collapses the two-call boilerplate. For a case that
+ * needs its own distinct conditions instead of sharing one set with its
+ * counterpart, use `release(...).when(...)` / `hold(...).when(...)` directly.
+ *
+ * @param tapAction - Action, registry primitive, or list of either, to execute on tap (release phase).
+ * @param holdAction - Action, registry primitive, or list of either, to execute when held.
+ * @param conditions - Optional condition or list of conditions, applied to both cases.
+ * @returns A 2-tuple `[release(tapAction), hold(holdAction)]`.
+ *
+ * @example
+ * ```ts
+ * // Before:
+ * bind(from("leftBack"), to(release(shell(CMDS.winMaxToggle)), hold(url(URLS.rectDisplayNext))))
+ * // After:
+ * bind(from("leftBack"), to(tapAndHold(CMDS.winMaxToggle, URLS.rectDisplayNext)))
+ * ```
+ */
+export function tapAndHold(
+  tapAction: ActionInput | ActionInput[],
+  holdAction: ActionInput | ActionInput[],
+  conditions?: Condition | Condition[],
+): [CaseBuilder, CaseBuilder] {
+  return [release(tapAction, conditions), hold(holdAction, conditions)];
 }
 
 /**
@@ -334,8 +440,10 @@ export function doubleTap(
  * - `key()`, `button()`, `app()`, `url()`, `folder()`, `cmd()`, `shell()`,
  *   `python()`, `osascript()`, `setVar()`, `cut()`, `copy()`, `paste()`, `sequence()`,
  *   `map()`, `noop()`, `actHere()`, `appHistory()`
+ * - Registry primitives (`URLS.*`, `COMBOS.*`, `CMDS.*`, `APPS.*`) directly —
+ *   promoted the same way as in `press()`/`release()`.
  *
- * @param actions - Action or list of actions to execute on double tap and hold.
+ * @param actions - Action, registry primitive, or list of either, to execute on double tap and hold.
  * @param conditions - Optional condition or list of conditions.
  * @returns A `CaseBuilder` initialized with hold phase and tap count 2.
  *
@@ -345,7 +453,7 @@ export function doubleTap(
  * ```
  */
 export function doubleTapHold(
-  actions: Action | Action[],
+  actions: ActionInput | ActionInput[],
   conditions?: Condition | Condition[],
 ): CaseBuilder {
   return hold(actions, conditions).withTapCount(2);
@@ -358,8 +466,10 @@ export function doubleTapHold(
  * - `key()`, `button()`, `app()`, `url()`, `folder()`, `cmd()`, `shell()`,
  *   `python()`, `osascript()`, `setVar()`, `cut()`, `copy()`, `paste()`, `sequence()`,
  *   `map()`, `noop()`, `actHere()`, `appHistory()`
+ * - Registry primitives (`URLS.*`, `COMBOS.*`, `CMDS.*`, `APPS.*`) directly —
+ *   promoted the same way as in `press()`/`release()`.
  *
- * @param actions - Action or list of actions to execute on delayed single tap.
+ * @param actions - Action, registry primitive, or list of either, to execute on delayed single tap.
  * @param conditions - Optional condition or list of conditions.
  * @returns A `CaseBuilder` initialized with release phase and delayed true.
  *
@@ -369,7 +479,7 @@ export function doubleTapHold(
  * ```
  */
 export function delayedSingleTap(
-  actions: Action | Action[],
+  actions: ActionInput | ActionInput[],
   conditions?: Condition | Condition[],
 ): CaseBuilder {
   return release(actions, conditions).withDelayed(true);
@@ -409,13 +519,13 @@ function isConditionLike(val: unknown): boolean {
  * ```
  */
 export function guard(
-  actionsOrConditions?: Action | Action[] | Condition | Condition[],
+  actionsOrConditions?: ActionInput | ActionInput[] | Condition | Condition[],
   conditions?: Condition | Condition[],
 ): CaseBuilder {
   if (isConditionLike(actionsOrConditions)) {
     return press([], actionsOrConditions as Condition | Condition[]).guardProtection(true);
   }
-  return press((actionsOrConditions as Action | Action[]) ?? [], conditions).guardProtection(true);
+  return press((actionsOrConditions as ActionInput | ActionInput[]) ?? [], conditions).guardProtection(true);
 }
 
 /**

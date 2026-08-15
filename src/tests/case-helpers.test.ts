@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { APPS, URLS } from "../data";
+import { APPS, CMDS, COMBOS, URLS } from "../data";
 import {
   bind,
   bindKeys,
@@ -12,6 +12,8 @@ import {
   copy,
   cut,
   doubleTap,
+  doubleTapHold,
+  delayedSingleTap,
   map,
   guard,
   from,
@@ -27,6 +29,7 @@ import {
   sequence,
   setVar,
   shell,
+  tapAndHold,
   triggerKeys,
   triggerPointer,
   to,
@@ -345,5 +348,91 @@ test("guard() accepts condition as single parameter", () => {
   assert.equal((g as any).guard, true);
   assert.equal(g.do.length, 0);
   assert.deepEqual(g.conditions ?? [], [cond]);
+});
+
+/**
+ * Phase A: registry primitives (URLS.*, COMBOS.*, CMDS.*, APPS.*) passed
+ * directly to press()/release()/hold()/tap()/guard() are promoted to their
+ * ActionSpec automatically, instead of requiring an explicit map()/url()/
+ * cmd()/app() wrapper. See the DSL improvement plan discussion: the naive
+ * approach (gating on isActionSpec()) is unsafe because MapSpec/UrlSpec/
+ * CommandSpec/AppSpec reuse the same `type` tag as their ActionSpec variant
+ * — these tests exist specifically to catch that regression.
+ */
+
+test("map/url/command/app registry primitives infer the same ActionSpec as their explicit wrapper", () => {
+  // map: the crash case — a raw MapSpec's `type` is "map", identical to the
+  // `map` ActionSpec's discriminant, so this only works if detection is
+  // shape-based (refDesc) rather than isActionSpec()'s tag check.
+  const viaCombo = release(COMBOS.focusWinRight);
+  const viaWrapper = release(map(COMBOS.focusWinRight));
+  assert.deepEqual(viaCombo.do, viaWrapper.do);
+  assert.deepEqual(viaCombo.do, [
+    { type: "map", ref: COMBOS.focusWinRight, options: { repeat: false } },
+  ]);
+
+  const viaUrl = hold(URLS.winMaximize);
+  assert.deepEqual(viaUrl.do, [{ type: "url", url: URLS.winMaximize }]);
+
+  const viaCmd = press(CMDS.wordPrint);
+  assert.deepEqual(viaCmd.do, [{ type: "command", ref: CMDS.wordPrint }]);
+
+  const viaApp = hold(APPS.ringCentral);
+  assert.deepEqual(viaApp.do, [{ type: "app", ref: APPS.ringCentral }]);
+});
+
+test("press/release/hold pass built Actions and raw ToEvents through unchanged, even mixed with registry primitives", () => {
+  const rawEvent = { pointing_button: "button1" } as const;
+  const built = key("a");
+  const c = hold([rawEvent, built, COMBOS.focusWinRight]);
+  assert.deepEqual(c.do, [
+    rawEvent,
+    built,
+    { type: "map", ref: COMBOS.focusWinRight, options: { repeat: false } },
+  ]);
+});
+
+test("guard() normalizes registry primitives too, since it delegates to press()", () => {
+  const g = guard(URLS.winMaximize);
+  assert.deepEqual(g.do, [{ type: "url", url: URLS.winMaximize }]);
+  assert.equal((g as any).guard, true);
+});
+
+test("doubleTapHold and delayedSingleTap also accept registry primitives (the Phase A gap this closes)", () => {
+  const dth = doubleTapHold(COMBOS.focusWinRight);
+  assert.equal(dth.phase, "hold");
+  assert.equal(dth.tapCount, 2);
+  assert.deepEqual(dth.do, [{ type: "map", ref: COMBOS.focusWinRight, options: { repeat: false } }]);
+
+  const dst = delayedSingleTap(APPS.ringCentral);
+  assert.equal(dst.phase, "release");
+  assert.equal(dst.delayed, true);
+  assert.deepEqual(dst.do, [{ type: "app", ref: APPS.ringCentral }]);
+});
+
+test("tapAndHold() is exactly [release(tapAction), hold(holdAction)]", () => {
+  const [tapCase, holdCase] = tapAndHold(CMDS.wordPrint, URLS.winMaximize);
+  const expectedTap = release(cmd(CMDS.wordPrint));
+  const expectedHold = hold(url(URLS.winMaximize));
+
+  assert.equal(tapCase.phase, "release");
+  assert.deepEqual(tapCase.do, expectedTap.do);
+  assert.equal(holdCase.phase, "hold");
+  assert.deepEqual(holdCase.do, expectedHold.do);
+});
+
+test("tapAndHold() applies the same conditions to both cases", () => {
+  const cond = condApp(APPS.skim);
+  const [tapCase, holdCase] = tapAndHold(APPS.ringCentral, APPS.kitty, cond);
+
+  assert.deepEqual(tapCase.conditions, [cond]);
+  assert.deepEqual(holdCase.conditions, [cond]);
+});
+
+test("tapAndHold() mixes bare registry primitives with explicit wrapper calls", () => {
+  // The hold side needs url()'s `background` option, so it stays explicit —
+  // tapAndHold() doesn't require both sides to be bare registry references.
+  const [, holdCase] = tapAndHold(CMDS.winMaxToggle, url(URLS.rectAppPrevDisplay, true));
+  assert.deepEqual(holdCase.do, [{ type: "url", url: URLS.rectAppPrevDisplay, background: true }]);
 });
 
