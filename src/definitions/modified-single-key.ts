@@ -3,70 +3,86 @@ import { APPS, CMDS, COMBOS, STATE_GROUPS, URLS } from "../data";
 import {
   actHere,
   bind,
-  cmd,
-  condApp,
-  map,
+  bindTable,
   from,
   hold,
-  app,
-  url,
   press,
   release,
   shell,
+  tapAndHold,
   to,
+  url,
   when,
   type Binding,
-  state,
 } from "../engine";
 
 const modNumBindings: Binding[] = [
-  bind(from("keypad_1", VM.COCS), to(release(url(URLS.winBottomLeftEighth, true)))),
-  bind(from("keypad_3", VM.COCS), to(release(url(URLS.winBottomRightEighth, true)))),
-  bind(from("keypad_5", VM.COCS), to(release(url(URLS.winMaximize, true)))),
+  ...bindTable(
+    "release",
+    {
+      keypad_1: url(URLS.winBottomLeftEighth, true),
+      keypad_3: url(URLS.winBottomRightEighth, true),
+      keypad_5: url(URLS.winMaximize, true),
+      keypad_7: url(URLS.winTopLeftEighth, true),
+      keypad_9: url(URLS.winTopRightEighth, true),
+    },
+    VM.COCS,
+  ),
   bind(from("keypad_5", VM.COC_), to(release(shell(CMDS.winMaxToggle)))),
-  bind(from("keypad_7", VM.COCS), to(release(url(URLS.winTopLeftEighth, true)))),
-  bind(from("keypad_9", VM.COCS), to(release(url(URLS.winTopRightEighth, true)))),
 ];
 
 const modLetterBindings: Binding[] = [
-  bind(from("a", ["shift"]), to(hold(url(URLS.antinoteNewNote)))),
-  bind(from("e", VM.COCS), to(release(map(COMBOS.focusWinRight)))),
-  bind(from("f", VM.COCS), to(release(map(COMBOS.focusWinBottom)))),
-  bind(from("h", ["L.cmd"]), to(press(map(COMBOS.skimHighlight))), when(condApp(APPS.skim))),
+  bind(from("a", ["shift"]), to(hold(URLS.antinoteNewNote))),
+  // The four focusWin* keys share modifier and phase, so they're a table.
+  // "s" (evalSelection) shares the same VM.COCS modifier but a different
+  // phase (press, not release) — folded in via a pre-built Case, bindTable's
+  // escape hatch for the one entry that doesn't fit the table's shape.
+  ...bindTable(
+    "release",
+    {
+      e: COMBOS.focusWinRight,
+      f: COMBOS.focusWinBottom,
+      q: COMBOS.focusWinLeft,
+      r: COMBOS.focusWinTop,
+      s: press(shell(CMDS.evalSelection)),
+    },
+    VM.COCS,
+  ),
+  bind(from("h", ["L.cmd"]), to(press(COMBOS.skimHighlight)), when(APPS.skim)),
   bind(from("k", ["R.opt"]), to(hold(actHere("kitty")))),
-  bind(from("m", ["L.cmd"]), to(hold(map(COMBOS.restoreMinimizedWindow)))),
-  bind(from("p", ["L.cmd"]), to(release(cmd(CMDS.wordPrint)).when(state(APPS.word)), hold(map(COMBOS.showPopclip)))),
-  bind(from("q", VM.COCS), to(release(map(COMBOS.focusWinLeft)))),
-  bind(from("r", VM.COCS), to(release(map(COMBOS.focusWinTop)))),
-  bind(from("s", VM.COCS), to(press(shell(CMDS.evalSelection)))),
-  bind(from("s", ["R.opt"]), to(release(shell(CMDS.spotifyToggle)), hold(url(URLS.raySpotifySearch)))),
-  bind(from("t", VM.COCS), to(release(shell(CMDS.newTypinatorRule)), hold(shell(CMDS.lastTypinatorRule)))),
-  bind(from("u", ["L.cmd"]), to(press(map(COMBOS.skimUnderline))), when(state(APPS.skim))),
+  bind(from("m", ["L.cmd"]), to(hold(COMBOS.restoreMinimizedWindow))),
+  // Condition applies only to the tap (print) side, not the hold (popclip)
+  // side, so this stays as two explicit cases rather than tapAndHold() —
+  // tapAndHold() would apply state(APPS.word) to both.
+  bind(from("p", ["L.cmd"]), to(release(CMDS.wordPrint).when(APPS.word), hold(COMBOS.showPopclip))),
+  bind(from("s", ["R.opt"]), to(tapAndHold(shell(CMDS.spotifyToggle), URLS.raySpotifySearch))),
+  bind(from("t", VM.COCS), to(tapAndHold(shell(CMDS.newTypinatorRule), shell(CMDS.lastTypinatorRule)))),
+  bind(from("u", ["L.cmd"]), to(press(COMBOS.skimUnderline)), when(APPS.skim)),
 ];
 
 const modSymbolBindings: Binding[] = [
-  bind(from("comma", VM.COCS), to(press(app(APPS.systemSettings)))),
+  bind(from("comma", VM.COCS), to(press(APPS.systemSettings))),
   bind(
     from("slash", ["L.cmd"]),
     to(
       // AUTHENTICATION DIALOG fill password.
-      press(cmd(CMDS.fillPw)).when(state(STATE_GROUPS.isPasswordEdit)),
+      press(CMDS.fillPw).when(STATE_GROUPS.isPasswordEdit),
       // AUTHENTICATION DIALOG: fill username and password.
-      press(cmd(CMDS.fillUnPw)).when(state(STATE_GROUPS.isUserEdit)),
-      press(cmd(CMDS.wordGetPath)).when(state(APPS.word)),
+      press(CMDS.fillUnPw).when(STATE_GROUPS.isUserEdit),
+      press(CMDS.wordGetPath).when(APPS.word),
     ),
   ),
 ];
 
 const modNonCharBindings: Binding[] = [
-  bind(from("end", ["shift"]), to(press(map(COMBOS.selectEnd)))),
-  bind(from("escape", ["control"]), to(release(app(APPS.activityMonitor)), hold(app(APPS.processSpy)))),
-  bind(from("escape", VM.COCS), to(press(app(APPS.activityMonitor)))),
-  bind(from("home", ["shift"]), to(press(map(COMBOS.selectHome)))),
-  bind(from("left_arrow", VM.COCS), to(release(shell(CMDS.winLOrTop)), hold(url(URLS.rectAppPrevDisplay, true)))),
-  bind(from("left_arrow", VM.C__S), to(press(map(COMBOS.zenNextTab))), when(condApp(APPS.zen))),
-  bind(from("right_arrow", VM.COCS), to(release(shell(CMDS.winROrBottom)), hold(url(URLS.rectAppNextDisplay, true)))),
-  bind(from("right_arrow", VM.C__S), to(press(map(COMBOS.zenPreviousTab))), when(condApp(APPS.zen))),
+  bind(from("end", ["shift"]), to(press(COMBOS.selectEnd))),
+  bind(from("escape", ["control"]), to(tapAndHold(APPS.activityMonitor, APPS.processSpy))),
+  bind(from("escape", VM.COCS), to(press(APPS.activityMonitor))),
+  bind(from("home", ["shift"]), to(press(COMBOS.selectHome))),
+  bind(from("left_arrow", VM.COCS), to(tapAndHold(shell(CMDS.winLOrTop), url(URLS.rectAppPrevDisplay, true)))),
+  bind(from("left_arrow", VM.C__S), to(press(COMBOS.zenNextTab)), when(APPS.zen)),
+  bind(from("right_arrow", VM.COCS), to(tapAndHold(shell(CMDS.winROrBottom), url(URLS.rectAppNextDisplay, true)))),
+  bind(from("right_arrow", VM.C__S), to(press(COMBOS.zenPreviousTab)), when(APPS.zen)),
   bind(from("spacebar", VM.COCS), to(release(shell(CMDS.winMaxToggle)))),
   bind(from("tab", VM.COCS), to(release(url(URLS.rectAppNextDisplay, true)))),
 ];

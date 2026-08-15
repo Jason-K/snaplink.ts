@@ -434,7 +434,12 @@ export function doubleTap(
  * // Before:
  * bind(from("leftBack"), to(release(shell(CMDS.winMaxToggle)), hold(url(URLS.rectDisplayNext))))
  * // After:
- * bind(from("leftBack"), to(tapAndHold(CMDS.winMaxToggle, URLS.rectDisplayNext)))
+ * bind(from("leftBack"), to(tapAndHold(shell(CMDS.winMaxToggle), URLS.rectDisplayNext)))
+ * // Note: CMDS.winMaxToggle stays wrapped in shell() here — a bare
+ * // CommandSpec auto-infers to cmd() (ActionSpec type "command"), a
+ * // different variant than shell()'s type "shell". Only bare-ify a
+ * // CommandSpec at a call site that already used cmd(), never one that
+ * // used shell().
  * ```
  */
 export function tapAndHold(
