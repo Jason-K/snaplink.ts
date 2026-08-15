@@ -28,12 +28,17 @@ const csx = (action: string, refDesc: string): UrlSpec => url(`cleanshot://${act
 
 const antinote = (action: string, refDesc: string): UrlSpec => url(`antinote://${action}`, refDesc, "antinote");
 
+const hs = (action: string, refDesc: string): UrlSpec => url(`hammerspoon://${action}`, refDesc, "hammerspoon");
+
 // ---------------------------------------------------------
 // Registry
 // ---------------------------------------------------------
 
 const SidenotesUrls = {
-  newClientNote: sidenotes("add-note-with-text/DATE%3A%20%0ACLIENT%3A%20%0ATOPIC%3A%20%0A%0A", "new client note template"),
+  newClientNote: sidenotes(
+    "add-note-with-text/DATE%3A%20%0ACLIENT%3A%20%0ATOPIC%3A%20%0A%0A",
+    "new client note template",
+  ),
 };
 
 const RaycastUrls = {
@@ -47,6 +52,14 @@ const RaycastUrls = {
   raySpotifyPlayPause: ray("mattisssa/spotify-player/togglePlayPause", "toggle Spotify"),
   raySpotifySearch: ray("mattisssa/spotify-player/search", "search Spotify"),
   rayZoxideSearchDirs: ray("mrpunkin/raycast-zoxide/search-directories", "search directories using zoxide"),
+};
+
+const HsUrls = {
+  hsWinToggleFill: hs("window?action=toggle_maximize", "toggle maximize and restore window"),
+  hsWinLeftTop: hs("window?action=primary_half", "window to top-left 1/2"),
+  hsWinRightBottom: hs("window?action=secondary_half", "window to bottom-right 1/2"),
+  hsFormatSelection: hs("hslauncher?id=format_selection", "format selected text"),
+  hsFormatSubstring: hs("hslauncher?id=format_cut_seed", "format substring of selected text"),
 };
 
 const rectangleUrls = {
@@ -161,6 +174,7 @@ const AntiNoteUrls = {
 export const URLS = {
   ...SidenotesUrls,
   ...RaycastUrls,
+  ...HsUrls,
   ...rectangleUrls,
   ...CsxUrls,
   ...AntiNoteUrls,
