@@ -17,6 +17,8 @@ import type {
 } from "../../data";
 import type { ConsumerKeyCode, StickyModifierName, ToMouseKey } from "../../types/karabiner";
 import { resolveKeyAlias } from "../utils";
+import { state } from "./condition-wrappers";
+import type { StateItem } from "./condition-wrappers";
 
 /**
  * Anything `press()`/`release()`/`hold()`/`tap()`/`doubleTap()`/`guard()` accept
@@ -110,6 +112,12 @@ export class CaseBuilder implements Case {
   /**
    * Add one or more conditions to this case.
    *
+   * Accepts already-built `Condition`s (and arrays of them, as before) or
+   * bare state specs — registry keys, apps, devices, vars, `[target, value]`
+   * tuples, or `{ app/var, ... }` objects — resolved through the same
+   * machinery as `state()`, so `.when(APPS.word)` and
+   * `.when(condApp(APPS.word))` attach an identical condition.
+   *
    * Recognized condition wrappers & builders:
    * - `state(...)` / `condState(...)` / `ifState(...)` — evaluates state specs, registry keys (`STATES`, `VARS`), apps, devices, or `[target, value]` tuples
    * - `unless(...)` / `condUnless(...)` — enforces state specs, registry keys, apps, or devices to be false/negated
@@ -119,19 +127,23 @@ export class CaseBuilder implements Case {
    * - `ifUserVar(...)` / `ifKeVar(...)` / `condVar(...)` / `ifVar(...)` — matches Karabiner variable values
    * - `unlessUserVar(...)` / `unlessKeVar(...)` / `condNotVar(...)` — matches when variable values do NOT match
    *
-   * @param conditions - Conditions or condition arrays to attach to this case.
+   * @param items - Conditions, condition arrays, bare state specs, or state spec arrays to attach to this case.
    * @returns `this` for method chaining.
    *
    * @example
    * ```ts
    * press(key("a")).when(ifApp("com.apple.finder"))
    * press(key("b")).when(state(VARS.rButtonDown))
+   * press(key("c")).when(APPS.word)
    * ```
    */
-  when(...conditions: (Condition | Condition[])[]): this {
-    const flat = conditions.flat();
-    if (flat.length > 0) {
-      this.conditions = this.conditions ? [...this.conditions, ...flat] : flat;
+  when(...items: (StateItem | readonly StateItem[])[]): this {
+    const resolved = items.flatMap((item) => {
+      const r = state(item as any) as Condition | Condition[];
+      return Array.isArray(r) ? r : [r];
+    });
+    if (resolved.length > 0) {
+      this.conditions = this.conditions ? [...this.conditions, ...resolved] : resolved;
     }
     return this;
   }

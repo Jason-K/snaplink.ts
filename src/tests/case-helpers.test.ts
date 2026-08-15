@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { APPS, CMDS, COMBOS, URLS } from "../data";
+import { APPS, CMDS, COMBOS, URLS, VARS } from "../data";
 import {
   bind,
   bindKeys,
@@ -34,6 +34,7 @@ import {
   triggerPointer,
   to,
   when,
+  state,
   options,
   timing,
   defineBindings,
@@ -436,3 +437,53 @@ test("tapAndHold() mixes bare registry primitives with explicit wrapper calls", 
   assert.deepEqual(holdCase.do, [{ type: "url", url: URLS.rectAppPrevDisplay, background: true }]);
 });
 
+
+test("when() infers a bare app spec exactly like state()/condApp() would", () => {
+  assert.deepEqual(when(APPS.ringCentral), when(condApp(APPS.ringCentral)));
+  assert.deepEqual(when(APPS.ringCentral).conditions, [state(APPS.ringCentral)]);
+});
+
+test("when() infers a bare var/state registry spec exactly like state() would", () => {
+  assert.deepEqual(when(VARS.elementType).conditions, [state(VARS.elementType)]);
+});
+
+test("when() still accepts pre-built Conditions and Condition arrays unchanged (backward compat)", () => {
+  const cond1 = condApp(APPS.skim);
+  const cond2 = condVar(VARS.elementType, "AXButton");
+
+  assert.deepEqual(when(cond1, cond2).conditions, [cond1, cond2]);
+  assert.deepEqual(when([cond1, cond2]).conditions, [cond1, cond2]);
+});
+
+test("when() resolves an array of bare specs as independent conditions, matching state()", () => {
+  const w = when([APPS.ringCentral, VARS.elementType]);
+  assert.deepEqual(w.conditions, state([APPS.ringCentral, VARS.elementType]));
+});
+
+test("when() resolves a bare [target, value] tuple as a single condition, matching state()", () => {
+  const w = when([VARS.elementType, "AXButton"]);
+  assert.deepEqual(w.conditions, [state([VARS.elementType, "AXButton"])]);
+});
+
+test("when() mixes a pre-built Condition with a bare spec in the same call", () => {
+  const cond = condApp(APPS.skim);
+  const w = when(cond, VARS.elementType);
+  assert.deepEqual(w.conditions, [cond, state(VARS.elementType)]);
+});
+
+test("CaseBuilder.when() infers bare specs exactly like the top-level when()", () => {
+  const viaBare = press(key("a")).when(APPS.ringCentral);
+  const viaExplicit = press(key("a")).when(condApp(APPS.ringCentral));
+  assert.deepEqual(viaBare.conditions, viaExplicit.conditions);
+});
+
+test("CaseBuilder.when() called across multiple chained calls still appends, mixing bare and built conditions", () => {
+  const c = press(key("a")).when(APPS.ringCentral).when(condVar(VARS.elementType, "AXButton"));
+  assert.deepEqual(c.conditions, [state(APPS.ringCentral), condVar(VARS.elementType, "AXButton")]);
+});
+
+test("constructor-level conditions param on press/release/hold still only accepts built Conditions (when() is the bare-spec entry point)", () => {
+  const cond = condApp(APPS.skim);
+  const c = press(key("a"), cond);
+  assert.deepEqual(c.conditions, [cond]);
+});

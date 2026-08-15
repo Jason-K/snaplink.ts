@@ -20,6 +20,14 @@ export type WhenWrapper = {
 /**
  * Wraps one or more conditions into a `WhenWrapper` container for consumption by `bind()`.
  *
+ * Accepts already-built `Condition`s (and arrays of them, as before) or bare
+ * state specs — registry keys, apps, devices, vars, `[target, value]` tuples,
+ * or `{ app/var, ... }` objects — resolved through the same machinery as
+ * `state()`, so `when(APPS.word)` and `when(condApp(APPS.word))` produce an
+ * identical condition. Each rest argument is resolved independently, so a
+ * bare spec, a pre-built `Condition`, and an array of either can be mixed
+ * freely in one call.
+ *
  * Recognized condition wrappers & builders:
  * - `state(...)` / `condState(...)` / `ifState(...)` — evaluates state specs, registry keys (`STATES`, `VARS`), apps, devices, or `[target, value]` tuples
  * - `unless(...)` / `condUnless(...)` — enforces state specs, registry keys, apps, or devices to be false/negated
@@ -29,20 +37,25 @@ export type WhenWrapper = {
  * - `ifUserVar(...)` / `ifKeVar(...)` / `condVar(...)` / `ifVar(...)` — matches Karabiner variable values
  * - `unlessUserVar(...)` / `unlessKeVar(...)` / `condNotVar(...)` — matches when variable values do NOT match
  *
- * @param conditions - Conditions, condition arrays, or condition helper calls to combine.
+ * @param items - Conditions, condition arrays, bare state specs, or state spec arrays to combine.
  * @returns A `WhenWrapper` object.
  *
  * @example
  * ```ts
  * when(ifApp("com.apple.finder"), state("rButtonDown"))
  * when(unless(VARS.wheelDown), state(APPS.zen))
+ * when(APPS.word)                 // bare spec, inferred via state()
+ * when(APPS.word, VARS.wheelDown) // multiple bare specs
  * ```
  */
-export function when(...conditions: (Condition | Condition[])[]): WhenWrapper {
-  return {
-    kind: "when",
-    conditions: conditions.flat(),
-  };
+export function when(
+  ...items: (StateItem | readonly StateItem[])[]
+): WhenWrapper {
+  const conditions = items.flatMap((item) => {
+    const resolved = state(item as any) as Condition | Condition[];
+    return Array.isArray(resolved) ? resolved : [resolved];
+  });
+  return { kind: "when", conditions };
 }
 
 function isAppSpec(val: unknown): val is AppSpec {
