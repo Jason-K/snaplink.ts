@@ -352,7 +352,10 @@ test("map/url/command/app registry primitives infer the same ActionSpec as their
   assert.deepEqual(viaCombo.do, [{ type: "map", ref: COMBOS.focusWinRight, options: { repeat: false } }]);
 
   const viaUrl = hold(URLS.winMaximize);
-  assert.deepEqual(viaUrl.do, [{ type: "url", url: URLS.winMaximize }]);
+  // rectangleUrls entries pin background:false in the registry (preserving
+  // today's foreground `open -u` behavior), so url()'s resolved value shows
+  // up here even though this call site never mentions background.
+  assert.deepEqual(viaUrl.do, [{ type: "url", url: URLS.winMaximize, background: false }]);
 
   const viaCmd = press(CMDS.wordPrint);
   assert.deepEqual(viaCmd.do, [{ type: "command", ref: CMDS.wordPrint }]);
@@ -370,9 +373,71 @@ test("press/release/hold pass built Actions and raw ToEvents through unchanged, 
 
 test("guard() normalizes registry primitives too, since it delegates to press()", () => {
   const g = guard(URLS.winMaximize);
-  assert.deepEqual(g.do, [{ type: "url", url: URLS.winMaximize }]);
+  assert.deepEqual(g.do, [{ type: "url", url: URLS.winMaximize, background: false }]);
   assert.equal((g as any).guard, true);
 });
+
+/**
+ * url() background precedence: explicit call-site arg > UrlSpec.background >
+ * true (the fallback default). See UrlSpec.background's JSDoc and url()'s
+ * own JSDoc in to-action-wrappers.ts for the full contract.
+ */
+
+test("url() background: explicit call-site argument overrides the registry entry's own setting", () => {
+  // URLS.rectDisplayNext is a rectangleUrls entry, pinned background:false
+  // in the registry — an explicit `true` here must still win.
+  assert.deepEqual(url(URLS.rectDisplayNext, true), {
+    type: "url",
+    url: URLS.rectDisplayNext,
+    background: true,
+  });
+});
+
+test("url() background: registry entry's own setting is honored when the call site doesn't override", () => {
+  // rectangleUrls pins background:false (preserves today's foreground open -u).
+  assert.deepEqual(url(URLS.rectDisplayNext), {
+    type: "url",
+    url: URLS.rectDisplayNext,
+    background: false,
+  });
+
+  // HsUrls leaves background unset, so it falls through to the true default.
+  assert.deepEqual(url(URLS.hsWinToggleFill), {
+    type: "url",
+    url: URLS.hsWinToggleFill,
+    background: true,
+  });
+});
+
+test("url() background: falls back to true when neither the call site nor the ref specifies it", () => {
+  // Raw string ref: no UrlSpec.background to consult at all.
+  assert.deepEqual(url("https://example.com"), {
+    type: "url",
+    url: "https://example.com",
+    background: true,
+  });
+
+  // A UrlSpec with `background` genuinely absent (not just falsy).
+  const bareSpec = { type: "url", url: "sidenotes://x", refDesc: "x" } as const;
+  assert.deepEqual(url(bareSpec), {
+    type: "url",
+    url: bareSpec,
+    background: true,
+  });
+});
+
+test("url() background: bare registry inference (hold(URLS.x)) resolves identically to an explicit url(URLS.x) call", () => {
+  const viaBareHs = hold(URLS.hsWinToggleFill);
+  const viaExplicitHs = hold(url(URLS.hsWinToggleFill));
+  assert.deepEqual(viaBareHs.do, viaExplicitHs.do);
+  assert.deepEqual(viaBareHs.do, [{ type: "url", url: URLS.hsWinToggleFill, background: true }]);
+
+  const viaBareRect = hold(URLS.rectDisplayNext);
+  const viaExplicitRect = hold(url(URLS.rectDisplayNext));
+  assert.deepEqual(viaBareRect.do, viaExplicitRect.do);
+  assert.deepEqual(viaBareRect.do, [{ type: "url", url: URLS.rectDisplayNext, background: false }]);
+});
+
 
 test("doubleTapHold and delayedSingleTap also accept registry primitives (the Phase A gap this closes)", () => {
   const dth = doubleTapHold(COMBOS.focusWinRight);

@@ -602,22 +602,38 @@ export function app(ref: AppTarget, mode?: "open" | "shell", actionDesc?: string
 /**
  * Creates an action spec to open a URL in the browser.
  *
- * @param url - URL string or `UrlSpec` reference.
+ * `background` resolves via 3-tier precedence, highest first:
+ * 1. This call's own `background` argument, when explicitly passed.
+ * 2. `ref.background`, when `ref` is a `UrlSpec` that sets it (see registry
+ *    factories in `data/registries/urls.ts` — non-Hammerspoon categories pin
+ *    `false` there to preserve foreground `open -u` behavior).
+ * 3. `true` (background, `open -g`) — the safe default when neither the call
+ *    site nor the registry entry specifies a preference.
+ *
+ * The resolved value is always written onto the returned `ActionSpec`
+ * (never conditionally omitted), so `action-handlers.ts`'s `url` handler
+ * never needs to apply its own fallback.
+ *
+ * @param ref - URL string or `UrlSpec` reference.
  * @param background - Whether to open URL in background without bringing application to focus.
  * @param actionDesc - Optional human-readable description for the action.
  * @returns An `ActionSpec` of type "url".
  *
  * @example
  * ```ts
- * url("https://github.com")
+ * url("https://github.com")               // background: true (default fallback)
+ * url(URLS.rectDisplayNext)                // background: false (registry pins foreground)
+ * url(URLS.rectDisplayNext, false)         // explicit override, same result here
  * url(URL_ID.docs, true, "Open documentation in background")
  * ```
  */
 export function url(ref: UrlSpec | string, background?: boolean, actionDesc?: string): ActionSpec {
+  const refBackground = typeof ref === "object" ? ref.background : undefined;
+  const resolvedBackground = background ?? refBackground ?? true;
   return {
     type: "url",
     url: ref,
-    ...(background !== undefined ? { background } : {}),
+    background: resolvedBackground,
     ...(actionDesc ? { actionDesc } : {}),
   };
 }

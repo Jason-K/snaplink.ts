@@ -16656,7 +16656,7 @@
             },
             "to_if_alone": [
               {
-                "shell_command": "open -u 'hammerspoon://window?action=toggle_maximize'"
+                "shell_command": "open -g 'hammerspoon://window?action=toggle_maximize'"
               }
             ],
             "to_if_held_down": [
@@ -16675,7 +16675,7 @@
               "to_if_invoked": [],
               "to_if_canceled": [
                 {
-                  "shell_command": "open -u 'hammerspoon://window?action=toggle_maximize'"
+                  "shell_command": "open -g 'hammerspoon://window?action=toggle_maximize'"
                 }
               ]
             },
@@ -21953,7 +21953,7 @@
             },
             "to_if_alone": [
               {
-                "shell_command": "open -u 'hammerspoon://window?action=primary_half'"
+                "shell_command": "open -g 'hammerspoon://window?action=primary_half'"
               }
             ],
             "to_if_held_down": [
@@ -21966,7 +21966,7 @@
               "to_if_invoked": [],
               "to_if_canceled": [
                 {
-                  "shell_command": "open -u 'hammerspoon://window?action=primary_half'"
+                  "shell_command": "open -g 'hammerspoon://window?action=primary_half'"
                 }
               ]
             },
@@ -22702,7 +22702,7 @@
             },
             "to_if_alone": [
               {
-                "shell_command": "open -u 'hammerspoon://window?action=secondary_half'"
+                "shell_command": "open -g 'hammerspoon://window?action=secondary_half'"
               }
             ],
             "to_if_held_down": [
@@ -22715,7 +22715,7 @@
               "to_if_invoked": [],
               "to_if_canceled": [
                 {
-                  "shell_command": "open -u 'hammerspoon://window?action=secondary_half'"
+                  "shell_command": "open -g 'hammerspoon://window?action=secondary_half'"
                 }
               ]
             },
@@ -22863,7 +22863,7 @@
                 }
               },
               {
-                "shell_command": "open -u 'hammerspoon://hslauncher?id=format_selection'"
+                "shell_command": "open -g 'hammerspoon://hslauncher?id=format_selection'"
               }
             ]
           },
@@ -22968,7 +22968,7 @@
             },
             "to_if_alone": [
               {
-                "shell_command": "open -u 'hammerspoon://window?action=toggle_maximize'"
+                "shell_command": "open -g 'hammerspoon://window?action=toggle_maximize'"
               }
             ],
             "to_if_held_down": [
@@ -22988,7 +22988,7 @@
               "to_if_invoked": [],
               "to_if_canceled": [
                 {
-                  "shell_command": "open -u 'hammerspoon://window?action=toggle_maximize'"
+                  "shell_command": "open -g 'hammerspoon://window?action=toggle_maximize'"
                 }
               ]
             },
@@ -23874,7 +23874,7 @@
             },
             "to_if_alone": [
               {
-                "shell_command": "open -u 'hammerspoon://window?action=primary_half'"
+                "shell_command": "open -g 'hammerspoon://window?action=primary_half'"
               }
             ],
             "to_if_held_down": [
@@ -23887,7 +23887,7 @@
               "to_if_invoked": [],
               "to_if_canceled": [
                 {
-                  "shell_command": "open -u 'hammerspoon://window?action=primary_half'"
+                  "shell_command": "open -g 'hammerspoon://window?action=primary_half'"
                 }
               ]
             }
@@ -24024,7 +24024,7 @@
             },
             "to_if_alone": [
               {
-                "shell_command": "open -u 'hammerspoon://window?action=secondary_half'"
+                "shell_command": "open -g 'hammerspoon://window?action=secondary_half'"
               }
             ],
             "to_if_held_down": [
@@ -24037,7 +24037,7 @@
               "to_if_invoked": [],
               "to_if_canceled": [
                 {
-                  "shell_command": "open -u 'hammerspoon://window?action=secondary_half'"
+                  "shell_command": "open -g 'hammerspoon://window?action=secondary_half'"
                 }
               ]
             }
@@ -24062,7 +24062,7 @@
             },
             "to": [
               {
-                "shell_command": "open -u 'hammerspoon://hslauncher?id=format_selection'"
+                "shell_command": "open -g 'hammerspoon://hslauncher?id=format_selection'"
               }
             ]
           }
@@ -24086,7 +24086,7 @@
             },
             "to_if_alone": [
               {
-                "shell_command": "open -u 'hammerspoon://window?action=toggle_maximize'"
+                "shell_command": "open -g 'hammerspoon://window?action=toggle_maximize'"
               }
             ],
             "to_if_held_down": [
@@ -24105,7 +24105,7 @@
               "to_if_invoked": [],
               "to_if_canceled": [
                 {
-                  "shell_command": "open -u 'hammerspoon://window?action=toggle_maximize'"
+                  "shell_command": "open -g 'hammerspoon://window?action=toggle_maximize'"
                 }
               ]
             }
@@ -24211,7 +24211,7 @@
             },
             "to_if_alone": [
               {
-                "shell_command": "open -u 'hammerspoon://window?action=toggle_maximize'"
+                "shell_command": "open -g 'hammerspoon://window?action=toggle_maximize'"
               }
             ],
             "to_if_held_down": [
@@ -24229,7 +24229,7 @@
               "to_if_invoked": [],
               "to_if_canceled": [
                 {
-                  "shell_command": "open -u 'hammerspoon://window?action=toggle_maximize'"
+                  "shell_command": "open -g 'hammerspoon://window?action=toggle_maximize'"
                 }
               ]
             }
@@ -26361,7 +26361,7 @@
             "to_if_held_down": [
               {
                 "halt": true,
-                "shell_command": "open -u 'hammerspoon://hslauncher?id=format_cut_seed'"
+                "shell_command": "open -g 'hammerspoon://hslauncher?id=format_cut_seed'"
               }
             ],
             "to_delayed_action": {
@@ -26839,7 +26839,7 @@
             "to_if_held_down": [
               {
                 "halt": true,
-                "shell_command": "open -u 'hammerspoon://hslauncher?id=format_cut_seed'"
+                "shell_command": "open -g 'hammerspoon://hslauncher?id=format_cut_seed'"
               }
             ],
             "to_delayed_action": {
@@ -27656,7 +27656,7 @@
             "to_delayed_action": {
               "to_if_invoked": [
                 {
-                  "shell_command": "open -u 'hammerspoon://window?action=toggle_maximize'"
+                  "shell_command": "open -g 'hammerspoon://window?action=toggle_maximize'"
                 },
                 {
                   "set_variable": {
@@ -27960,7 +27960,7 @@
             ],
             "to_if_held_down": [
               {
-                "shell_command": "open -u 'hammerspoon://window?action=toggle_maximize'"
+                "shell_command": "open -g 'hammerspoon://window?action=toggle_maximize'"
               }
             ],
             "to_delayed_action": {
@@ -28434,7 +28434,7 @@
             "to_if_held_down": [
               {
                 "halt": true,
-                "shell_command": "open -u 'hammerspoon://window?action=primary_half'"
+                "shell_command": "open -g 'hammerspoon://window?action=primary_half'"
               }
             ],
             "to_delayed_action": {
@@ -28531,7 +28531,7 @@
             "to_if_held_down": [
               {
                 "halt": true,
-                "shell_command": "open -u 'hammerspoon://window?action=secondary_half'"
+                "shell_command": "open -g 'hammerspoon://window?action=secondary_half'"
               }
             ],
             "to_delayed_action": {
@@ -28725,7 +28725,7 @@
             },
             "to_if_alone": [
               {
-                "shell_command": "open -u 'hammerspoon://window?action=toggle_maximize'"
+                "shell_command": "open -g 'hammerspoon://window?action=toggle_maximize'"
               }
             ],
             "to_if_held_down": [
@@ -28738,7 +28738,7 @@
               "to_if_invoked": [],
               "to_if_canceled": [
                 {
-                  "shell_command": "open -u 'hammerspoon://window?action=toggle_maximize'"
+                  "shell_command": "open -g 'hammerspoon://window?action=toggle_maximize'"
                 }
               ]
             },

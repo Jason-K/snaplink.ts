@@ -5,30 +5,43 @@ import type { UrlSpec } from "../primitives/urls";
 // ---------------------------------------------------------
 
 /** Create a registry entry for a URL action.
- *  @param urlStr   - the URL string to open (e.g. "raycast-x://extensions/...")
- *  @param refDesc  - human label used in descriptions
- *  @param category - optional integration category
+ *  @param urlStr    - the URL string to open (e.g. "raycast-x://extensions/...")
+ *  @param refDesc   - human label used in descriptions
+ *  @param category  - optional integration category
+ *  @param background - `open -g` (true) vs `open -u` (false) when this entry
+ *                       is used bare; left unset (undefined) falls through to
+ *                       `url()`'s own default. See `UrlSpec.background`.
  */
-const url = (urlStr: string, refDesc: string, category?: string): UrlSpec => ({
+const url = (urlStr: string, refDesc: string, category?: string, background?: boolean): UrlSpec => ({
   type: "url",
   url: urlStr,
   refDesc,
   ...(category ? { category } : {}),
+  ...(background !== undefined ? { background } : {}),
 });
 
-// Scoped factory helpers for concise single-line registry definitions
-const sidenotes = (action: string, refDesc: string): UrlSpec => url(`sidenotes://${action}`, refDesc, "sidenotes");
+// Scoped factory helpers for concise single-line registry definitions.
+// All non-Hammerspoon categories pin `background = false` to preserve
+// today's foreground (`open -u`) behavior; `hs()` deliberately leaves
+// `background` unset so Hammerspoon entries fall through to url()'s
+// background-by-default fallback.
+const sidenotes = (action: string, refDesc: string, background = false): UrlSpec =>
+  url(`sidenotes://${action}`, refDesc, "sidenotes", background);
 
-const ray = (path: string, refDesc: string): UrlSpec => url(`raycast-x://extensions/${path}`, refDesc, "raycast");
+const ray = (path: string, refDesc: string, background = false): UrlSpec =>
+  url(`raycast-x://extensions/${path}`, refDesc, "raycast", background);
 
-const rect = (action: string, refDesc: string): UrlSpec =>
-  url(`rectangle-pro://execute-action?name=${action}`, refDesc, "rectangle");
+const rect = (action: string, refDesc: string, background = false): UrlSpec =>
+  url(`rectangle-pro://execute-action?name=${action}`, refDesc, "rectangle", background);
 
-const csx = (action: string, refDesc: string): UrlSpec => url(`cleanshot://${action}`, refDesc, "cleanshot");
+const csx = (action: string, refDesc: string, background = false): UrlSpec =>
+  url(`cleanshot://${action}`, refDesc, "cleanshot", background);
 
-const antinote = (action: string, refDesc: string): UrlSpec => url(`antinote://${action}`, refDesc, "antinote");
+const antinote = (action: string, refDesc: string, background = false): UrlSpec =>
+  url(`antinote://${action}`, refDesc, "antinote", background);
 
-const hs = (action: string, refDesc: string): UrlSpec => url(`hammerspoon://${action}`, refDesc, "hammerspoon");
+const hs = (action: string, refDesc: string, background?: boolean): UrlSpec =>
+  url(`hammerspoon://${action}`, refDesc, "hammerspoon", background);
 
 // ---------------------------------------------------------
 // Registry
