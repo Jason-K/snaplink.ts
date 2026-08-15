@@ -54,7 +54,7 @@ export const mouseBindings: Binding[] = [
       // wheel held down → swallow (the wheel-as-button mapping handles it)
       press([]).when("wheelDown"),
       // base hold — wheel guards on the base only (matches bespoke injection)
-      hold(CMDS.winLOrTop).when([VARS.wheelDown, false], [VARS.rButtonDown, false]),
+      hold(URLS.hsWinLeftTop).when([VARS.wheelDown, false], [VARS.rButtonDown, false]),
     ),
     timing({
       aloneMs: TIMINGS.timeoutWheelChordMs,
@@ -68,7 +68,7 @@ export const mouseBindings: Binding[] = [
     from("wheelRight"),
     to(
       press(key("right_arrow", VM.C_CS)).when([APPS.zen, VARS.rButtonDown, [VARS.wheelDown, 0]]),
-      hold(CMDS.winROrBottom).when([VARS.wheelDown, false], [VARS.rButtonDown, false]),
+      hold(URLS.hsWinRightBottom).when([VARS.wheelDown, false], [VARS.rButtonDown, false]),
     ),
     timing({
       aloneMs: TIMINGS.timeoutWheelChordMs,
@@ -83,7 +83,7 @@ export const mouseBindings: Binding[] = [
     to(
       press([{ pointing_button: "button1", modifiers: ["option"], repeat: false }]).when(APPS.zen, VARS.rButtonDown),
       release([{ pointing_button: "button3", repeat: false }]),
-      hold(CMDS.winMaxToggle),
+      hold(URLS.hsWinToggleFill),
     ),
     when(DEVICES.g502X),
     options({
@@ -93,7 +93,7 @@ export const mouseBindings: Binding[] = [
   // -------------------------------------------------------------
   // G7 (left_back) — Fill screen (tap) / Move window to next display (hold)
   // -------------------------------------------------------------
-  bind(from("leftBack"), to(tapAndHold(CMDS.winMaxToggle, URLS.rectDisplayNext))),
+  bind(from("leftBack"), to(tapAndHold(URLS.hsWinToggleFill, URLS.rectDisplayNext))),
   // -------------------------------------------------------------
   // G8 (left_forward) — Activate Popclip (tap) / Activate Sidenote (hold)
   // -------------------------------------------------------------
@@ -171,7 +171,7 @@ export const mouseBindings: Binding[] = [
       hold(button("button1", ["option"], { repeat: false })).when(APPS.zen),
       release(URLS.rectDisplayNext).when(APPS.zen).withTapCount(2),
       // Non-Zen — tap = maximize (delayed), double = next display
-      release(CMDS.winMaxToggle).when(condApp(APPS.zen, false)).withDelayed(),
+      release(URLS.hsWinToggleFill).when(condApp(APPS.zen, false)).withDelayed(),
       release(URLS.rectDisplayNext).when(condApp(APPS.zen, false)).withTapCount(2),
     ),
     when(DEVICES.g502X, VARS.rButtonDown),

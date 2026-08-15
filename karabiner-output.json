@@ -16656,7 +16656,7 @@
             },
             "to_if_alone": [
               {
-                "shell_command": "'/opt/homebrew/bin/hs' -c 'local win = hs.window.focusedWindow(); local screen = (win and win:screen()) or hs.screen.mainScreen(); local screenFrame = screen:frame(); local winFrame = win and win:frame() or screenFrame; local positionTolerance = 24; local widthCoverage = screenFrame.w > 0 and (winFrame.w / screenFrame.w) or 0; local heightCoverage = screenFrame.h > 0 and (winFrame.h / screenFrame.h) or 0; local leftAligned = math.abs(winFrame.x - screenFrame.x) <= positionTolerance; local topAligned = math.abs(winFrame.y - screenFrame.y) <= positionTolerance; local isMaximized = leftAligned and topAligned and widthCoverage >= 0.97 and heightCoverage >= 0.9; local url = isMaximized and [[rectangle-pro://execute-action?name=restore]] or [[rectangle-pro://execute-action?name=maximize]]; hs.urlevent.openURL(url)'"
+                "shell_command": "open -u 'hammerspoon://window?action=toggle_maximize'"
               }
             ],
             "to_if_held_down": [
@@ -16675,7 +16675,7 @@
               "to_if_invoked": [],
               "to_if_canceled": [
                 {
-                  "shell_command": "'/opt/homebrew/bin/hs' -c 'local win = hs.window.focusedWindow(); local screen = (win and win:screen()) or hs.screen.mainScreen(); local screenFrame = screen:frame(); local winFrame = win and win:frame() or screenFrame; local positionTolerance = 24; local widthCoverage = screenFrame.w > 0 and (winFrame.w / screenFrame.w) or 0; local heightCoverage = screenFrame.h > 0 and (winFrame.h / screenFrame.h) or 0; local leftAligned = math.abs(winFrame.x - screenFrame.x) <= positionTolerance; local topAligned = math.abs(winFrame.y - screenFrame.y) <= positionTolerance; local isMaximized = leftAligned and topAligned and widthCoverage >= 0.97 and heightCoverage >= 0.9; local url = isMaximized and [[rectangle-pro://execute-action?name=restore]] or [[rectangle-pro://execute-action?name=maximize]]; hs.urlevent.openURL(url)'"
+                  "shell_command": "open -u 'hammerspoon://window?action=toggle_maximize'"
                 }
               ]
             },
@@ -21953,7 +21953,7 @@
             },
             "to_if_alone": [
               {
-                "shell_command": "'/opt/homebrew/bin/hs' -c 'local win = hs.window.focusedWindow(); local screen = (win and win:screen()) or hs.screen.mainScreen(); local screenFrame = screen:frame(); local url = (screenFrame.w >= screenFrame.h) and [[rectangle-pro://execute-action?name=left-half]] or [[rectangle-pro://execute-action?name=top-half]]; hs.urlevent.openURL(url)'"
+                "shell_command": "open -u 'hammerspoon://window?action=primary_half'"
               }
             ],
             "to_if_held_down": [
@@ -21966,7 +21966,7 @@
               "to_if_invoked": [],
               "to_if_canceled": [
                 {
-                  "shell_command": "'/opt/homebrew/bin/hs' -c 'local win = hs.window.focusedWindow(); local screen = (win and win:screen()) or hs.screen.mainScreen(); local screenFrame = screen:frame(); local url = (screenFrame.w >= screenFrame.h) and [[rectangle-pro://execute-action?name=left-half]] or [[rectangle-pro://execute-action?name=top-half]]; hs.urlevent.openURL(url)'"
+                  "shell_command": "open -u 'hammerspoon://window?action=primary_half'"
                 }
               ]
             },
@@ -22702,7 +22702,7 @@
             },
             "to_if_alone": [
               {
-                "shell_command": "'/opt/homebrew/bin/hs' -c 'local win = hs.window.focusedWindow(); local screen = (win and win:screen()) or hs.screen.mainScreen(); local screenFrame = screen:frame(); local url = (screenFrame.w >= screenFrame.h) and [[rectangle-pro://execute-action?name=right-half]] or [[rectangle-pro://execute-action?name=bottom-half]]; hs.urlevent.openURL(url)'"
+                "shell_command": "open -u 'hammerspoon://window?action=secondary_half'"
               }
             ],
             "to_if_held_down": [
@@ -22715,7 +22715,7 @@
               "to_if_invoked": [],
               "to_if_canceled": [
                 {
-                  "shell_command": "'/opt/homebrew/bin/hs' -c 'local win = hs.window.focusedWindow(); local screen = (win and win:screen()) or hs.screen.mainScreen(); local screenFrame = screen:frame(); local url = (screenFrame.w >= screenFrame.h) and [[rectangle-pro://execute-action?name=right-half]] or [[rectangle-pro://execute-action?name=bottom-half]]; hs.urlevent.openURL(url)'"
+                  "shell_command": "open -u 'hammerspoon://window?action=secondary_half'"
                 }
               ]
             },
@@ -22863,7 +22863,7 @@
                 }
               },
               {
-                "shell_command": "'/opt/homebrew/bin/hs' -c 'FormatSelection()'"
+                "shell_command": "open -u 'hammerspoon://hslauncher?id=format_selection'"
               }
             ]
           },
@@ -22968,7 +22968,7 @@
             },
             "to_if_alone": [
               {
-                "shell_command": "'/opt/homebrew/bin/hs' -c 'local win = hs.window.focusedWindow(); local screen = (win and win:screen()) or hs.screen.mainScreen(); local screenFrame = screen:frame(); local winFrame = win and win:frame() or screenFrame; local positionTolerance = 24; local widthCoverage = screenFrame.w > 0 and (winFrame.w / screenFrame.w) or 0; local heightCoverage = screenFrame.h > 0 and (winFrame.h / screenFrame.h) or 0; local leftAligned = math.abs(winFrame.x - screenFrame.x) <= positionTolerance; local topAligned = math.abs(winFrame.y - screenFrame.y) <= positionTolerance; local isMaximized = leftAligned and topAligned and widthCoverage >= 0.97 and heightCoverage >= 0.9; local url = isMaximized and [[rectangle-pro://execute-action?name=restore]] or [[rectangle-pro://execute-action?name=maximize]]; hs.urlevent.openURL(url)'"
+                "shell_command": "open -u 'hammerspoon://window?action=toggle_maximize'"
               }
             ],
             "to_if_held_down": [
@@ -22988,7 +22988,7 @@
               "to_if_invoked": [],
               "to_if_canceled": [
                 {
-                  "shell_command": "'/opt/homebrew/bin/hs' -c 'local win = hs.window.focusedWindow(); local screen = (win and win:screen()) or hs.screen.mainScreen(); local screenFrame = screen:frame(); local winFrame = win and win:frame() or screenFrame; local positionTolerance = 24; local widthCoverage = screenFrame.w > 0 and (winFrame.w / screenFrame.w) or 0; local heightCoverage = screenFrame.h > 0 and (winFrame.h / screenFrame.h) or 0; local leftAligned = math.abs(winFrame.x - screenFrame.x) <= positionTolerance; local topAligned = math.abs(winFrame.y - screenFrame.y) <= positionTolerance; local isMaximized = leftAligned and topAligned and widthCoverage >= 0.97 and heightCoverage >= 0.9; local url = isMaximized and [[rectangle-pro://execute-action?name=restore]] or [[rectangle-pro://execute-action?name=maximize]]; hs.urlevent.openURL(url)'"
+                  "shell_command": "open -u 'hammerspoon://window?action=toggle_maximize'"
                 }
               ]
             },
@@ -23613,7 +23613,7 @@
         ]
       },
       {
-        "description": "[⌘⌥⌃⇧]+[F12]:\n---\n\tOn Tap:\n\t\tAlways:\tRun 'Edit last Typinator expansion'",
+        "description": "[⌘⌥⌃⇧]+[F12]:\n---\n\tOn Tap:\n\t\tAlways:\tRun command 'Edit last Typinator expansion'",
         "manipulators": [
           {
             "type": "basic",
@@ -23857,7 +23857,7 @@
         ]
       },
       {
-        "description": "[⌘⌥⌃⇧]+[←]:\n---\n\tOn Tap:\n\t\tAlways:\tRun 'Move window to left or top half'\n\tOn Hold:\n\t\tAlways:\tOpen 'App to display ←'",
+        "description": "[⌘⌥⌃⇧]+[←]:\n---\n\tOn Tap:\n\t\tAlways:\tOpen 'window to top-left 1/2'\n\tOn Hold:\n\t\tAlways:\tOpen 'App to display ←'",
         "manipulators": [
           {
             "type": "basic",
@@ -23874,7 +23874,7 @@
             },
             "to_if_alone": [
               {
-                "shell_command": "'/opt/homebrew/bin/hs' -c 'local win = hs.window.focusedWindow(); local screen = (win and win:screen()) or hs.screen.mainScreen(); local screenFrame = screen:frame(); local url = (screenFrame.w >= screenFrame.h) and [[rectangle-pro://execute-action?name=left-half]] or [[rectangle-pro://execute-action?name=top-half]]; hs.urlevent.openURL(url)'"
+                "shell_command": "open -u 'hammerspoon://window?action=primary_half'"
               }
             ],
             "to_if_held_down": [
@@ -23887,7 +23887,7 @@
               "to_if_invoked": [],
               "to_if_canceled": [
                 {
-                  "shell_command": "'/opt/homebrew/bin/hs' -c 'local win = hs.window.focusedWindow(); local screen = (win and win:screen()) or hs.screen.mainScreen(); local screenFrame = screen:frame(); local url = (screenFrame.w >= screenFrame.h) and [[rectangle-pro://execute-action?name=left-half]] or [[rectangle-pro://execute-action?name=top-half]]; hs.urlevent.openURL(url)'"
+                  "shell_command": "open -u 'hammerspoon://window?action=primary_half'"
                 }
               ]
             }
@@ -24007,7 +24007,7 @@
         ]
       },
       {
-        "description": "[⌘⌥⌃⇧]+[→]:\n---\n\tOn Tap:\n\t\tAlways:\tRun 'Move window to right or bottom half'\n\tOn Hold:\n\t\tAlways:\tOpen 'App to display →'",
+        "description": "[⌘⌥⌃⇧]+[→]:\n---\n\tOn Tap:\n\t\tAlways:\tOpen 'window to bottom-right 1/2'\n\tOn Hold:\n\t\tAlways:\tOpen 'App to display →'",
         "manipulators": [
           {
             "type": "basic",
@@ -24024,7 +24024,7 @@
             },
             "to_if_alone": [
               {
-                "shell_command": "'/opt/homebrew/bin/hs' -c 'local win = hs.window.focusedWindow(); local screen = (win and win:screen()) or hs.screen.mainScreen(); local screenFrame = screen:frame(); local url = (screenFrame.w >= screenFrame.h) and [[rectangle-pro://execute-action?name=right-half]] or [[rectangle-pro://execute-action?name=bottom-half]]; hs.urlevent.openURL(url)'"
+                "shell_command": "open -u 'hammerspoon://window?action=secondary_half'"
               }
             ],
             "to_if_held_down": [
@@ -24037,7 +24037,7 @@
               "to_if_invoked": [],
               "to_if_canceled": [
                 {
-                  "shell_command": "'/opt/homebrew/bin/hs' -c 'local win = hs.window.focusedWindow(); local screen = (win and win:screen()) or hs.screen.mainScreen(); local screenFrame = screen:frame(); local url = (screenFrame.w >= screenFrame.h) and [[rectangle-pro://execute-action?name=right-half]] or [[rectangle-pro://execute-action?name=bottom-half]]; hs.urlevent.openURL(url)'"
+                  "shell_command": "open -u 'hammerspoon://window?action=secondary_half'"
                 }
               ]
             }
@@ -24045,7 +24045,7 @@
         ]
       },
       {
-        "description": "[⌘⌥⌃⇧]+[S]:\n---\n\tOn Tap:\n\t\tAlways:\tRun 'Format selection using hsStringEval'",
+        "description": "[⌘⌥⌃⇧]+[S]:\n---\n\tOn Tap:\n\t\tAlways:\tOpen 'format selected text'",
         "manipulators": [
           {
             "type": "basic",
@@ -24062,14 +24062,14 @@
             },
             "to": [
               {
-                "shell_command": "'/opt/homebrew/bin/hs' -c 'FormatSelection()'"
+                "shell_command": "open -u 'hammerspoon://hslauncher?id=format_selection'"
               }
             ]
           }
         ]
       },
       {
-        "description": "[⌘⌥⌃⇧]+[␣]:\n---\n\tOn Tap:\n\t\tAlways:\tRun 'Maximize or restore window'",
+        "description": "[⌘⌥⌃⇧]+[␣]:\n---\n\tOn Tap:\n\t\tAlways:\tOpen 'toggle maximize and restore window'",
         "manipulators": [
           {
             "type": "basic",
@@ -24086,7 +24086,7 @@
             },
             "to_if_alone": [
               {
-                "shell_command": "'/opt/homebrew/bin/hs' -c 'local win = hs.window.focusedWindow(); local screen = (win and win:screen()) or hs.screen.mainScreen(); local screenFrame = screen:frame(); local winFrame = win and win:frame() or screenFrame; local positionTolerance = 24; local widthCoverage = screenFrame.w > 0 and (winFrame.w / screenFrame.w) or 0; local heightCoverage = screenFrame.h > 0 and (winFrame.h / screenFrame.h) or 0; local leftAligned = math.abs(winFrame.x - screenFrame.x) <= positionTolerance; local topAligned = math.abs(winFrame.y - screenFrame.y) <= positionTolerance; local isMaximized = leftAligned and topAligned and widthCoverage >= 0.97 and heightCoverage >= 0.9; local url = isMaximized and [[rectangle-pro://execute-action?name=restore]] or [[rectangle-pro://execute-action?name=maximize]]; hs.urlevent.openURL(url)'"
+                "shell_command": "open -u 'hammerspoon://window?action=toggle_maximize'"
               }
             ],
             "to_if_held_down": [
@@ -24105,7 +24105,7 @@
               "to_if_invoked": [],
               "to_if_canceled": [
                 {
-                  "shell_command": "'/opt/homebrew/bin/hs' -c 'local win = hs.window.focusedWindow(); local screen = (win and win:screen()) or hs.screen.mainScreen(); local screenFrame = screen:frame(); local winFrame = win and win:frame() or screenFrame; local positionTolerance = 24; local widthCoverage = screenFrame.w > 0 and (winFrame.w / screenFrame.w) or 0; local heightCoverage = screenFrame.h > 0 and (winFrame.h / screenFrame.h) or 0; local leftAligned = math.abs(winFrame.x - screenFrame.x) <= positionTolerance; local topAligned = math.abs(winFrame.y - screenFrame.y) <= positionTolerance; local isMaximized = leftAligned and topAligned and widthCoverage >= 0.97 and heightCoverage >= 0.9; local url = isMaximized and [[rectangle-pro://execute-action?name=restore]] or [[rectangle-pro://execute-action?name=maximize]]; hs.urlevent.openURL(url)'"
+                  "shell_command": "open -u 'hammerspoon://window?action=toggle_maximize'"
                 }
               ]
             }
@@ -24113,7 +24113,7 @@
         ]
       },
       {
-        "description": "[⌘⌥⌃⇧]+[T]:\n---\n\tOn Tap:\n\t\tAlways:\tRun 'Create new Typinator rule'\n\tOn Hold:\n\t\tAlways:\tRun 'Edit last Typinator expansion'",
+        "description": "[⌘⌥⌃⇧]+[T]:\n---\n\tOn Tap:\n\t\tAlways:\tRun command 'Create new Typinator rule'\n\tOn Hold:\n\t\tAlways:\tRun command 'Edit last Typinator expansion'",
         "manipulators": [
           {
             "type": "basic",
@@ -24195,7 +24195,7 @@
         ]
       },
       {
-        "description": "[⌘⌥⌃]+[KEYPAD 5]:\n---\n\tOn Tap:\n\t\tAlways:\tRun 'Maximize or restore window'",
+        "description": "[⌘⌥⌃]+[KEYPAD 5]:\n---\n\tOn Tap:\n\t\tAlways:\tOpen 'toggle maximize and restore window'",
         "manipulators": [
           {
             "type": "basic",
@@ -24211,7 +24211,7 @@
             },
             "to_if_alone": [
               {
-                "shell_command": "'/opt/homebrew/bin/hs' -c 'local win = hs.window.focusedWindow(); local screen = (win and win:screen()) or hs.screen.mainScreen(); local screenFrame = screen:frame(); local winFrame = win and win:frame() or screenFrame; local positionTolerance = 24; local widthCoverage = screenFrame.w > 0 and (winFrame.w / screenFrame.w) or 0; local heightCoverage = screenFrame.h > 0 and (winFrame.h / screenFrame.h) or 0; local leftAligned = math.abs(winFrame.x - screenFrame.x) <= positionTolerance; local topAligned = math.abs(winFrame.y - screenFrame.y) <= positionTolerance; local isMaximized = leftAligned and topAligned and widthCoverage >= 0.97 and heightCoverage >= 0.9; local url = isMaximized and [[rectangle-pro://execute-action?name=restore]] or [[rectangle-pro://execute-action?name=maximize]]; hs.urlevent.openURL(url)'"
+                "shell_command": "open -u 'hammerspoon://window?action=toggle_maximize'"
               }
             ],
             "to_if_held_down": [
@@ -24229,7 +24229,7 @@
               "to_if_invoked": [],
               "to_if_canceled": [
                 {
-                  "shell_command": "'/opt/homebrew/bin/hs' -c 'local win = hs.window.focusedWindow(); local screen = (win and win:screen()) or hs.screen.mainScreen(); local screenFrame = screen:frame(); local winFrame = win and win:frame() or screenFrame; local positionTolerance = 24; local widthCoverage = screenFrame.w > 0 and (winFrame.w / screenFrame.w) or 0; local heightCoverage = screenFrame.h > 0 and (winFrame.h / screenFrame.h) or 0; local leftAligned = math.abs(winFrame.x - screenFrame.x) <= positionTolerance; local topAligned = math.abs(winFrame.y - screenFrame.y) <= positionTolerance; local isMaximized = leftAligned and topAligned and widthCoverage >= 0.97 and heightCoverage >= 0.9; local url = isMaximized and [[rectangle-pro://execute-action?name=restore]] or [[rectangle-pro://execute-action?name=maximize]]; hs.urlevent.openURL(url)'"
+                  "shell_command": "open -u 'hammerspoon://window?action=toggle_maximize'"
                 }
               ]
             }
@@ -24901,7 +24901,7 @@
         ]
       },
       {
-        "description": "[⌥>]+[S]:\n---\n\tOn Tap:\n\t\tAlways:\tRun 'open Spotify or toggle play/pause'\n\tOn Hold:\n\t\tAlways:\tCall 'search Spotify'",
+        "description": "[⌥>]+[S]:\n---\n\tOn Tap:\n\t\tAlways:\tRun command 'open Spotify or toggle play/pause'\n\tOn Hold:\n\t\tAlways:\tCall 'search Spotify'",
         "manipulators": [
           {
             "type": "basic",
@@ -25301,7 +25301,7 @@
         ]
       },
       {
-        "description": "[=]:\n---\n\tOn Tap:\n\t\tAlways:\tEmit 'PAD ='\n\tOn Hold:\n\t\tAlways:\tmap 'select word backward' then Run 'Insert today's date in yyyy-mm-dd format at the cursor.'",
+        "description": "[=]:\n---\n\tOn Tap:\n\t\tAlways:\tEmit 'PAD ='\n\tOn Hold:\n\t\tAlways:\tmap 'select word backward' then Run command 'Insert today's date in yyyy-mm-dd format at the cursor.'",
         "manipulators": [
           {
             "type": "basic",
@@ -25351,7 +25351,7 @@
         ]
       },
       {
-        "description": "[␛]:\n---\n\tOn Tap:\n\t\tAlways:\tEmit '␛'\n\tOn Hold:\n\t\tAlways:\tRun 'Kill front app'\n\tOn Double Tap Hold:\n\t\tAlways:\tRun 'Kill all applications'",
+        "description": "[␛]:\n---\n\tOn Tap:\n\t\tAlways:\tEmit '␛'\n\tOn Hold:\n\t\tAlways:\tRun command 'Kill front app'\n\tOn Double Tap Hold:\n\t\tAlways:\tRun command 'Kill all applications'",
         "manipulators": [
           {
             "type": "basic",
@@ -26337,7 +26337,7 @@
         ]
       },
       {
-        "description": "[⏎]:\n---\n\tOn Tap:\n\t\tAlways:\tEmit '⏎'\n\tOn Hold:\n\t\tOutside Microsoft Excel:\tRun 'Format substrings within selection'\n\t\tIn Microsoft Excel:\tEmit 'F2'",
+        "description": "[⏎]:\n---\n\tOn Tap:\n\t\tAlways:\tEmit '⏎'\n\tOn Hold:\n\t\tOutside Microsoft Excel:\tOpen 'format substring of selected text'\n\t\tIn Microsoft Excel:\tEmit 'F2'",
         "manipulators": [
           {
             "type": "basic",
@@ -26361,7 +26361,7 @@
             "to_if_held_down": [
               {
                 "halt": true,
-                "shell_command": "'/opt/homebrew/bin/hs' -c 'FormatCutSeed()'"
+                "shell_command": "open -u 'hammerspoon://hslauncher?id=format_cut_seed'"
               }
             ],
             "to_delayed_action": {
@@ -26433,7 +26433,7 @@
         ]
       },
       {
-        "description": "[PAD =]:\n---\n\tOn Tap:\n\t\tAlways:\tEmit 'PAD ='\n\tOn Hold:\n\t\tAlways:\tmap 'select word backward' then Run 'Insert today's date in yyyy-mm-dd format at the cursor.'",
+        "description": "[PAD =]:\n---\n\tOn Tap:\n\t\tAlways:\tEmit 'PAD ='\n\tOn Hold:\n\t\tAlways:\tmap 'select word backward' then Run command 'Insert today's date in yyyy-mm-dd format at the cursor.'",
         "manipulators": [
           {
             "type": "basic",
@@ -26629,7 +26629,7 @@
         ]
       },
       {
-        "description": "[N]:\n---\n\tOn Hold:\n\t\tAlways:\tRun 'activate Neru's hints mode'",
+        "description": "[N]:\n---\n\tOn Hold:\n\t\tAlways:\tRun command 'activate Neru's hints mode'",
         "manipulators": [
           {
             "type": "basic",
@@ -26780,7 +26780,7 @@
         ]
       },
       {
-        "description": "[R]:\n---\n\tOn Hold:\n\t\tAlways:\tRun 'Get recent items from Raycast'",
+        "description": "[R]:\n---\n\tOn Hold:\n\t\tAlways:\tRun command 'Get recent items from Raycast'",
         "manipulators": [
           {
             "type": "basic",
@@ -26815,7 +26815,7 @@
         ]
       },
       {
-        "description": "[⏎]:\n---\n\tOn Tap:\n\t\tAlways:\tEmit '⏎'\n\tOn Hold:\n\t\tOutside Microsoft Excel:\tRun 'Format substrings within selection'\n\t\tIn Microsoft Excel:\tEmit 'F2'",
+        "description": "[⏎]:\n---\n\tOn Tap:\n\t\tAlways:\tEmit '⏎'\n\tOn Hold:\n\t\tOutside Microsoft Excel:\tOpen 'format substring of selected text'\n\t\tIn Microsoft Excel:\tEmit 'F2'",
         "manipulators": [
           {
             "type": "basic",
@@ -26839,7 +26839,7 @@
             "to_if_held_down": [
               {
                 "halt": true,
-                "shell_command": "'/opt/homebrew/bin/hs' -c 'FormatCutSeed()'"
+                "shell_command": "open -u 'hammerspoon://hslauncher?id=format_cut_seed'"
               }
             ],
             "to_delayed_action": {
@@ -27351,7 +27351,7 @@
         ]
       },
       {
-        "description": "Left click:\n---\n\tOn Tap:\n\t\ton Logitech G502 X and Right button held and In Zen:\tClick button 'button1'\n\t\ton Logitech G502 X and Right button held and Outside Zen:\tRun 'Maximize or restore window'\n\t\ton Logitech G502 X and not Right button held and In 1Piece and Outside 1Piece Preferences:\tEmit '⏎'\n\tOn Hold:\n\t\ton Logitech G502 X and Right button held and In Zen:\tClick button 'button1'\n\t\ton Logitech G502 X and not Right button held:\tPass through\n\tOn Double Tap:\n\t\ton Logitech G502 X and Right button held and In Zen:\tOpen 'Display →'\n\t\ton Logitech G502 X and Right button held and Outside Zen:\tOpen 'Display →'",
+        "description": "Left click:\n---\n\tOn Tap:\n\t\ton Logitech G502 X and Right button held and In Zen:\tClick button 'button1'\n\t\ton Logitech G502 X and Right button held and Outside Zen:\tOpen 'toggle maximize and restore window'\n\t\ton Logitech G502 X and not Right button held and In 1Piece and Outside 1Piece Preferences:\tEmit '⏎'\n\tOn Hold:\n\t\ton Logitech G502 X and Right button held and In Zen:\tClick button 'button1'\n\t\ton Logitech G502 X and not Right button held:\tPass through\n\tOn Double Tap:\n\t\ton Logitech G502 X and Right button held and In Zen:\tOpen 'Display →'\n\t\ton Logitech G502 X and Right button held and Outside Zen:\tOpen 'Display →'",
         "manipulators": [
           {
             "type": "basic",
@@ -27656,7 +27656,7 @@
             "to_delayed_action": {
               "to_if_invoked": [
                 {
-                  "shell_command": "'/opt/homebrew/bin/hs' -c 'local win = hs.window.focusedWindow(); local screen = (win and win:screen()) or hs.screen.mainScreen(); local screenFrame = screen:frame(); local winFrame = win and win:frame() or screenFrame; local positionTolerance = 24; local widthCoverage = screenFrame.w > 0 and (winFrame.w / screenFrame.w) or 0; local heightCoverage = screenFrame.h > 0 and (winFrame.h / screenFrame.h) or 0; local leftAligned = math.abs(winFrame.x - screenFrame.x) <= positionTolerance; local topAligned = math.abs(winFrame.y - screenFrame.y) <= positionTolerance; local isMaximized = leftAligned and topAligned and widthCoverage >= 0.97 and heightCoverage >= 0.9; local url = isMaximized and [[rectangle-pro://execute-action?name=restore]] or [[rectangle-pro://execute-action?name=maximize]]; hs.urlevent.openURL(url)'"
+                  "shell_command": "open -u 'hammerspoon://window?action=toggle_maximize'"
                 },
                 {
                   "set_variable": {
@@ -27887,7 +27887,7 @@
         ]
       },
       {
-        "description": "Wheel click:\n---\n\tOn Tap:\n\t\ton Logitech G502 X and In Zen and Right button held:\tClick Left click\n\t\ton Logitech G502 X:\tClick Middle click\n\tOn Hold:\n\t\ton Logitech G502 X:\tRun 'Maximize or restore window'",
+        "description": "Wheel click:\n---\n\tOn Tap:\n\t\ton Logitech G502 X and In Zen and Right button held:\tClick Left click\n\t\ton Logitech G502 X:\tClick Middle click\n\tOn Hold:\n\t\ton Logitech G502 X:\tOpen 'toggle maximize and restore window'",
         "manipulators": [
           {
             "type": "basic",
@@ -27960,7 +27960,7 @@
             ],
             "to_if_held_down": [
               {
-                "shell_command": "'/opt/homebrew/bin/hs' -c 'local win = hs.window.focusedWindow(); local screen = (win and win:screen()) or hs.screen.mainScreen(); local screenFrame = screen:frame(); local winFrame = win and win:frame() or screenFrame; local positionTolerance = 24; local widthCoverage = screenFrame.w > 0 and (winFrame.w / screenFrame.w) or 0; local heightCoverage = screenFrame.h > 0 and (winFrame.h / screenFrame.h) or 0; local leftAligned = math.abs(winFrame.x - screenFrame.x) <= positionTolerance; local topAligned = math.abs(winFrame.y - screenFrame.y) <= positionTolerance; local isMaximized = leftAligned and topAligned and widthCoverage >= 0.97 and heightCoverage >= 0.9; local url = isMaximized and [[rectangle-pro://execute-action?name=restore]] or [[rectangle-pro://execute-action?name=maximize]]; hs.urlevent.openURL(url)'"
+                "shell_command": "open -u 'hammerspoon://window?action=toggle_maximize'"
               }
             ],
             "to_delayed_action": {
@@ -28347,7 +28347,7 @@
         ]
       },
       {
-        "description": "Wheel left:\n---\n\tOn Tap:\n\t\tIn Zen and Right button held and Wheel held down:\tEmit ⌘⌃⇧ + '←'\n\t\tWheel held down:\t\n\tOn Hold:\n\t\tnot Wheel held down and not Right button held:\tRun 'Move window to left or top half'",
+        "description": "Wheel left:\n---\n\tOn Tap:\n\t\tIn Zen and Right button held and Wheel held down:\tEmit ⌘⌃⇧ + '←'\n\t\tWheel held down:\t\n\tOn Hold:\n\t\tnot Wheel held down and not Right button held:\tOpen 'window to top-left 1/2'",
         "manipulators": [
           {
             "type": "basic",
@@ -28434,7 +28434,7 @@
             "to_if_held_down": [
               {
                 "halt": true,
-                "shell_command": "'/opt/homebrew/bin/hs' -c 'local win = hs.window.focusedWindow(); local screen = (win and win:screen()) or hs.screen.mainScreen(); local screenFrame = screen:frame(); local url = (screenFrame.w >= screenFrame.h) and [[rectangle-pro://execute-action?name=left-half]] or [[rectangle-pro://execute-action?name=top-half]]; hs.urlevent.openURL(url)'"
+                "shell_command": "open -u 'hammerspoon://window?action=primary_half'"
               }
             ],
             "to_delayed_action": {
@@ -28468,7 +28468,7 @@
         ]
       },
       {
-        "description": "Wheel right:\n---\n\tOn Tap:\n\t\tIn Zen and Right button held and Wheel held down:\tEmit ⌘⌃⇧ + '→'\n\tOn Hold:\n\t\tnot Wheel held down and not Right button held:\tRun 'Move window to right or bottom half'",
+        "description": "Wheel right:\n---\n\tOn Tap:\n\t\tIn Zen and Right button held and Wheel held down:\tEmit ⌘⌃⇧ + '→'\n\tOn Hold:\n\t\tnot Wheel held down and not Right button held:\tOpen 'window to bottom-right 1/2'",
         "manipulators": [
           {
             "type": "basic",
@@ -28531,7 +28531,7 @@
             "to_if_held_down": [
               {
                 "halt": true,
-                "shell_command": "'/opt/homebrew/bin/hs' -c 'local win = hs.window.focusedWindow(); local screen = (win and win:screen()) or hs.screen.mainScreen(); local screenFrame = screen:frame(); local url = (screenFrame.w >= screenFrame.h) and [[rectangle-pro://execute-action?name=right-half]] or [[rectangle-pro://execute-action?name=bottom-half]]; hs.urlevent.openURL(url)'"
+                "shell_command": "open -u 'hammerspoon://window?action=secondary_half'"
               }
             ],
             "to_delayed_action": {
@@ -28565,7 +28565,7 @@
         ]
       },
       {
-        "description": "Middle-back (G9):\n---\n\tOn Tap:\n\t\tnot Left button held:\tOCR text (no line breaks) using CSX\n\t\tLeft button held:\tOCR text using CSX\n\tOn Hold:\n\t\tAlways:\tRun 'Take screenshot and convert to markdown'",
+        "description": "Middle-back (G9):\n---\n\tOn Tap:\n\t\tnot Left button held:\tOCR text (no line breaks) using CSX\n\t\tLeft button held:\tOCR text using CSX\n\tOn Hold:\n\t\tAlways:\tRun command 'Take screenshot and convert to markdown'",
         "manipulators": [
           {
             "type": "basic",
@@ -28662,7 +28662,7 @@
         ]
       },
       {
-        "description": "Left-forward (G8):\n---\n\tOn Tap:\n\t\tAlways:\tRun 'Show Popclip at cursor position'\n\tOn Hold:\n\t\tAlways:\tmap 'show sidenotes'",
+        "description": "Left-forward (G8):\n---\n\tOn Tap:\n\t\tAlways:\tRun command 'Show Popclip at cursor position'\n\tOn Hold:\n\t\tAlways:\tmap 'show sidenotes'",
         "manipulators": [
           {
             "type": "basic",
@@ -28713,7 +28713,7 @@
         ]
       },
       {
-        "description": "Left-back (G7):\n---\n\tOn Tap:\n\t\tAlways:\tRun 'Maximize or restore window'\n\tOn Hold:\n\t\tAlways:\tOpen 'Display →'",
+        "description": "Left-back (G7):\n---\n\tOn Tap:\n\t\tAlways:\tOpen 'toggle maximize and restore window'\n\tOn Hold:\n\t\tAlways:\tOpen 'Display →'",
         "manipulators": [
           {
             "type": "basic",
@@ -28725,7 +28725,7 @@
             },
             "to_if_alone": [
               {
-                "shell_command": "'/opt/homebrew/bin/hs' -c 'local win = hs.window.focusedWindow(); local screen = (win and win:screen()) or hs.screen.mainScreen(); local screenFrame = screen:frame(); local winFrame = win and win:frame() or screenFrame; local positionTolerance = 24; local widthCoverage = screenFrame.w > 0 and (winFrame.w / screenFrame.w) or 0; local heightCoverage = screenFrame.h > 0 and (winFrame.h / screenFrame.h) or 0; local leftAligned = math.abs(winFrame.x - screenFrame.x) <= positionTolerance; local topAligned = math.abs(winFrame.y - screenFrame.y) <= positionTolerance; local isMaximized = leftAligned and topAligned and widthCoverage >= 0.97 and heightCoverage >= 0.9; local url = isMaximized and [[rectangle-pro://execute-action?name=restore]] or [[rectangle-pro://execute-action?name=maximize]]; hs.urlevent.openURL(url)'"
+                "shell_command": "open -u 'hammerspoon://window?action=toggle_maximize'"
               }
             ],
             "to_if_held_down": [
@@ -28738,7 +28738,7 @@
               "to_if_invoked": [],
               "to_if_canceled": [
                 {
-                  "shell_command": "'/opt/homebrew/bin/hs' -c 'local win = hs.window.focusedWindow(); local screen = (win and win:screen()) or hs.screen.mainScreen(); local screenFrame = screen:frame(); local winFrame = win and win:frame() or screenFrame; local positionTolerance = 24; local widthCoverage = screenFrame.w > 0 and (winFrame.w / screenFrame.w) or 0; local heightCoverage = screenFrame.h > 0 and (winFrame.h / screenFrame.h) or 0; local leftAligned = math.abs(winFrame.x - screenFrame.x) <= positionTolerance; local topAligned = math.abs(winFrame.y - screenFrame.y) <= positionTolerance; local isMaximized = leftAligned and topAligned and widthCoverage >= 0.97 and heightCoverage >= 0.9; local url = isMaximized and [[rectangle-pro://execute-action?name=restore]] or [[rectangle-pro://execute-action?name=maximize]]; hs.urlevent.openURL(url)'"
+                  "shell_command": "open -u 'hammerspoon://window?action=toggle_maximize'"
                 }
               ]
             },

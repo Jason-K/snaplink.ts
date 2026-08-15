@@ -59,10 +59,7 @@ test("to(), when(), options(), and timing() DSL helpers construct flexible bindi
   // 2. Multi-case to() without array brackets + timing() helper
   const b2 = bind(
     from("left_arrow", ["COCS"]),
-    to(
-      release(shell("cmd1")),
-      hold(url("https://example.com", true)),
-    ),
+    to(release(shell("cmd1")), hold(url("https://example.com", true))),
     timing({ aloneMs: 250, heldThresholdMs: 300 }),
   );
 
@@ -74,10 +71,7 @@ test("to(), when(), options(), and timing() DSL helpers construct flexible bindi
   // 3. options() and when() combined in flexible order
   const b3 = bind(
     from("right"),
-    to(
-      release(noop()),
-      hold(noop()),
-    ),
+    to(release(noop()), hold(noop())),
     when(condExcel),
     options({
       suppressCancelFallback: true,
@@ -213,10 +207,7 @@ test("defineBindings integration with case & action helpers", () => {
     {
       description: "test binding",
       trigger: { keys: ["8"] },
-      cases: [
-        hold(app(APPS.ringCentral)),
-        release(url(URLS.winsUnstashAll)),
-      ],
+      cases: [hold(app(APPS.ringCentral)), release(url(URLS.winsUnstashAll))],
     },
   ]);
 
@@ -230,10 +221,7 @@ test("defineBindings integration with case & action helpers", () => {
     {
       description: "test binding with conds",
       trigger: { keys: ["8"] },
-      cases: [
-        press(key("down_arrow")).when(condVar({ name: "flag", varDesc: "flag" }, 1)),
-        release(key("up_arrow")),
-      ],
+      cases: [press(key("down_arrow")).when(condVar({ name: "flag", varDesc: "flag" }, 1)), release(key("up_arrow"))],
     },
   ]);
   const builtWithConds = rulesWithConds[0] as any;
@@ -310,20 +298,12 @@ test("from() wrapper handles single keys, key chords, SimOrder, TriggerModifiers
 });
 
 test("defineBindings supports mixed key and pointer button simultaneous triggers", () => {
-  const rules = defineBindings([
-    bind(
-      from(["spacebar", "right"], ["left_command"]),
-      press(app(APPS.excel)),
-    ),
-  ]);
+  const rules = defineBindings([bind(from(["spacebar", "right"], ["left_command"]), press(app(APPS.excel)))]);
 
   assert.equal(rules.length, 1);
   const rule = rules[0] as any;
   const manip = rule.manipulators[0];
-  assert.deepEqual(manip.from.simultaneous, [
-    { key_code: "spacebar" },
-    { pointing_button: "button2" },
-  ]);
+  assert.deepEqual(manip.from.simultaneous, [{ key_code: "spacebar" }, { pointing_button: "button2" }]);
 });
 
 test("guard() produces a press case marked guard with the action", () => {
@@ -369,9 +349,7 @@ test("map/url/command/app registry primitives infer the same ActionSpec as their
   const viaCombo = release(COMBOS.focusWinRight);
   const viaWrapper = release(map(COMBOS.focusWinRight));
   assert.deepEqual(viaCombo.do, viaWrapper.do);
-  assert.deepEqual(viaCombo.do, [
-    { type: "map", ref: COMBOS.focusWinRight, options: { repeat: false } },
-  ]);
+  assert.deepEqual(viaCombo.do, [{ type: "map", ref: COMBOS.focusWinRight, options: { repeat: false } }]);
 
   const viaUrl = hold(URLS.winMaximize);
   assert.deepEqual(viaUrl.do, [{ type: "url", url: URLS.winMaximize }]);
@@ -387,11 +365,7 @@ test("press/release/hold pass built Actions and raw ToEvents through unchanged, 
   const rawEvent = { pointing_button: "button1" } as const;
   const built = key("a");
   const c = hold([rawEvent, built, COMBOS.focusWinRight]);
-  assert.deepEqual(c.do, [
-    rawEvent,
-    built,
-    { type: "map", ref: COMBOS.focusWinRight, options: { repeat: false } },
-  ]);
+  assert.deepEqual(c.do, [rawEvent, built, { type: "map", ref: COMBOS.focusWinRight, options: { repeat: false } }]);
 });
 
 test("guard() normalizes registry primitives too, since it delegates to press()", () => {
@@ -434,10 +408,9 @@ test("tapAndHold() applies the same conditions to both cases", () => {
 test("tapAndHold() mixes bare registry primitives with explicit wrapper calls", () => {
   // The hold side needs url()'s `background` option, so it stays explicit —
   // tapAndHold() doesn't require both sides to be bare registry references.
-  const [, holdCase] = tapAndHold(CMDS.winMaxToggle, url(URLS.rectAppPrevDisplay, true));
+  const [, holdCase] = tapAndHold(URLS.hsWinToggleFill, url(URLS.rectAppPrevDisplay, true));
   assert.deepEqual(holdCase.do, [{ type: "url", url: URLS.rectAppPrevDisplay, background: true }]);
 });
-
 
 test("when() infers a bare app spec exactly like state()/condApp() would", () => {
   assert.deepEqual(when(APPS.ringCentral), when(condApp(APPS.ringCentral)));
@@ -528,10 +501,7 @@ test("bindTable() accepts an ActionInput[] as a single multi-action case for one
   const [b] = bindTable("hold", {
     keypad_equal_sign: [map(COMBOS.selectWordLeft), shell(CMDS.quickDate)],
   });
-  assert.deepEqual(
-    b,
-    bindKeys("keypad_equal_sign", hold([map(COMBOS.selectWordLeft), shell(CMDS.quickDate)])),
-  );
+  assert.deepEqual(b, bindKeys("keypad_equal_sign", hold([map(COMBOS.selectWordLeft), shell(CMDS.quickDate)])));
 });
 
 test("bindTable() accepts a Case[] as multiple cases for one entry, e.g. a per-key tap/hold pair", () => {
@@ -550,22 +520,13 @@ test("bindTable() forwards shared BindingOptions to every entry", () => {
   // recognizes options in the 4th slot when the 3rd slot is real
   // TriggerModifiers; an explicit `undefined` 3rd arg is not equivalent to
   // omitting it, so options must not be passed 4th here.
-  const table = bindTable(
-    "press",
-    { a: key("a"), b: key("b") },
-    { description: "letters" },
-  );
+  const table = bindTable("press", { a: key("a"), b: key("b") }, { description: "letters" });
   assert.equal(table[0]?.description, "letters");
   assert.equal(table[1]?.description, "letters");
 });
 
 test("bindTable() forwards shared BindingOptions alongside real modifiers in the 4th slot", () => {
-  const table = bindTable(
-    "press",
-    { a: key("a"), b: key("b") },
-    ["shift"],
-    { description: "letters" },
-  );
+  const table = bindTable("press", { a: key("a"), b: key("b") }, ["shift"], { description: "letters" });
   assert.deepEqual(table[0]?.trigger, { keys: ["a"], modifiers: ["shift"] });
   assert.equal(table[0]?.description, "letters");
   assert.equal(table[1]?.description, "letters");

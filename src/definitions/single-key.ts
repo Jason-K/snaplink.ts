@@ -84,7 +84,7 @@ const nonCharBindings: Binding[] = [
     from("keypad_enter"),
     to(
       release(key("keypad_enter", { halt: true })),
-      hold(CMDS.evalSelectionPart).when(unlessApp(APPS.excel)),
+      hold(URLS.hsFormatSubstring).when(unlessApp(APPS.excel)),
       hold(key("f2")).when(APPS.excel),
     ),
     options({
@@ -95,7 +95,7 @@ const nonCharBindings: Binding[] = [
     from("return_or_enter"),
     to(
       release(key("return_or_enter", { halt: true })),
-      hold(CMDS.evalSelectionPart).when(unlessApp(APPS.excel)),
+      hold(URLS.hsFormatSubstring).when(unlessApp(APPS.excel)),
       hold(key("f2")).when(APPS.excel),
     ),
     options({
@@ -105,11 +105,7 @@ const nonCharBindings: Binding[] = [
   bind(from("tab"), to(hold(key("mission_control", { halt: true, repeat: true })))),
   bind(
     from("escape"),
-    to(
-      release(key("escape")),
-      hold(CMDS.killForeground),
-      hold(CMDS.killAllApps).withTapCount(2),
-    ),
+    to(release(key("escape")), hold(CMDS.killForeground), hold(CMDS.killAllApps).withTapCount(2)),
     options({
       multiTap: { mods: [] },
     }),
@@ -135,11 +131,7 @@ const functionKeyBindings: Binding[] = bindTable("hold", {
 const modifierKeyBindings: Binding[] = [
   bind(
     from("left_shift"),
-    to(
-      release(key("left_shift")),
-      hold(key("left_shift")),
-      release(URLS.rayClipboard).withTapCount(2),
-    ),
+    to(release(key("left_shift")), hold(key("left_shift")), release(URLS.rayClipboard).withTapCount(2)),
     // Do not intercept left_command while caps lock is held: caps emits
     // left_command as its hyper-modifier key_code, and this rule's lazy
     // transform would otherwise drop cmd from the caps modifier set.
@@ -150,11 +142,7 @@ const modifierKeyBindings: Binding[] = [
   ),
   bind(
     from("right_shift"),
-    to(
-      release(key("right_shift")),
-      hold(key("right_shift")),
-      release(URLS.rayClipboard).withTapCount(2),
-    ),
+    to(release(key("right_shift")), hold(key("right_shift")), release(URLS.rayClipboard).withTapCount(2)),
     when(condNotVar(capsVars.pressed, 1)),
     options({
       multiTap: { allowPassThrough: true, mods: [] },

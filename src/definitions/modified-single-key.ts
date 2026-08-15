@@ -27,7 +27,7 @@ const modNumBindings: Binding[] = [
     },
     VM.COCS,
   ),
-  bind(from("keypad_5", VM.COC_), to(release(CMDS.winMaxToggle))),
+  bind(from("keypad_5", VM.COC_), to(release(URLS.hsWinToggleFill))),
 ];
 
 const modLetterBindings: Binding[] = [
@@ -43,7 +43,7 @@ const modLetterBindings: Binding[] = [
       f: COMBOS.focusWinBottom,
       q: COMBOS.focusWinLeft,
       r: COMBOS.focusWinTop,
-      s: press(CMDS.evalSelection),
+      s: press(URLS.hsFormatSelection),
     },
     VM.COCS,
   ),
@@ -78,11 +78,11 @@ const modNonCharBindings: Binding[] = [
   bind(from("escape", ["control"]), to(tapAndHold(APPS.activityMonitor, APPS.processSpy))),
   bind(from("escape", VM.COCS), to(press(APPS.activityMonitor))),
   bind(from("home", ["shift"]), to(press(COMBOS.selectHome))),
-  bind(from("left_arrow", VM.COCS), to(tapAndHold(CMDS.winLOrTop, url(URLS.rectAppPrevDisplay, true)))),
+  bind(from("left_arrow", VM.COCS), to(tapAndHold(URLS.hsWinLeftTop, url(URLS.rectAppPrevDisplay, true)))),
   bind(from("left_arrow", VM.C__S), to(press(COMBOS.zenNextTab)), when(APPS.zen)),
-  bind(from("right_arrow", VM.COCS), to(tapAndHold(CMDS.winROrBottom, url(URLS.rectAppNextDisplay, true)))),
+  bind(from("right_arrow", VM.COCS), to(tapAndHold(URLS.hsWinRightBottom, url(URLS.rectAppNextDisplay, true)))),
   bind(from("right_arrow", VM.C__S), to(press(COMBOS.zenPreviousTab)), when(APPS.zen)),
-  bind(from("spacebar", VM.COCS), to(release(CMDS.winMaxToggle))),
+  bind(from("spacebar", VM.COCS), to(release(URLS.hsWinToggleFill))),
   bind(from("tab", VM.COCS), to(release(url(URLS.rectAppNextDisplay, true)))),
 ];
 

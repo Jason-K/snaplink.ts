@@ -62,9 +62,7 @@ function normalizeAction(action: ActionInput): Action {
       return app(action);
     default: {
       const exhaustive: never = action;
-      throw new Error(
-        `normalizeAction: unrecognized registry spec type '${(exhaustive as { type?: string }).type}'`,
-      );
+      throw new Error(`normalizeAction: unrecognized registry spec type '${(exhaustive as { type?: string }).type}'`);
     }
   }
 }
@@ -90,11 +88,7 @@ export class CaseBuilder implements Case {
    * @param actions - Action or list of actions to execute.
    * @param conditions - Optional condition or list of conditions required for this case.
    */
-  constructor(
-    phase: Phase,
-    actions: ActionInput | ActionInput[],
-    conditions?: Condition | Condition[],
-  ) {
+  constructor(phase: Phase, actions: ActionInput | ActionInput[], conditions?: Condition | Condition[]) {
     this.phase = phase;
     this.do = (Array.isArray(actions) ? actions : [actions]).map(normalizeAction);
     delete this.conditions;
@@ -265,10 +259,7 @@ export class CaseBuilder implements Case {
  * press(COMBOS.showPopclip)
  * ```
  */
-export function press(
-  actions: ActionInput | ActionInput[],
-  conditions?: Condition | Condition[],
-): CaseBuilder {
+export function press(actions: ActionInput | ActionInput[], conditions?: Condition | Condition[]): CaseBuilder {
   return new CaseBuilder("press", actions, conditions);
 }
 
@@ -307,10 +298,7 @@ export function press(
  * release(URLS.rectDisplayNext)
  * ```
  */
-export function release(
-  actions: ActionInput | ActionInput[],
-  conditions?: Condition | Condition[],
-): CaseBuilder {
+export function release(actions: ActionInput | ActionInput[], conditions?: Condition | Condition[]): CaseBuilder {
   return new CaseBuilder("release", actions, conditions);
 }
 
@@ -333,10 +321,7 @@ export function release(
  * tap(key("space"))
  * ```
  */
-export function tap(
-  actions: ActionInput | ActionInput[],
-  conditions?: Condition | Condition[],
-): CaseBuilder {
+export function tap(actions: ActionInput | ActionInput[], conditions?: Condition | Condition[]): CaseBuilder {
   return release(actions, conditions);
 }
 
@@ -375,10 +360,7 @@ export function tap(
  * hold(APPS.kitty)
  * ```
  */
-export function hold(
-  actions: ActionInput | ActionInput[],
-  conditions?: Condition | Condition[],
-): CaseBuilder {
+export function hold(actions: ActionInput | ActionInput[], conditions?: Condition | Condition[]): CaseBuilder {
   return new CaseBuilder("hold", actions, conditions);
 }
 
@@ -401,10 +383,7 @@ export function hold(
  * doubleTap(app("Terminal"))
  * ```
  */
-export function doubleTap(
-  actions: ActionInput | ActionInput[],
-  conditions?: Condition | Condition[],
-): CaseBuilder {
+export function doubleTap(actions: ActionInput | ActionInput[], conditions?: Condition | Condition[]): CaseBuilder {
   return press(actions, conditions).withTapCount(2);
 }
 
@@ -432,9 +411,9 @@ export function doubleTap(
  * @example
  * ```ts
  * // Before:
- * bind(from("leftBack"), to(release(shell(CMDS.winMaxToggle)), hold(url(URLS.rectDisplayNext))))
+ * bind(from("leftBack"), to(release(shell(URLS.hsWinToggleFill)), hold(url(URLS.rectDisplayNext))))
  * // After:
- * bind(from("leftBack"), to(tapAndHold(CMDS.winMaxToggle, URLS.rectDisplayNext)))
+ * bind(from("leftBack"), to(tapAndHold(URLS.hsWinToggleFill, URLS.rectDisplayNext)))
  * // Note: a bare CommandSpec auto-infers to cmd() (ActionSpec type
  * // "command"), not shell() (type "shell") — a different variant. For a
  * // CommandSpec (not a raw string), both handlers resolve to the same
@@ -470,10 +449,7 @@ export function tapAndHold(
  * doubleTapHold(key("tab", ["cmd"]))
  * ```
  */
-export function doubleTapHold(
-  actions: ActionInput | ActionInput[],
-  conditions?: Condition | Condition[],
-): CaseBuilder {
+export function doubleTapHold(actions: ActionInput | ActionInput[], conditions?: Condition | Condition[]): CaseBuilder {
   return hold(actions, conditions).withTapCount(2);
 }
 
@@ -511,8 +487,7 @@ function isConditionLike(val: unknown): boolean {
     "app" in obj ||
     "var" in obj ||
     "device" in obj ||
-    (typeof obj.type === "string" &&
-      (obj.type.endsWith("_if") || obj.type.endsWith("_unless")))
+    (typeof obj.type === "string" && (obj.type.endsWith("_if") || obj.type.endsWith("_unless")))
   );
 }
 
@@ -615,11 +590,7 @@ export function to(...cases: (Case | Case[])[]): ToWrapper {
  * app(APPS.browser, "open", "Launch Zen Browser")
  * ```
  */
-export function app(
-  ref: AppTarget,
-  mode?: "open" | "shell",
-  actionDesc?: string,
-): ActionSpec {
+export function app(ref: AppTarget, mode?: "open" | "shell", actionDesc?: string): ActionSpec {
   return {
     type: "app",
     ref,
@@ -642,11 +613,7 @@ export function app(
  * url(URL_ID.docs, true, "Open documentation in background")
  * ```
  */
-export function url(
-  ref: UrlSpec | string,
-  background?: boolean,
-  actionDesc?: string,
-): ActionSpec {
+export function url(ref: UrlSpec | string, background?: boolean, actionDesc?: string): ActionSpec {
   return {
     type: "url",
     url: ref,
@@ -877,11 +844,7 @@ export function button(
  * map(MAP_ID.navigation, { repeat: true })
  * ```
  */
-export function map(
-  ref: MapSpec,
-  options?: KeyOptions,
-  actionDesc?: string,
-): ActionSpec {
+export function map(ref: MapSpec, options?: KeyOptions, actionDesc?: string): ActionSpec {
   return {
     type: "map",
     ref,
@@ -977,10 +940,7 @@ export function cmd(ref: CommandSpec, actionDesc?: string): ActionSpec {
  * shell("open -a Terminal .", "Open terminal in current dir")
  * ```
  */
-export function shell(
-  command: string | CommandSpec,
-  actionDesc?: string,
-): ActionSpec {
+export function shell(command: string | CommandSpec, actionDesc?: string): ActionSpec {
   return {
     type: "shell",
     command,
@@ -1035,11 +995,7 @@ export function python(
  * osascript("~/scripts/dialog.scpt", ["Hello"])
  * ```
  */
-export function osascript(
-  scriptPath: string,
-  args?: string[],
-  actionDesc?: string,
-): ActionSpec {
+export function osascript(scriptPath: string, args?: string[], actionDesc?: string): ActionSpec {
   return {
     type: "osascript",
     scriptPath,
@@ -1128,11 +1084,7 @@ export function sleepSystem(delayMilliseconds?: number, actionDesc?: string): Ac
  * setVar(VAR_ID.leaderActive, 1, true)
  * ```
  */
-export function setVar(
-  varSpec: VarSpec,
-  value: number | string | boolean = 1,
-  toggle = false,
-): ActionSpec {
+export function setVar(varSpec: VarSpec, value: number | string | boolean = 1, toggle = false): ActionSpec {
   return {
     type: "setVar",
     var: varSpec,
@@ -1257,4 +1209,3 @@ export function paste(): ActionSpec {
 export function sequence(...actions: ActionSpec[]): ActionSpec {
   return { type: "sequence", actions };
 }
-
