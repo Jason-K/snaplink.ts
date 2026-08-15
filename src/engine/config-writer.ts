@@ -144,18 +144,50 @@ function mergeDevices(
 }
 
 /**
+ * Create a minimal Karabiner profile object from a ProfileSpec.
+ */
+function createInitialProfile(spec: ProfileSpec): Profile {
+  return {
+    name: spec.name,
+    selected: spec.selected ?? false,
+    complex_modifications: {
+      rules: [],
+    },
+    devices: [],
+    simple_modifications: spec.simpleModifications
+      ? spec.simpleModifications.map(normalizeSimpleModification)
+      : [],
+  };
+}
+
+/**
+ * Ensure all profiles declared in PROFILES registry exist in the profile list.
+ */
+function ensureProfiles(existingProfiles: Profile[]): Profile[] {
+  const profiles = [...existingProfiles];
+  for (const spec of Object.values(PROFILES)) {
+    const exists = profiles.some((p) => p.name === spec.name);
+    if (!exists) {
+      profiles.push(createInitialProfile(spec));
+    }
+  }
+  return profiles;
+}
+
+/**
  * Apply every part of a build to a config object and return the result.
  *
  * Pure: does not mutate `config` and touches no I/O, so the whole
  * read-modify-write can be exercised in tests with a literal config object.
  *
- * @throws {ProfileNotFoundError} when `update.profileName` is not present.
+ * @throws {ProfileNotFoundError} when `update.profileName` is not present and
+ * cannot be instantiated from registered profiles.
  */
 export function applyConfigUpdate(
   config: KarabinerConfig,
   update: AcceptUndefined<ConfigUpdate>,
 ): KarabinerConfig {
-  const profiles = config.profiles ?? [];
+  const profiles = ensureProfiles(config.profiles ?? []);
   const index = profiles.findIndex((p) => p.name === update.profileName);
   if (index < 0) {
     throw new ProfileNotFoundError(
@@ -164,9 +196,13 @@ export function applyConfigUpdate(
     );
   }
 
+  const targetSpec = getProfileSpec(update.profileName);
+  const isTargetSelected = targetSpec.selected ?? true;
+
   const current = profiles[index] as Profile;
   const next: Profile = {
     ...current,
+    ...(isTargetSelected ? { selected: true } : {}),
     complex_modifications: {
       ...(update.parameters ? { parameters: update.parameters } : {}),
       rules: update.rules,
@@ -183,12 +219,17 @@ export function applyConfigUpdate(
       : {}),
   };
 
+  const updatedProfiles = profiles.map((p, i) => {
+    if (i === index) return next;
+    return isTargetSelected ? { ...p, selected: false } : p;
+  });
+
   return {
     ...config,
     ...(update.globalSettings
       ? { global: { ...(config.global ?? {}), ...update.globalSettings } }
       : {}),
-    profiles: profiles.map((p, i) => (i === index ? next : p)),
+    profiles: updatedProfiles,
   };
 }
 
@@ -216,33 +257,28 @@ export type ProfileResolution = {
 
 /**
  * Pick which profile this build targets: explicit override, else the preferred
- * profile, else whichever profile Karabiner currently has selected, else the
- * first one.
+ * profile, else fallback.
  *
- * @throws when an explicit override names a profile that does not exist —
- * silently writing to a different profile than the one requested is worse than
- * failing.
+ * @throws when an explicit override names a profile that does not exist in
+ * config or registered profiles.
  */
 export function resolveProfileName(
   config: KarabinerConfig,
   { explicit, preferred, fallback }: ProfileResolution,
 ): string {
   const profiles = config.profiles ?? [];
-  const names = profiles.map((p) => p.name);
+  const existingNames = profiles.map((p) => p.name);
+  const registeredNames = Object.values(PROFILES).map((p) => p.name);
+  const allKnownNames = Array.from(new Set([...existingNames, ...registeredNames]));
 
   if (explicit) {
-    if (!names.includes(explicit)) {
-      throw new ProfileNotFoundError(explicit, names);
+    if (!allKnownNames.includes(explicit)) {
+      throw new ProfileNotFoundError(explicit, allKnownNames);
     }
     return explicit;
   }
 
-  return (
-    names.find((n) => n === preferred) ??
-    profiles.find((p) => p.selected)?.name ??
-    names[0] ??
-    fallback
-  );
+  return preferred ?? PROFILES.jjkDefault.name ?? fallback;
 }
 
 /** Project root, derived from this module rather than `process.cwd()`. */
