@@ -20,6 +20,7 @@ import {
   unlessApp,
   condNotVar,
 } from "../engine";
+import { IGNORE_IDS } from "../data/registries/apps";
 
 //   SINGLE KEY TAP/HOLD RULES — one binding per key; hold fires the action,
 //   tap passes the key through (the engine's default-alone behavior).
@@ -132,11 +133,7 @@ const functionKeyBindings: Binding[] = bindTable("hold", {
 const modifierKeyBindings: Binding[] = [
   bind(
     from("left_command"),
-    to(
-      release(key("left_command")),
-      hold(key("left_command")),
-      release(appHistory(1)).withTapCount(2),
-    ),
+    to(release(key("left_command")), hold(key("left_command")), release(appHistory(1, IGNORE_IDS)).withTapCount(2)),
     // Do not intercept left_command while caps lock is held: caps emits
     // left_command as its hyper-modifier key_code, and this rule's lazy
     // transform would otherwise drop cmd from the caps modifier set.

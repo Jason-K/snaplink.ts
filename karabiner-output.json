@@ -26525,7 +26525,10 @@
               {
                 "software_function": {
                   "open_application": {
-                    "frontmost_application_history_index": 1
+                    "frontmost_application_history_index": 1,
+                    "frontmost_application_history_exclusion_bundle_identifiers": [
+                      "com.knollsoft.Hookshot"
+                    ]
                   }
                 }
               }
