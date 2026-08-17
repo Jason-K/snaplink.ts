@@ -20,8 +20,9 @@
     "noEmit": true,
     "sourceMap": true,
 
+    "allowJs": true,
     "types": ["node"]
   },
-  "include": ["src"],
+  "include": ["src", "eslint.config.mjs", "scripts"],
   "exclude": ["node_modules", "**/node_modules/*", "docs", "docs/**", "schema", "schema/**", "ref", "ref/**"]
 }

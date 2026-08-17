@@ -16,7 +16,7 @@ import { expandModifiers, resolveButton, resolveKeyAlias } from "../utils";
 import { keyTokenToLabel, modifierTokenToSymbols } from "../resolve-description/rule-descriptions";
 import { toConsumerKey, toKey, toPointingButton, toStickyModifier } from "../karabiner-helpers";
 
-import { resolveAppTarget, toApp, toAppId, toAppPath } from "./resolve-app";
+import { resolveAppExclusions, resolveAppTarget, toApp, toAppId, toAppPath } from "./resolve-app";
 import { toVar } from "./resolve-conditions";
 import { toFolder } from "./resolve-folder";
 import { toCmd, toHere2There, toOsa, toPy, toTp, toWithSleep } from "./resolve-script";
@@ -143,8 +143,8 @@ export const ACTION_HANDLERS = {
   },
 
   appHistory: {
-    toEvents: (a) => [toApp({ historyIndex: a.index })],
-    describe: (a) => `Go back ${a.index} apps`,
+    toEvents: (a) => [toApp({ historyIndex: a.index, ...resolveAppExclusions(a.exclude) })],
+    describe: (a) => withDesc(`Go back ${a.index} apps`, a.actionDesc),
   },
 
   mouseKey: {

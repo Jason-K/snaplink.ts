@@ -3,7 +3,7 @@ import type {
   ToEvent,
 } from "../../types/karabiner";
 
-import type { AppTarget } from "../../data";
+import type { AppHistoryExclude, AppTarget } from "../../data";
 import { PATHS } from "../../data/registries/paths";
 import { shellSingleQuote } from "../utils";
 
@@ -99,4 +99,94 @@ export function resolveAppTarget(
       : { bundleIdentifier: n };
   }
   throw new Error(`Invalid AppSpec: missing bundleId or path`);
+}
+
+/**
+ * Resolve an `AppHistoryExclude` target into Karabiner `exclusionBundleIdentifiers` and `exclusionFilePaths`.
+ */
+export function resolveAppExclusions(
+  exclude?: AppHistoryExclude,
+): { exclusionBundleIdentifiers?: string[]; exclusionFilePaths?: string[] } {
+  if (!exclude) return {};
+
+  const bundleIds: string[] = [];
+  const filePaths: string[] = [];
+
+  const addTarget = (target: AppTarget) => {
+    if (typeof target === "string") {
+      if (target.startsWith("/") || target.endsWith(".app")) {
+        filePaths.push(target);
+      } else {
+        bundleIds.push(target);
+      }
+    } else if (target.type === "path") {
+      const p = target.path ?? (target as any).name;
+      if (Array.isArray(p)) filePaths.push(...p);
+      else if (p) filePaths.push(p);
+    } else if (target.type === "app") {
+      if (target.bundleId) {
+        const b = target.bundleId;
+        if (Array.isArray(b)) bundleIds.push(...b);
+        else bundleIds.push(b);
+      }
+      if (target.path) {
+        const p = target.path;
+        if (Array.isArray(p)) filePaths.push(...p);
+        else filePaths.push(p);
+      }
+    } else if ((target as any).bundleId) {
+      const b = (target as any).bundleId;
+      if (Array.isArray(b)) bundleIds.push(...b);
+      else bundleIds.push(b);
+    } else if ((target as any).path) {
+      const p = (target as any).path;
+      if (Array.isArray(p)) filePaths.push(...p);
+      else filePaths.push(p);
+    }
+  };
+
+  const processItem = (item: any) => {
+    if (!item) return;
+    if (Array.isArray(item)) {
+      for (const sub of item) {
+        processItem(sub);
+      }
+      return;
+    }
+    if (
+      typeof item === "string" ||
+      (typeof item === "object" &&
+        (item.type === "app" ||
+          item.type === "path" ||
+          ("bundleId" in item && !("bundle_identifiers" in item || "exclusionBundleIdentifiers" in item)) ||
+          ("path" in item && !("file_paths" in item || "exclusionFilePaths" in item))))
+    ) {
+      addTarget(item);
+      return;
+    }
+    if (typeof item === "object") {
+      if (item.exclude) {
+        processItem(item.exclude);
+      }
+      if (item.bundle_identifiers) {
+        bundleIds.push(...item.bundle_identifiers);
+      }
+      if (item.exclusionBundleIdentifiers) {
+        bundleIds.push(...item.exclusionBundleIdentifiers);
+      }
+      if (item.file_paths) {
+        filePaths.push(...item.file_paths);
+      }
+      if (item.exclusionFilePaths) {
+        filePaths.push(...item.exclusionFilePaths);
+      }
+    }
+  };
+
+  processItem(exclude);
+
+  return {
+    ...(bundleIds.length > 0 ? { exclusionBundleIdentifiers: bundleIds } : {}),
+    ...(filePaths.length > 0 ? { exclusionFilePaths: filePaths } : {}),
+  };
 }

@@ -27,6 +27,8 @@ export type {
   ActionKeyModifier,
   ActionEventOptions,
   ActionSpec,
+  AppHistoryExclude,
+  AppHistoryOptions,
   PointerMotionToScroll,
   PointerTransform,
   PointerTweak,

@@ -4,8 +4,7 @@
 > (`src/engine/resolve-to-action/resolve-script.ts`) are not invoked by anything
 > in the build as of 2026-08-12 — their only consumer was the leader layer,
 > which was removed. The server, the receiver and the launch agent still work;
-> nothing is asking them to. See
-> [MISSING_FEATURES.md](./MISSING_FEATURES.md) — _Orphaned_.
+> nothing is asking them to.
 
 This guide explains when and how to use the user command server versus traditional shell commands, and how to extend it with new endpoints.
 

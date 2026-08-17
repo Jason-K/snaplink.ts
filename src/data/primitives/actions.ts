@@ -14,6 +14,26 @@ import type { ModComboAlias } from "../constants/keys";
  */
 export type AppTarget = AppSpec | PathSpec | string;
 
+export type AppHistoryExclude =
+  | AppTarget
+  | AppTarget[]
+  | {
+      bundle_identifiers?: string[];
+      file_paths?: string[];
+      exclusionBundleIdentifiers?: string[];
+      exclusionFilePaths?: string[];
+      exclude?: AppTarget | AppTarget[];
+    };
+
+export interface AppHistoryOptions {
+  exclude?: AppHistoryExclude;
+  exclusionBundleIdentifiers?: string[];
+  exclusionFilePaths?: string[];
+  bundle_identifiers?: string[];
+  file_paths?: string[];
+  actionDesc?: string;
+}
+
 /** Valid modifier key specifier for actions: individual modifier or virtual modifier alias (`"CO__"`, `"COCS"`). */
 export type ActionKeyModifier = ModKey | ModComboAlias;
 

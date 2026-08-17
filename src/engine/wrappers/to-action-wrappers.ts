@@ -3,6 +3,8 @@ import type {
   ActionEventOptions,
   ActionKeyModifier,
   ActionSpec,
+  AppHistoryExclude,
+  AppHistoryOptions,
   AppSpec,
   AppTarget,
   Case,
@@ -891,15 +893,59 @@ export function actHere(action: string): ActionSpec {
  * Creates an action spec to navigate application history.
  *
  * @param index - Delta index in the app history stack.
+ * @param exclude - Optional target or list of targets (bundle IDs, regexes, AppSpecs, paths) or options object to exclude.
+ * @param actionDesc - Optional human-readable description for the action.
  * @returns An `ActionSpec` of type "appHistory".
  *
  * @example
  * ```ts
- * appHistory(-1)
+ * appHistory(1)
+ * appHistory(1, ["^com\\.apple\\.Safari$", "^com\\.apple\\.Preview$"])
+ * appHistory(1, [APPS.safari, APPS.preview])
  * ```
  */
-export function appHistory(index: number): ActionSpec {
-  return { type: "appHistory", index };
+export function appHistory(
+  index: number,
+  exclude?: AppHistoryExclude | AppHistoryOptions,
+  actionDesc?: string,
+): ActionSpec {
+  if (exclude === undefined) {
+    return { type: "appHistory", index };
+  }
+
+  let finalExclude: AppHistoryExclude | undefined;
+  let finalDesc: string | undefined = actionDesc;
+
+  if (
+    typeof exclude === "object" &&
+    !Array.isArray(exclude) &&
+    exclude !== null &&
+    (exclude as any).type === undefined &&
+    !("bundleId" in exclude) &&
+    !("path" in exclude) &&
+    ("actionDesc" in exclude || "exclude" in exclude)
+  ) {
+    const opts = exclude as AppHistoryOptions;
+    finalExclude = opts.exclude ?? {
+      ...(opts.exclusionBundleIdentifiers ? { exclusionBundleIdentifiers: opts.exclusionBundleIdentifiers } : {}),
+      ...(opts.exclusionFilePaths ? { exclusionFilePaths: opts.exclusionFilePaths } : {}),
+      ...(opts.bundle_identifiers ? { bundle_identifiers: opts.bundle_identifiers } : {}),
+      ...(opts.file_paths ? { file_paths: opts.file_paths } : {}),
+    };
+    if (Object.keys(finalExclude).length === 0 && !opts.exclude) {
+      finalExclude = undefined;
+    }
+    finalDesc = opts.actionDesc ?? actionDesc;
+  } else {
+    finalExclude = exclude;
+  }
+
+  return {
+    type: "appHistory",
+    index,
+    ...(finalExclude !== undefined ? { exclude: finalExclude } : {}),
+    ...(finalDesc !== undefined ? { actionDesc: finalDesc } : {}),
+  };
 }
 
 /**

@@ -27,7 +27,9 @@ export default defineConfig([
     // which is the documented way to write these tests.
     languageOptions: {
       parserOptions: {
-        projectService: true,
+        projectService: {
+          allowDefaultProject: ['eslint.config.mjs'],
+        },
         tsconfigRootDir: import.meta.dirname,
       },
     },

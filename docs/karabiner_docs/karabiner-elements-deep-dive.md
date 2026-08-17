@@ -2,7 +2,19 @@
 title: "Karabiner-Elements Deep Dive"
 date: 2026-05-02
 difficulty: advanced
-tags: [karabiner, keyboard, macOS, automation, remapping, home-row-mods, hyper-key, complex-modifications, shell-command, variables]
+tags:
+  [
+    karabiner,
+    keyboard,
+    macOS,
+    automation,
+    remapping,
+    home-row-mods,
+    hyper-key,
+    complex-modifications,
+    shell-command,
+    variables,
+  ]
 ---
 
 # Karabiner-Elements Deep Dive
@@ -21,44 +33,13 @@ Karabiner-Elements is the modern (post-Sierra) keyboard remapping engine for mac
 
 This is the ongoing reference document for Karabiner-Elements. You'll find comprehensive coverage of internals, advanced patterns, edge cases, and architectural design rationale throughout.
 
-For foundational concepts and first-time setup, see [[karabiner-elements-beginner-guide]].
-
-**Related automation tools:**
-- [[hammerspoon-deep-dive]] for advanced scripting and launcher integration
-- [[yabai-deep-dive]] for window management shortcuts
-- [[bunch-deep-dive]] for application state automation
-- [[dotfiles-deep-dive]] for managing Karabiner configs via version control
-
----
-
-## Prerequisites
-
-### System Requirements
-- **macOS 11 Big Sur or later** (Intel or Apple Silicon)
-- **Karabiner-Elements 14.0+** installed and running
-- System Preferences → Security & Privacy → Input Monitoring: Karabiner-Elements allowed
-- System Preferences → Security & Privacy → Accessibility: Karabiner-Elements allowed (older macOS)
-- For macOS Ventura/Sonoma/Sequoia: System Settings → Privacy & Security → System Extension Services approval
-
-### Tools You'll Need
-- Text editor (VS Code, Sublime, or macOS built-in)
-- Terminal.app or iTerm2 for diagnostics
-- EventViewer.app (comes with Karabiner-Elements package)
-- Optional: Python, JavaScript, or Goku for config generation
-
-### Knowledge Prerequisites
-- Familiarity with JSON syntax
-- Understanding of macOS keyboard modifiers (Cmd, Opt, Ctrl, Shift)
-- Basic terminal commands for file navigation and logging
-- Concept of regular expressions (for bundle ID matching)
-
 ---
 
 ## Key Concepts
 
 ### Karabiner Architecture
 
-Karabiner-Elements operates at the kernel/HID driver level, intercepting keyboard and mouse input *before* the operating system processes it. This gives it unparalleled control over input devices.
+Karabiner-Elements operates at the kernel/HID driver level, intercepting keyboard and mouse input _before_ the operating system processes it. This gives it unparalleled control over input devices.
 
 #### The Interception Pipeline
 
@@ -80,7 +61,7 @@ Virtual Keyboard Output
 macOS Receives Modified Event
 ```
 
-The key insight: Karabiner runs *before* macOS kernel sees the event. This is why it works in locked screens, full-screen apps, and even within game engines that bypass normal input handling.
+The key insight: Karabiner runs _before_ macOS kernel sees the event. This is why it works in locked screens, full-screen apps, and even within game engines that bypass normal input handling.
 
 #### karabiner_grabber vs karabiner_observer
 
@@ -124,8 +105,9 @@ A manipulator is Karabiner's atomic unit: a rule that transforms input. Every ma
 **key_code**: The primary key. Karabiner recognizes ~200 key codes (letters, numbers, function keys, media keys). See `~/.config/karabiner/assets/key_code_map.json` for the complete list.
 
 **modifiers**:
-- **mandatory**: Modifiers that *must* be pressed for the rule to fire. Press Ctrl+A and the rule triggers.
-- **optional**: Modifiers that *may* be pressed without preventing the rule. Press Shift+Ctrl+A? Still triggers.
+
+- **mandatory**: Modifiers that _must_ be pressed for the rule to fire. Press Ctrl+A and the rule triggers.
+- **optional**: Modifiers that _may_ be pressed without preventing the rule. Press Shift+Ctrl+A? Still triggers.
 
 Using `"mandatory": ["left_control"]` means: "only fire if left control is down." Using `"optional": ["any"]` means: "fire regardless of modifier state." If you don't specify modifiers, any modifier combination works.
 
@@ -183,7 +165,7 @@ Or:
 The `lazy` flag (on a to block) delays key-up events. When you press Ctrl+A:
 
 1. Karabiner immediately presses `x`
-2. Karabiner *waits* before sending the `x` key-up event
+2. Karabiner _waits_ before sending the `x` key-up event
 3. If you release Ctrl+A within 100ms, Karabiner sends `y` instead, then releases
 
 This is essential for distinguishing "tap A to send X, but hold A to send Y."
@@ -216,7 +198,7 @@ Karabiner evaluates manipulators in the order they appear in the JSON. If two ru
 }
 ```
 
-Only the *first* matching rule fires. Order matters. Organize rules from most specific (most conditions, most modifiers) to most general (fewest conditions).
+Only the _first_ matching rule fires. Order matters. Organize rules from most specific (most conditions, most modifiers) to most general (fewest conditions).
 
 ---
 
@@ -233,6 +215,7 @@ open /Applications/Karabiner-Elements.app
 ```
 
 Karabiner will request system extension approval. Approve it in:
+
 - **macOS Ventura/Sonoma/Sequoia**: System Settings → Privacy & Security → System Extensions
 - **macOS Monterey/Big Sur**: System Preferences → Security & Privacy → System Extensions (or during first launch)
 
@@ -280,6 +263,7 @@ The JSON structure:
 ```
 
 **Complex modifications** support all advanced features:
+
 - Conditions (app-specific, device-specific, variable-based)
 - Multiple to blocks
 - Timing parameters
@@ -324,6 +308,7 @@ Result: X appears on screen
 ```
 
 Read every field:
+
 - **Timestamp**: Microsecond precision for latency debugging
 - **Key Code**: The physical key (useful for identifying correct key names)
 - **Modifiers**: Bitmask of all pressed modifiers
@@ -362,11 +347,7 @@ But wait—this fires whenever you press A, even in text input. You need to disa
   "conditions": [
     {
       "type": "frontmost_application_unless",
-      "bundle_identifiers": [
-        "com.apple.Terminal",
-        "com.googlecode.iterm2",
-        "com.vscode"
-      ]
+      "bundle_identifiers": ["com.apple.Terminal", "com.googlecode.iterm2", "com.vscode"]
     }
   ],
   "parameters": {
@@ -376,7 +357,7 @@ But wait—this fires whenever you press A, even in text input. You need to disa
 }
 ```
 
-This outputs `a` on tap (in case you hold it briefly), but sends `left_control` when held past 100ms—but *only* when you're not in Terminal, iTerm, or VS Code.
+This outputs `a` on tap (in case you hold it briefly), but sends `left_control` when held past 100ms—but _only_ when you're not in Terminal, iTerm, or VS Code.
 
 Complete set for ASDF JKL;:
 
@@ -580,7 +561,7 @@ You have home row mods, but they break gaming in Valorant:
 }
 ```
 
-Place this rule *before* your home row mod rule in the JSON. Karabiner will match this specific rule in Valorant and never reach the general home row mod rule.
+Place this rule _before_ your home row mod rule in the JSON. Karabiner will match this specific rule in Valorant and never reach the general home row mod rule.
 
 ### Example 5: Shell Commands - Paste Current Date
 
@@ -671,7 +652,7 @@ Wait, that's incomplete. Better pattern—use a toggle:
 }
 ```
 
-Now bind navigation keys *only* when nav_mode is 1:
+Now bind navigation keys _only_ when nav_mode is 1:
 
 ```json
 {
@@ -689,7 +670,7 @@ Now bind navigation keys *only* when nav_mode is 1:
 }
 ```
 
-This rule *only* fires if the variable `nav_mode` is 1. Outside that state, h is just h.
+This rule _only_ fires if the variable `nav_mode` is 1. Outside that state, h is just h.
 
 ---
 
@@ -722,6 +703,7 @@ This rule *only* fires if the variable `nav_mode` is 1. Outside that state, h is
 6. Hold S for 200ms. You should see `key_down left_option` (without s), then `key_up left_option`.
 
 **Expected Output in EventViewer**:
+
 ```
 Tap: key_down(a) → key_down(s) key_up(s)
 Hold: key_down(a) 200ms → key_down(left_option)
@@ -782,6 +764,7 @@ Your home row mod breaks typing in Terminal. Add a condition:
 3. Save and test: press and release Caps Lock (sending Escape), then press Caps+T. Wait ~1 second. Terminal opens.
 
 **Debugging**: If Terminal doesn't open, open EventViewer and check:
+
 - Did you see `key_down(escape)` and `key_up(escape)` when you tapped Caps?
 - Did you see `key_down(left_control, left_option, left_shift, left_command)` and `key_down(t)` when you pressed Caps+T?
 - Did the "Matched Rule" show "Hyper+T → Open Terminal"?
@@ -848,6 +831,7 @@ Your home row mod breaks typing in Terminal. Add a condition:
 3. Test: Press and hold the grave key, then press H. You should see the cursor move left. Release the grave key, press H again. Now H types "h" normally.
 
 **Verification in EventViewer**:
+
 ```
 Grave press:
   key_down(grave) → set_variable(nav_mode=1)
@@ -867,6 +851,7 @@ Grave release:
 **Symptom**: The menu bar icon shows yellow "⚠" or red "✗".
 
 **Diagnosis**: Check what Karabiner says:
+
 ```
 Menu Bar Icon → Show Karabiner-Elements
 ```
@@ -910,7 +895,7 @@ Common issues:
 
 The first rule matches `a` and fires, so the second rule is never reached. Reorder: put conditions-based rules first, generic rules last.
 
-4. **Check modifiers**: If your rule has `"mandatory": ["left_control"]`, the rule *only* fires when left control is held. If you're testing without holding control, the rule won't fire. Verify in EventViewer that the modifier field shows the control key is pressed.
+4. **Check modifiers**: If your rule has `"mandatory": ["left_control"]`, the rule _only_ fires when left control is held. If you're testing without holding control, the rule won't fire. Verify in EventViewer that the modifier field shows the control key is pressed.
 
 5. **Check conditions**: If your rule has conditions, all of them must be true for the rule to fire. For example:
 
@@ -923,7 +908,7 @@ The first rule matches `a` and fires, so the second rule is never reached. Reord
 }
 ```
 
-This rule *only* fires in MyApp AND when mode=1. If you're testing outside MyApp, the rule won't fire.
+This rule _only_ fires in MyApp AND when mode=1. If you're testing outside MyApp, the rule won't fire.
 
 ### Issue: Keys are getting stuck (modifier stays pressed)
 
@@ -939,7 +924,7 @@ This rule *only* fires in MyApp AND when mode=1. If you're testing outside MyApp
   "from": { "key_code": "s" },
   "to": [{ "key_code": "s", "lazy": true }],
   "to_if_held_down": [{ "key_code": "left_option" }],
-  "to_after_key_up": [{ "key_code": "left_option" }],  // Reset on release
+  "to_after_key_up": [{ "key_code": "left_option" }], // Reset on release
   "parameters": {
     "basic.to_if_held_down_threshold_milliseconds": 150
   }
@@ -961,7 +946,7 @@ launchctl start org.pqrs.Karabiner.grabber
 
 1. **Is it Karabiner?** Disable Karabiner entirely (menu bar icon → Quit) and type. If latency vanishes, it's Karabiner. If latency persists, it's your keyboard or Mac.
 
-2. **Check timing parameters**: If you have `to_if_held_down_threshold_milliseconds: 500` and `to_if_alone_timeout_milliseconds: 500`, *every* keystroke waits 500ms before confirming it's a tap. Reduce both to 150-200ms:
+2. **Check timing parameters**: If you have `to_if_held_down_threshold_milliseconds: 500` and `to_if_alone_timeout_milliseconds: 500`, _every_ keystroke waits 500ms before confirming it's a tap. Reduce both to 150-200ms:
 
 ```json
 {
@@ -978,10 +963,7 @@ launchctl start org.pqrs.Karabiner.grabber
 {
   "type": "basic",
   "from": {
-    "simultaneous": [
-      { "key_code": "a" },
-      { "key_code": "s" }
-    ],
+    "simultaneous": [{ "key_code": "a" }, { "key_code": "s" }],
     "simultaneous_threshold_milliseconds": 50
   },
   "to": [{ "key_code": "escape" }]
@@ -1019,12 +1001,14 @@ Or, contact the app developer to disable raw HID input.
 Many rules require bundle identifiers for conditions. How do you find them?
 
 **Method 1: mdls (Finder metadata)**
+
 ```bash
 mdls -name kMDItemCFBundleIdentifier /Applications/Slack.app
 # kMDItemCFBundleIdentifier = "com.tinyspeck.slackmacgap"
 ```
 
 **Method 2: osascript (AppleScript)**
+
 ```bash
 osascript -e "tell application \"Slack\" to get id of app bundle"
 # com.tinyspeck.slackmacgap
@@ -1121,7 +1105,7 @@ This condition is true if the frontmost app is Terminal or iTerm.
 ```json
 {
   "type": "frontmost_application_if",
-  "bundle_identifiers": ["^com\\.jetbrains\\..*"]  // All JetBrains IDEs
+  "bundle_identifiers": ["^com\\.jetbrains\\..*"] // All JetBrains IDEs
 }
 ```
 
@@ -1143,7 +1127,7 @@ Match based on device properties (keyboard model, vendor ID, product ID).
 }
 ```
 
-This rule fires *only* on a specific external keyboard (Kingston).
+This rule fires _only_ on a specific external keyboard (Kingston).
 
 **How to find vendor/product IDs**:
 
@@ -1166,7 +1150,7 @@ Match based on a variable's value. Essential for modal layers.
 }
 ```
 
-This rule fires *only* when the variable `nav_mode` equals 1.
+This rule fires _only_ when the variable `nav_mode` equals 1.
 
 #### input_source_if
 
@@ -1175,9 +1159,7 @@ Match based on the active input method (keyboard layout, IME).
 ```json
 {
   "type": "input_source_if",
-  "input_sources": [
-    { "language": "en" }
-  ]
+  "input_sources": [{ "language": "en" }]
 }
 ```
 
@@ -1186,9 +1168,7 @@ Fires only when using English input.
 ```json
 {
   "type": "input_source_if",
-  "input_sources": [
-    { "language": "ja" }
-  ]
+  "input_sources": [{ "language": "ja" }]
 }
 ```
 
@@ -1268,9 +1248,7 @@ Build a complex editing environment with multiple layers:
       { "set_variable": { "name": "layer_1", "value": 1 } },
       { "set_variable": { "name": "layer_2", "value": 0 } }
     ],
-    "to_after_key_up": [
-      { "set_variable": { "name": "layer_1", "value": 0 } }
-    ]
+    "to_after_key_up": [{ "set_variable": { "name": "layer_1", "value": 0 } }]
   },
   {
     "type": "basic",
@@ -1280,30 +1258,25 @@ Build a complex editing environment with multiple layers:
       { "set_variable": { "name": "layer_2", "value": 1 } },
       { "set_variable": { "name": "layer_1", "value": 0 } }
     ],
-    "to_after_key_up": [
-      { "set_variable": { "name": "layer_2", "value": 0 } }
-    ]
+    "to_after_key_up": [{ "set_variable": { "name": "layer_2", "value": 0 } }]
   },
   {
     "description": "Layer 1: H→Left",
     "from": { "key_code": "h" },
     "to": [{ "key_code": "left_arrow" }],
-    "conditions": [
-      { "type": "variable_if", "name": "layer_1", "value": 1 }
-    ]
+    "conditions": [{ "type": "variable_if", "name": "layer_1", "value": 1 }]
   },
   {
     "description": "Layer 2: H→Home",
     "from": { "key_code": "h" },
     "to": [{ "key_code": "home" }],
-    "conditions": [
-      { "type": "variable_if", "name": "layer_2", "value": 1 }
-    ]
+    "conditions": [{ "type": "variable_if", "name": "layer_2", "value": 1 }]
   }
 ]
 ```
 
 Now:
+
 - Hold Fn: H becomes Left Arrow
 - Hold Left Command: H becomes Home
 - Release either modifier: H is just H
@@ -1330,10 +1303,7 @@ The `simultaneous` manipulator type fires when multiple keys are pressed within 
 {
   "type": "basic",
   "from": {
-    "simultaneous": [
-      { "key_code": "a" },
-      { "key_code": "s" }
-    ],
+    "simultaneous": [{ "key_code": "a" }, { "key_code": "s" }],
     "simultaneous_threshold_milliseconds": 50
   },
   "to": [{ "key_code": "escape" }]
@@ -1343,6 +1313,7 @@ The `simultaneous` manipulator type fires when multiple keys are pressed within 
 If you press A and S within 50ms of each other, send Escape. Otherwise, both keys register normally.
 
 **Use Cases**:
+
 - A+S → Escape (chording)
 - J+K → Mode toggle (modal editing)
 - Spacebar+S → Symbol layer
@@ -1354,10 +1325,7 @@ If you press A and S within 50ms of each other, send Escape. Otherwise, both key
 ```json
 {
   "from": {
-    "simultaneous": [
-      { "key_code": "a", "modifiers": { "mandatory": ["left_control"] } },
-      { "key_code": "s" }
-    ],
+    "simultaneous": [{ "key_code": "a", "modifiers": { "mandatory": ["left_control"] } }, { "key_code": "s" }],
     "simultaneous_threshold_milliseconds": 50
   },
   "to": [{ "key_code": "f1" }]
@@ -1407,6 +1375,7 @@ How long a key must be held before `to_if_held_down` is considered. Different fr
 If you hold a key for 150ms, Karabiner evaluates the "held down" branch.
 
 **Interaction**: These two work together:
+
 - Hold key < to_if_held_down_threshold → waiting for timeout
 - Hold key >= to_if_held_down_threshold → immediately enter "held down" state
 - Release before timeout → execute "to" block (tap)
@@ -1532,70 +1501,7 @@ Karabiner rule:
 
 After the command runs, restart Karabiner to load the new profile (or Karabiner reloads automatically, depending on version).
 
-### Organizing Large Configurations
-
-For complex setups, organize rules across multiple files using Goku or Python.
-
-#### Goku (Recommended)
-
-[Goku](https://github.com/yqrashawn/GokuRakutenushi) is a Clojure-based Karabiner configuration language.
-
-```clojure
-{
-  :main [
-    {:des "Home row mods"
-     :rules [
-       [:a [:left_control nil] {:held "left_control" :alone "a"}]
-       [:s [:left_option nil] {:held "left_option" :alone "s"}]
-     ]}
-    {:des "Navigation layer"
-     :rules [
-       [:<grave> {:set ["nav" 1]} {:afterup {:set ["nav" 0]}}]
-       [[:h :!nav] :left_arrow]
-     ]}
-  ]
-}
-```
-
-Goku compiles to JSON automatically. This is far more readable than raw JSON.
-
-Install: `brew install yqrashawn/goku/goku`
-
-#### Python
-
-```python
-import json
-
-def generate_home_row_mod(key, output):
-    return {
-        "type": "basic",
-        "from": {"key_code": key},
-        "to": [{"key_code": key, "lazy": True}],
-        "to_if_held_down": [{"key_code": output}],
-        "parameters": {
-            "basic.to_if_held_down_threshold_milliseconds": 150
-        }
-    }
-
-rules = [
-    generate_home_row_mod("a", "left_control"),
-    generate_home_row_mod("s", "left_option"),
-]
-
-config = {
-    "global": {},
-    "profiles": [{
-        "name": "Default",
-        "selected": True,
-        "complex_modifications": {"rules": rules}
-    }]
-}
-
-with open(os.path.expanduser("~/.config/karabiner/karabiner.json"), "w") as f:
-    json.dump(config, f, indent=2)
-```
-
-### assets/complex_modifications/*.json Discovery
+### assets/complex_modifications/\*.json Discovery
 
 Karabiner auto-discovers JSON files in `~/.config/karabiner/assets/complex_modifications/`. You can organize rules there:
 
@@ -1624,9 +1530,7 @@ Detect if a key is pressed twice in quick succession:
   "from": { "key_code": "space" },
   "to": [{ "key_code": "space" }],
   "to_if_held_down": [{ "set_variable": { "name": "space_count", "value": 1 } }],
-  "to_after_key_up": [
-    { "set_variable": { "name": "space_count", "value": 0 } }
-  ],
+  "to_after_key_up": [{ "set_variable": { "name": "space_count", "value": 0 } }],
   "parameters": {
     "basic.to_if_held_down_threshold_milliseconds": 50
   }
@@ -1664,7 +1568,7 @@ A modifier that stays active until you press a key:
 
 Press Fn (tap) once. Shift stays active. Press any key (e.g., A), and it outputs Shift+A. Now Shift is released.
 
-**Caveat**: You'd need to repeat this for *every* key. Karabiner doesn't support wildcards in from blocks. Use [[hammerspoon-deep-dive]] for cleaner sticky modifier support.
+**Caveat**: You'd need to repeat this for _every_ key. Karabiner doesn't support wildcards in from blocks. Use [[hammerspoon-deep-dive]] for cleaner sticky modifier support.
 
 ### Leader Key Sequences
 
@@ -1965,58 +1869,31 @@ Full, pasteable JSON with all eight home row mods (ASDF JKL;) plus proper tuning
     "description": "Nav: H → Left",
     "from": { "key_code": "h" },
     "to": [{ "key_code": "left_arrow" }],
-    "conditions": [
-      { "type": "variable_if", "name": "nav_mode", "value": 1 }
-    ]
+    "conditions": [{ "type": "variable_if", "name": "nav_mode", "value": 1 }]
   },
   {
     "type": "basic",
     "description": "Nav: J → Down",
     "from": { "key_code": "j" },
     "to": [{ "key_code": "down_arrow" }],
-    "conditions": [
-      { "type": "variable_if", "name": "nav_mode", "value": 1 }
-    ]
+    "conditions": [{ "type": "variable_if", "name": "nav_mode", "value": 1 }]
   },
   {
     "type": "basic",
     "description": "Nav: K → Up",
     "from": { "key_code": "k" },
     "to": [{ "key_code": "up_arrow" }],
-    "conditions": [
-      { "type": "variable_if", "name": "nav_mode", "value": 1 }
-    ]
+    "conditions": [{ "type": "variable_if", "name": "nav_mode", "value": 1 }]
   },
   {
     "type": "basic",
     "description": "Nav: L → Right",
     "from": { "key_code": "l" },
     "to": [{ "key_code": "right_arrow" }],
-    "conditions": [
-      { "type": "variable_if", "name": "nav_mode", "value": 1 }
-    ]
+    "conditions": [{ "type": "variable_if", "name": "nav_mode", "value": 1 }]
   }
 ]
 ```
-
----
-
-## Related Tutorials
-
-This deep-dive pairs with companion resources:
-
-- [[karabiner-elements-beginner-guide]] — Start here for first-time setup and simple remaps
-- [[hammerspoon-deep-dive]] — Advanced scripting, app launcher integration, window management
-- [[yabai-deep-dive]] — Tiling window manager that pairs perfectly with Karabiner shortcuts
-- [[bunch-deep-dive]] — Application automation that complements Karabiner's input triggering
-- [[sketchybar-deep-dive]] — Status bar customization via shell commands from Karabiner
-- [[dotfiles-deep-dive]] — Version control strategy for managing karabiner.json
-- [[chezmoi-deep-dive]] — Automated dotfile management including Karabiner configs
-- [[hammerspoon-beginner-guide]] — Foundation for Hammerspoon integration
-- [[yabai-beginner-guide]] — Foundation for window management
-- [[macos-app-layout-deep-dive]] — Layout systems that work with Karabiner shortcuts
-- [[moom-deep-dive]] — Alternative window management tool
-- [[sesh-deep-dive]] — Terminal session management for keyboard-driven workflows
 
 ---
 
@@ -2045,6 +1922,6 @@ Karabiner-Elements is the definitive keyboard automation engine for macOS. This 
 8. **Practical Examples**: Copy-paste JSON for common use cases (home row mods, Caps→Hyper, hjkl arrows, multi-layer systems)
 9. **Comprehensive Troubleshooting**: Permission issues, stuck keys, latency diagnosis, bundle ID discovery
 
-Start simple with home row mods or a Caps Lock remap. Once comfortable, layer in app-specific conditions, variables for modal editing, and shell command shortcuts. The key insight: Karabiner operates *before* the OS, making it the lowest-level, most powerful input automation tool available.
+Start simple with home row mods or a Caps Lock remap. Once comfortable, layer in app-specific conditions, variables for modal editing, and shell command shortcuts. The key insight: Karabiner operates _before_ the OS, making it the lowest-level, most powerful input automation tool available.
 
 For foundational concepts, see [[karabiner-elements-beginner-guide]]. For scripting and system integration, see [[hammerspoon-deep-dive]].

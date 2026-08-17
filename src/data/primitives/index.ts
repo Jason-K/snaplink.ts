@@ -18,6 +18,8 @@ export type {
 export type {
   Action,
   ActionEventOptions,
+  AppHistoryExclude,
+  AppHistoryOptions,
   ActionKeyModifier,
   ActionSpec,
   AppTarget,

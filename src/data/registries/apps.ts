@@ -42,6 +42,7 @@ export const APPS = {
   protonMail: app("ch.protonmail.desktop", "Proton Mail"),
   qspace: app("com.jinghaoshe.qspace.pro", "QSpace"),
   raycast: app("com.raycast-x.macos", "Raycast"),
+  rectPro: app("com.knollsoft.Hookshot", "Rectangle Pro"),
   ringCentral: app("com.ringcentral.glip", "RingCentral"),
   securityAgent: app("com.apple.SecurityAgent", "Security Agent"),
   settings: app("com.apple.systempreferences", "System Settings"),
@@ -66,3 +67,5 @@ export const PW_IDS: AppSpec[] = [
   APPS.brewUpdater,
   APPS.taphouse,
 ];
+
+export const IGNORE_IDS: AppSpec[] = [APPS.rectPro];

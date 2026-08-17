@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { APPS } from "../data";
 import {
   ACTION_HANDLERS,
   ACTION_SPEC_TYPES,
   actionToEvents,
+  appHistory,
   consumerKey,
   cursorTo,
   describeAction,
@@ -224,4 +226,63 @@ test("cursorTo wrapper carries screen and relative-positioning options", () => {
       },
     },
   });
+});
+
+test("appHistory compiles to open_application with history index and exclusion bundle identifiers", () => {
+  const [event] = resolveActionToEvents(
+    appHistory(1, ["^com\\.apple\\.Safari$", "^com\\.apple\\.Preview$"]),
+  );
+  assert.deepEqual(event, {
+    software_function: {
+      open_application: {
+        frontmost_application_history_index: 1,
+        frontmost_application_history_exclusion_bundle_identifiers: [
+          "^com\\.apple\\.Safari$",
+          "^com\\.apple\\.Preview$",
+        ],
+      },
+    },
+  });
+});
+
+test("appHistory supports AppSpec targets and options objects for exclusions", () => {
+  const [event1] = resolveActionToEvents(appHistory(1, [APPS.excel, APPS.word]));
+  assert.deepEqual(event1, {
+    software_function: {
+      open_application: {
+        frontmost_application_history_index: 1,
+        frontmost_application_history_exclusion_bundle_identifiers: [
+          "com.microsoft.Excel",
+          "com.microsoft.Word",
+        ],
+      },
+    },
+  });
+
+  const [event2] = resolveActionToEvents(
+    appHistory(1, {
+      exclude: ["^com\\.apple\\.Safari$"],
+      actionDesc: "skip safari",
+    }),
+  );
+  assert.deepEqual(event2, {
+    software_function: {
+      open_application: {
+        frontmost_application_history_index: 1,
+        frontmost_application_history_exclusion_bundle_identifiers: [
+          "^com\\.apple\\.Safari$",
+        ],
+      },
+    },
+  });
+
+  assert.equal(
+    describeAction(
+      appHistory(1, {
+        exclude: ["^com\\.apple\\.Safari$"],
+        actionDesc: "skip safari",
+      }),
+    ),
+    "Go back 1 apps | skip safari",
+  );
 });
