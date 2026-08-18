@@ -58,15 +58,15 @@ const neru = (action: string, desc: string): CommandSpec => cmdEntry(`${PATHS.bi
 // ---------------------------------------------------------
 
 const Passwords_Privileges = {
-  getPrivileges: cmdEntry(`${getPriv}`, "Get privileges"),
-  fillPw: cmdEntry(`${getPriv} && ${fillPw}`, "Fill password"),
-  fillUnPw: cmdEntry(`${getPriv} && ${fillUnAndPw}`, "Fill username and password"),
+  getPrivileges: cmdEntry(`${getPriv}`, "get privileges"),
+  fillPw: cmdEntry(`${getPriv} && ${fillPw}`, "fill password"),
+  fillUnPw: cmdEntry(`${getPriv} && ${fillUnAndPw}`, "fill username and password"),
 };
 
 const Kill_Apps = {
-  killForeground: cmdEntry(`${PATHS.binAppKill.path} --foreground`, "Kill front app"),
-  killAll: cmdEntry(`${PATHS.binAppKill.path}`, "Kill all applications"),
-  killAllApps: cmdEntry(`${PATHS.binAppKill.path}`, "Kill all applications"),
+  killForeground: cmdEntry(`${PATHS.binAppKill.path} --foreground`, "kill front app"),
+  killAll: cmdEntry(`${PATHS.binAppKill.path}`, "kill all applications"),
+  killAllApps: cmdEntry(`${PATHS.binAppKill.path}`, "kill all applications"),
 };
 
 const Hs_Functions = {
@@ -77,9 +77,9 @@ const Hs_Functions = {
 const Typinator_Scripts = {
   newTypinatorRule: cmdEntry(
     `'${PATHS.binTypinatorVenv.path}' '${PATHS.newTypinatorRule.path}'`,
-    "Create new Typinator rule",
+    "create new Typinator rule",
   ),
-  lastTypinatorRule: cmdEntry(`osascript '${PATHS.lastTypinatorRule.path}'`, "Edit last Typinator expansion"),
+  lastTypinatorRule: cmdEntry(`osascript '${PATHS.lastTypinatorRule.path}'`, "edit last Typinator expansion"),
 };
 
 const Spotify = {
@@ -92,46 +92,46 @@ const Spotify = {
 const Text_Processor = {
   quickDate: cmdEntry(
     `${stringThings} quick_date --source cut --dest paste`,
-    "Insert today's date in yyyy-mm-dd format at the cursor.",
+    "insert today's date in yyyy-mm-dd format at the cursor",
   ),
-  toUpper: textClip("uppercase", "Convert clipboard to uppercase."),
-  toLower: textClip("lower_case", "Convert clipboard to lowercase."),
-  toTitle: textClip("title_case", "Convert clipboard to title case."),
-  wrapQuotes: textClip("wrap_quotes", "Wrap clipboard in quotes."),
-  wrapSingleQuotes: textClip("wrap_single_quotes", "Wrap clipboard in single quotes."),
-  wrapParens: textClip("wrap_parentheses", "Wrap clipboard in parentheses."),
-  wrapBrackets: textClip("wrap_brackets", "Wrap clipboard in brackets."),
-  wrapBraces: textClip("wrap_braces", "Wrap clipboard in braces."),
-  wrapAngleBrackets: textClip("wrap_angle_brackets", "Wrap clipboard in angle brackets."),
+  toUpper: textClip("uppercase", "convert clipboard to uppercase"),
+  toLower: textClip("lower_case", "convert clipboard to lowercase"),
+  toTitle: textClip("title_case", "convert clipboard to title case"),
+  wrapQuotes: textClip("wrap_quotes", "wrap clipboard in quotes"),
+  wrapSingleQuotes: textClip("wrap_single_quotes", "wrap clipboard in single quotes"),
+  wrapParens: textClip("wrap_parentheses", "wrap clipboard in parentheses"),
+  wrapBrackets: textClip("wrap_brackets", "wrap clipboard in brackets"),
+  wrapBraces: textClip("wrap_braces", "wrap clipboard in braces"),
+  wrapAngleBrackets: textClip("wrap_angle_brackets", "wrap clipboard in angle brackets"),
 };
 
 const Windows = {
   winROrBottom: cmdEntry(
     `${getDisplayInfo}; local url = (screenFrame.w >= screenFrame.h) and [[rectangle-pro://execute-action?name=right-half]] or [[rectangle-pro://execute-action?name=bottom-half]]; hs.urlevent.openURL(url)'`,
-    "Move window to right or bottom half",
+    "move window to right or bottom half",
   ),
   winLOrTop: cmdEntry(
     `${getDisplayInfo}; local url = (screenFrame.w >= screenFrame.h) and [[rectangle-pro://execute-action?name=left-half]] or [[rectangle-pro://execute-action?name=top-half]]; hs.urlevent.openURL(url)'`,
-    "Move window to left or top half",
+    "move window to left or top half",
   ),
   winMaxToggle: cmdEntry(
     `${getDisplayInfo}; local winFrame = win and win:frame() or screenFrame; local positionTolerance = 24; local widthCoverage = screenFrame.w > 0 and (winFrame.w / screenFrame.w) or 0; local heightCoverage = screenFrame.h > 0 and (winFrame.h / screenFrame.h) or 0; local leftAligned = math.abs(winFrame.x - screenFrame.x) <= positionTolerance; local topAligned = math.abs(winFrame.y - screenFrame.y) <= positionTolerance; local isMaximized = leftAligned and topAligned and widthCoverage >= 0.97 and heightCoverage >= 0.9; local url = isMaximized and [[rectangle-pro://execute-action?name=restore]] or [[rectangle-pro://execute-action?name=maximize]]; hs.urlevent.openURL(url)'`,
-    "Maximize or restore window",
+    "maximize or restore window",
   ),
 };
 
 const Get_Recents = {
-  recentFiles: cmdEntry(`${raycastExt}/jason/recents/recentCustom`, "Get recent items from Raycast"),
-  recentAdditions: recentDls("-a", "Get recent items from script"),
-  recentMods: recentDls("-m", "Get recent mods from script"),
-  recentCreations: recentDls("-c", "Get new files from script"),
+  recentFiles: cmdEntry(`${raycastExt}/jason/recents/recentCustom`, "get recent items from Raycast"),
+  recentAdditions: recentDls("-a", "get recent items from script"),
+  recentMods: recentDls("-m", "get recent mods from script"),
+  recentCreations: recentDls("-c", "get new files from script"),
 };
 
 const App_Specific = {
   wordPrint: cmdEntry(`${getDocxPath} && ${sendKeys} -c "<c:p:command>"`, "get file path and print in word"),
   wordGetPath: cmdEntry(`${getDocxPath}`, "get file path in word"),
   showSidenotes: cmdEntry(`osascript -e 'tell application "SideNotes" to show all folders'`, "show Sidenotes"),
-  showPopclip: cmdEntry(`osascript -e 'tell application "Popclip" to appear'`, "Show Popclip at cursor position"),
+  showPopclip: cmdEntry(`osascript -e 'tell application "Popclip" to appear'`, "show Popclip at cursor position"),
 };
 
 const Neru_Commands = {
@@ -161,7 +161,7 @@ const Mimi_Commands = {
 const Misc_Scripts = {
   ocrToMd: cmdEntry(
     `'${PATHS.binSharedVenv.path}' '${PATHS.scriptsDir.path}/ui/screenshot_to_md/shot_to_md.py'`,
-    "Take screenshot and convert to markdown",
+    "take screenshot and convert to markdown",
   ),
 };
 

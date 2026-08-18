@@ -20,5 +20,5 @@ const expr = (expr: string, refDesc: string): ExprSpec => ({
 });
 
 export const EXPRS = {
-    isSecureInput: expr("AXSecureTextField", "Focused element is a secure text field"),
+    isSecureInput: expr("AXSecureTextField", "focused element is a secure text field"),
 } as const satisfies Record<string, ExprSpec>; 

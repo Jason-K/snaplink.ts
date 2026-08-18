@@ -49,14 +49,11 @@ const BIN_DIRS = {
 };
 
 // Scoped factory helpers for concise single-line path definitions
-const script = (relPath: string, desc: string): PathSpec =>
-  path(`${ENV_DIRS.scriptsDir.path}/${relPath}`, desc);
+const script = (relPath: string, desc: string): PathSpec => path(`${ENV_DIRS.scriptsDir.path}/${relPath}`, desc);
 
-const brewBin = (binName: string, desc: string): PathSpec =>
-  path(`${BIN_DIRS.brewBin.path}/${binName}`, desc);
+const brewBin = (binName: string, desc: string): PathSpec => path(`${BIN_DIRS.brewBin.path}/${binName}`, desc);
 
-const xdgBin = (binName: string, desc: string): PathSpec =>
-  path(`${ENV_DIRS.xdgBin.path}/${binName}`, desc);
+const xdgBin = (binName: string, desc: string): PathSpec => path(`${ENV_DIRS.xdgBin.path}/${binName}`, desc);
 
 const workDoc = (relPath: string, desc: string): PathSpec =>
   path(`${ENV_DIRS.onedriveWork.path}/Documents/${relPath}`, desc);
@@ -74,11 +71,17 @@ const WORK_DIRS = {
 
 const SCRIPT_FILES = {
   here2there: script("active_process/take_action_here/take_action_here.sh", "Here2There script"),
-  recentDls: script("filesystem/recent_changes/recent_dl.sh", "Recent Dls script"),
-  stringThings: script("strings/text_processor/interfaces/cli.py", "Text Processor CLI entrypoint"),
-  lastTypinatorRule: script("apps/Typinator/Edit_Last_Typinator_Expansion.applescript", "edit the last Typinator rule"),
-  newTypinatorRule: script("apps/Typinator/new_rule/new_rule.py", "create a new Typinator rule"),
-  getDocPath: path(`${HOME}/Scripts/apps/karabiner/snaplink.ts/scripts/applescripts/get-word-document-path.applescript`, "get path to active word document"),
+  recentDls: script("filesystem/recent_changes/recent_dl.sh", "recent Dls script"),
+  stringThings: script("strings/text_processor/interfaces/cli.py", "text processor cli entrypoint"),
+  lastTypinatorRule: script(
+    "apps/Typinator/Edit_Last_Typinator_Expansion.applescript",
+    "edit last Typinator expansion",
+  ),
+  newTypinatorRule: script("apps/Typinator/new_rule/new_rule.py", "create new Typinator rule"),
+  getDocPath: path(
+    `${HOME}/Scripts/apps/karabiner/snaplink.ts/scripts/applescripts/get-word-document-path.applescript`,
+    "get path to active word document",
+  ),
 };
 
 const CONFIG_FILES = {
@@ -86,10 +89,10 @@ const CONFIG_FILES = {
 };
 
 const BIN_FILES = {
-  binCliClick: xdgBin("binCliClick", "Cliclick binary"),
+  binCliClick: xdgBin("binCliClick", "cliclick binary"),
   binHSBridge: path("$HOME/Hammer-Console/cli/hammer", "Hammer CLI bin"),
-  binAppKill: xdgBin("kill-app", "Kill App binary"),
-  binAppOpen: xdgBin("open-app", "Open App binary"),
+  binAppKill: xdgBin("kill-app", "kill app"),
+  binAppOpen: xdgBin("open-app", "open app"),
   binPrivCLI: path("/Applications/Privileges.app/Contents/MacOS/PrivilegesCLI", "PrivilegesCLI"),
   binHS: brewBin("hs", "Hammerspoon binary"),
   binNeru: brewBin("neru", "Neru binary"),

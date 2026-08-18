@@ -7,15 +7,14 @@ import { VARS } from "./vars";
  *  @param value   - value to compare in condition blocks
  *  @param varDesc - human label used in descriptions
  */
-const varState = (
-  ref: VarSpec,
-  value: string | number | boolean,
-  varDesc: string,
-): VarValueSpec => ({ ref, value, varDesc });
+const varState = (ref: VarSpec, value: string | number | boolean, varDesc: string): VarValueSpec => ({
+  ref,
+  value,
+  varDesc,
+});
 
 // Scoped factory helper for UI element states
-const axState = (value: string, varDesc: string): VarValueSpec =>
-  varState(VARS.elementType, value, varDesc);
+const axState = (value: string, varDesc: string): VarValueSpec => varState(VARS.elementType, value, varDesc);
 
 // ---------------------------------------------------------
 // STATES Registry
@@ -27,23 +26,23 @@ const axState = (value: string, varDesc: string): VarValueSpec =>
 export const STATES = {
   // ── Built-in System UI Element States ──────────────────────────────────────
 
-  isTextArea: axState("AXTextArea", "Focused element is a text area"),
-  isTextField: axState("AXTextField", "Focused element is a text field"),
-  isSecureInput: axState("AXSecureTextField", "Focused element is a secure text field"),
-  isSecureInputSubrole: varState(VARS.elementSubtype, "AXSecureTextField*", "Focused element is a secure text field"),
-  isButton: axState("AXButton", "Focused element is a button"),
-  isStaticText: axState("AXStaticText", "Focused element is static text"),
-  isWebArea: axState("AXWebArea", "Focused element is a web area"),
+  isTextArea: axState("AXTextArea", "focused element is a text area"),
+  isTextField: axState("AXTextField", "focused element is a text field"),
+  isSecureInput: axState("AXSecureTextField", "focused element is a secure text field"),
+  isSecureInputSubrole: varState(VARS.elementSubtype, "AXSecureTextField*", "focused element is secure input"),
+  isButton: axState("AXButton", "focused element is a button"),
+  isStaticText: axState("AXStaticText", "focused element is static text"),
+  isWebArea: axState("AXWebArea", "focused element is a web area"),
 
   // ── User / Mouse States ──────────────────────────────────────────────────
 
-  rButtonDown: varState(VARS.rButtonDown, 1, "Button 2 is pressed"),
-  rButtonUp: varState(VARS.rButtonDown, 0, "Button 2 is not pressed"),
-  wheelDown: varState(VARS.wheelDown, 1, "Wheel is held down"),
-  wheelUp: varState(VARS.wheelDown, 0, "Wheel is not held down"),
-  lButtonDown: varState(VARS.lButtonDown, 1, "Left button is pressed"),
-  lButtonUp: varState(VARS.lButtonDown, 0, "Left button is not pressed"),
-  lButtonFirstTap: varState(VARS.lButtonTapCount, 1, "Left+right first tap"),
+  rButtonDown: varState(VARS.rButtonDown, 1, "button 2 is pressed"),
+  rButtonUp: varState(VARS.rButtonDown, 0, "button 2 is not pressed"),
+  wheelDown: varState(VARS.wheelDown, 1, "wheel is held down"),
+  wheelUp: varState(VARS.wheelDown, 0, "wheel is not held down"),
+  lButtonDown: varState(VARS.lButtonDown, 1, "left button is pressed"),
+  lButtonUp: varState(VARS.lButtonDown, 0, "left button is not pressed"),
+  lButtonFirstTap: varState(VARS.lButtonTapCount, 1, "left+right first tap"),
 } as const satisfies Record<string, VarValueSpec>;
 
 // ---------------------------------------------------------

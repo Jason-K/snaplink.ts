@@ -29,26 +29,26 @@ const g502xBtn = (button: PointingButton, desc: string): ButtonSpec => ({
 export const BUTTONS = {
   // Physically standard (most pointing devices) → global. Bindings that must
   // restrict them add an explicit `device` condition.
-  left: globalBtn("button1", "Left click"),
-  right: globalBtn("button2", "Right click"),
-  middle: globalBtn("button3", "Middle click"),
-  wheel: globalBtn("button3", "Wheel click"),
-  back: globalBtn("button4", "Back button"),
+  left: globalBtn("button1", "left click"),
+  right: globalBtn("button2", "right click"),
+  middle: globalBtn("button3", "middle click"),
+  wheel: globalBtn("button3", "wheel click"),
+  back: globalBtn("button4", "back button"),
   // G502X-specific extra buttons → auto-scope to the G502X.
-  shift_button: g502xBtn("button5", "Shift button"),
-  forward: g502xBtn("button6", "Forward button"),
-  wheelLeft: g502xBtn("button7", "Wheel left"),
-  wheelRight: g502xBtn("button8", "Wheel right"),
-  middleBack: g502xBtn("button9", "Middle-back (G9)"),
-  leftForward: g502xBtn("button10", "Left-forward (G8)"),
-  leftBack: g502xBtn("button11", "Left-back (G7)"),
+  shift_button: g502xBtn("button5", "shift button"),
+  forward: g502xBtn("button6", "forward button"),
+  wheelLeft: g502xBtn("button7", "wheel left"),
+  wheelRight: g502xBtn("button8", "wheel right"),
+  middleBack: g502xBtn("button9", "middle-back button"),
+  leftForward: g502xBtn("button10", "left-forward button"),
+  leftBack: g502xBtn("button11", "left-back button"),
 } as const satisfies Record<string, ButtonSpec>;
 
 /** Fallback descriptions for buttons no {@link BUTTONS} entry names. */
 export const BUTTON_DESCS: Partial<Record<PointingButton, string>> = {
-  button1: "Left click",
-  button2: "Right click",
-  button3: "Middle click",
+  button1: "left click",
+  button2: "right click",
+  button3: "middle click",
 };
 
 /**
