@@ -28,10 +28,10 @@ test("describeAction: appHistory / folder / raycast / cleanShot / command", () =
     "open 'DLs' | new tab",
   );
   assert.equal(describeAction({ type: "url", url: URLS.rayClipboard }), "Call 'open Raycast clipboard manager'");
-  assert.equal(describeAction({ type: "url", url: URLS.csxArea }), "Capture area using CSX");
-  assert.equal(describeAction({ type: "command", ref: CMDS.fillPw }), "Run command 'Fill password'");
+  assert.equal(describeAction({ type: "url", url: URLS.csxArea }), "capture a screenshot of an area using CSX");
+  assert.equal(describeAction({ type: "command", ref: CMDS.fillPw }), "Run command 'fill password'");
   // shell accepts a CommandRef too — describes via refDesc (not the raw command).
-  assert.equal(describeAction({ type: "shell", command: CMDS.fillPw }), "Run 'Fill password'");
+  assert.equal(describeAction({ type: "shell", command: CMDS.fillPw }), "Run 'fill password'");
   assert.equal(describeAction({ type: "shell", command: "echo ad-hoc" }), "Run 'echo ad-hoc'");
 });
 
@@ -155,8 +155,8 @@ test("describeTrigger: simultaneous chord joins keys with ']+['", () => {
 
 test("describeTrigger: pointer (button labels)", () => {
   assert.equal(describeTrigger({ pointer: "left" }), "left click:");
-  assert.equal(describeTrigger({ pointer: "shift_button" }), "Shift button:");
-  assert.equal(describeTrigger({ pointer: "left", modifiers: ["left_command"] }), "[⌘]+Left click:");
+  assert.equal(describeTrigger({ pointer: "shift_button" }), "shift button:");
+  assert.equal(describeTrigger({ pointer: "left", modifiers: ["left_command"] }), "[⌘]+left click:");
 });
 
 const evaluateCmd = { type: "command" as const, command: "x", refDesc: "Evaluate selection" };
@@ -248,6 +248,6 @@ test("describeTrigger formats optional modifiers correctly", () => {
       pointer: "left",
       modifiers: { mandatory: ["left_command"], optional: ["left_shift"] },
     }),
-    "[⌘]+(⇧)?+Left click:",
+    "[⌘]+(⇧)?+left click:",
   );
 });

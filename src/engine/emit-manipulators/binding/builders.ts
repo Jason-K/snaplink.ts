@@ -25,6 +25,7 @@ import {
   fromModifiersObj,
   resolveSimKarOptions,
   simultaneousMultiTap,
+  simultaneousRemap,
   simultaneousTapHold,
   tapHold,
   tapHoldFrom,
@@ -150,6 +151,15 @@ export function buildMultiTap(
       karOptions: resolveSimKarOptions(b),
       simultaneousThresholdMs: b.timing?.simultaneousMs,
     });
+    const pressDo = cases
+      .filter((c) => c.tapCount === 1 && c.phase === "press")
+      .flatMap((c) => c.do);
+    if (pressDo.length) {
+      manipulators.forEach((m: any) => {
+        m.to = m.to || [];
+        m.to.push(...pressDo);
+      });
+    }
     attachConditions(manipulators, cases);
     stampLabel(manipulators, unionRawConditions(cases));
     return manipulators;
@@ -237,14 +247,29 @@ export function buildSimultaneousTapHold(
   const keys = getTriggerKeys(b.trigger);
   const byPhase = (p: Phase) =>
     cases.filter((c) => c.phase === p).flatMap((c) => c.do);
-  const manipulators = simultaneousTapHold({
-    keys,
-    alone: byPhase("release"),
-    hold: byPhase("hold"),
-    thresholdMs: b.timing?.aloneMs,
-    karOptions: resolveSimKarOptions(b),
-    simultaneousThresholdMs: b.timing?.simultaneousMs,
-  });
+  const releaseEvents = byPhase("release");
+  const holdEvents = byPhase("hold");
+  const pressEvents = byPhase("press");
+
+  const hasTapHold = releaseEvents.length > 0 || holdEvents.length > 0;
+
+  const manipulators = hasTapHold
+    ? simultaneousTapHold({
+        keys,
+        to: pressEvents.length > 0 ? pressEvents : undefined,
+        alone: releaseEvents,
+        hold: holdEvents,
+        thresholdMs: b.timing?.aloneMs,
+        karOptions: resolveSimKarOptions(b),
+        simultaneousThresholdMs: b.timing?.simultaneousMs,
+      })
+    : simultaneousRemap({
+        keys,
+        to: pressEvents,
+        karOptions: resolveSimKarOptions(b),
+        simultaneousThresholdMs: b.timing?.simultaneousMs,
+      });
+
   attachConditions(manipulators, cases);
   stampLabel(manipulators, unionRawConditions(cases));
   return manipulators;

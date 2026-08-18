@@ -19,16 +19,12 @@ function moddedTapHold(key: TriggerKey, mod: ActionKeyModifier): Binding {
 // Duplicate-trigger detection lives in analyze-conflicts now; see
 // analyze-conflicts.test.ts for the full classification matrix.
 test("conflict analysis: distinct triggers produce no errors", () => {
-  const report = analyzeConflicts([
-    { name: "s", bindings: [bareHold("a"), bareHold("b")] },
-  ]);
+  const report = analyzeConflicts([{ name: "s", bindings: [bareHold("a"), bareHold("b")] }]);
   assert.deepEqual(report.errors, []);
 });
 
 test("conflict analysis: duplicate trigger is reported (order-independent mods)", () => {
-  const report = analyzeConflicts([
-    { name: "s", bindings: [moddedTapHold("q", "COCS"), moddedTapHold("q", "COCS")] },
-  ]);
+  const report = analyzeConflicts([{ name: "s", bindings: [moddedTapHold("q", "COCS"), moddedTapHold("q", "COCS")] }]);
   assert.equal(report.errors.length, 1);
   assert.equal(report.errors[0]?.kind, "duplicate");
 });
@@ -38,5 +34,5 @@ test("resolveButton: alias + nameScope + raw fallback", () => {
   assert.deepEqual(resolveButton("shift_button").nameScope, ["g502X"]);
   assert.equal(resolveButton("left").nameScope, "global");
   assert.equal(resolveButton("button99").button, "button99");
-  assert.equal(resolveButton("button1").desc, "Left click");
+  assert.equal(resolveButton("button1").desc, "left click");
 });

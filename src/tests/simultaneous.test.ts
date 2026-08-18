@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { generateSimultaneousRules } from "../engine";
+import { bind, generateSimultaneousRules, key, press, simultaneous, to } from "../engine";
 import type { Binding, SimultaneousConfig } from "../engine";
 
 function toRule(input: any): any {
@@ -8,6 +8,71 @@ function toRule(input: any): any {
 }
 
 const noTapHold: Binding[] = [];
+
+// ── Direct remap (to) path ───────────────────────────────────────────────────
+
+test("generateSimultaneousRules accepts Binding[] constructed via simultaneous DSL", () => {
+  const rules = generateSimultaneousRules(
+    [
+      bind(
+        simultaneous("left_option", "right_option"),
+        to(press(key("slash", ["right_control"]))),
+      ),
+    ],
+    noTapHold,
+  );
+  assert.equal(rules.length, 1);
+  const rule = toRule(rules[0]);
+  assert.equal(rule.description, "[⌥]+[⌥]:\n---\n\tOn Tap:\n\t\tAlways:\tEmit ⌃> + '/'");
+  const m = rule.manipulators[0];
+  assert.equal(m.type, "basic");
+  assert.deepEqual(m.from.simultaneous, [
+    { key_code: "left_option" },
+    { key_code: "right_option" },
+  ]);
+  assert.deepEqual(m.from.modifiers, { optional: ["any"] });
+  assert.deepEqual(m.to, [
+    {
+      key_code: "slash",
+      modifiers: ["right_control"],
+      repeat: false,
+    },
+  ]);
+});
+
+test("direct remap (to): produces basic simultaneous manipulator with to property and no tap-hold parameters", () => {
+  const rules = generateSimultaneousRules(
+    {
+      both_options: {
+        keys: ["left_option", "right_option"],
+        description: "Both ⌥ keys pressed",
+        to: [{ type: "key", key: "slash", modifiers: ["right_control"], options: { repeat: false } }],
+      },
+    },
+    noTapHold,
+  );
+  const rule = toRule(rules[0]);
+  assert.equal(rule.description, "[⌥]+[⌥]:\n---\n\tOn Tap:\n\t\tAlways:\tEmit ⌃> + '/'");
+  assert.equal(rule.manipulators.length, 1);
+  const m = rule.manipulators[0];
+  assert.equal(m.type, "basic");
+  assert.deepEqual(m.from.simultaneous, [
+    { key_code: "left_option" },
+    { key_code: "right_option" },
+  ]);
+  assert.deepEqual(m.from.modifiers, { optional: ["any"] });
+  assert.deepEqual(m.to, [
+    {
+      key_code: "slash",
+      modifiers: ["right_control"],
+      repeat: false,
+    },
+  ]);
+  assert.equal(m.parameters, undefined);
+  assert.equal(m.to_if_alone, undefined);
+  assert.equal(m.to_if_held_down, undefined);
+  assert.equal(m.to_delayed_action, undefined);
+});
 
 // ── Tap-hold path ─────────────────────────────────────────────────────────────
 

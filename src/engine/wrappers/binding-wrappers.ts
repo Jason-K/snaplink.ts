@@ -8,6 +8,7 @@ import type {
   PointerMotionToScroll,
   PointerMotionTrigger,
   PointerTransform,
+  TriggerKey,
   TriggerModifiers,
   VarSpec,
 } from "../../data";
@@ -15,7 +16,7 @@ import type { AcceptUndefined } from "../../types/util";
 import type { PointerAxis } from "../../types/karabiner";
 import { when, type StateItem, type WhenWrapper } from "./condition-wrappers";
 import { conditionKind } from "../resolve-conditions";
-import { from, type FromInput, triggerKeys, triggerPointer } from "./from-action-wrappers";
+import { from, type FromInput, simultaneous, triggerKeys, triggerPointer } from "./from-action-wrappers";
 import { CaseBuilder, type ActionInput, type ToWrapper } from "./to-action-wrappers";
 
 export type BindingOptionsSpec = Partial<Omit<Binding, "trigger" | "cases">>;
@@ -333,6 +334,48 @@ export function bindPointer(
   const { modifiers: _m, ...restOpts } = opts ?? {};
   return bind(triggerPointer(pointer, modifiers), cases, restOpts);
 }
+
+/**
+ * Creates a simultaneous key chord-triggered Karabiner `Binding`.
+ *
+ * @param keys - Array of keys or pointers to trigger simultaneously.
+ * @param cases - Action case or array of cases to execute when triggered.
+ * @param modifiersOrOptions - Optional trigger modifiers (e.g. `["shift"]`) or `BindingOptions`.
+ * @param options - Additional binding options if modifiers were supplied as the 3rd argument.
+ * @returns A fully constructed `Binding` object for simultaneous triggers.
+ *
+ * @example
+ * ```ts
+ * bindSimultaneous(["left_option", "right_option"], press(key("slash", ["right_control"])))
+ * bindSimultaneous(["j", "k"], hold(app(APPS.finder)), ["shift"], { description: "J+K chord" })
+ * ```
+ */
+export function bindSimultaneous(
+  keys: TriggerKey | TriggerKey[],
+  cases: Case | Case[],
+  modifiersOrOptions?: TriggerModifiers | BindingOptions,
+  options?: BindingOptions,
+): Binding {
+  let modifiers: TriggerModifiers | undefined;
+  let opts: BindingOptions | undefined;
+
+  if (isTriggerModifiers(modifiersOrOptions)) {
+    modifiers = modifiersOrOptions;
+    opts = options;
+  } else {
+    opts = modifiersOrOptions;
+    modifiers = opts?.modifiers;
+  }
+
+  const { modifiers: _m, ...restOpts } = opts ?? {};
+  const keysArray = Array.isArray(keys) ? keys : [keys];
+  return bind(triggerKeys(keysArray, modifiers), cases, restOpts);
+}
+
+/**
+ * Alias for {@link bindSimultaneous}.
+ */
+export const bindChord = bindSimultaneous;
 
 /**
  * Creates one `Binding` per table entry, all sharing the same trigger phase,

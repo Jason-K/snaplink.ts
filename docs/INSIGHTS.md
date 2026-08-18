@@ -131,14 +131,15 @@ Each additional variable widens the state space and makes failure modes harder t
 
 ### Tier Routing
 
-The engine routes each chord to one of two paths:
+The engine routes each chord to one of three paths:
 
 | Condition | Path | Core function |
 |---|---|---|
-| `tapTap` or `tapTapHold` absent | tap-hold | `simultaneousTapHold` → `mapSimultaneous` builder |
+| `to` present (no `alone`/`hold`/`tapTap`/`tapTapHold`) | remap (direct press) | `simultaneousRemap` → `mapSimultaneous` builder |
+| `alone` or `hold` present (no `tapTap`/`tapTapHold`) | tap-hold | `simultaneousTapHold` → `mapSimultaneous` builder |
 | `tapTap` or `tapTapHold` present | multi-tap | `simultaneousMultiTap` → `varTapTapHoldFrom` |
 
-The tap-hold path uses `mapSimultaneous` (`src/engine/karabiner-helpers.ts`), which builds the simultaneous from-event internally. The multi-tap path manually builds a raw `FromEvent` via `buildSimultaneousFromEvent` and passes it to `varTapTapHoldFrom`, which treats it like any other raw from event.
+The direct remap and tap-hold paths use `mapSimultaneous` (`src/engine/karabiner-helpers.ts`), which builds the simultaneous from-event internally. The multi-tap path manually builds a raw `FromEvent` via `buildSimultaneousFromEvent` and passes it to `varTapTapHoldFrom`, which treats it like any other raw from event.
 
 ### State Variable Naming
 
@@ -167,22 +168,16 @@ layer would need the suppression pass as well.
 Define the chord in `src/definitions/simultaneous.ts`:
 
 ```typescript
-export const simultaneousMappings: Record<string, SimultaneousConfig> = {
-  "jk": {
-    keys: ["j", "k"],
-    description: "J+K chord",
-    alone: [{ type: "key", key: "escape" }],
-    hold:  [{ type: "app", ref: "finder" }],
-  },
-};
+export const simultaneousBindings: Binding[] = [
+  bind(
+    simultaneous("j", "k"),
+    to(release(key("escape")), hold(app(APPS.myFinder))),
+    options({ description: "J+K chord" }),
+  ),
+];
 ```
 
-The record key is the label — used for rule descriptions and variable naming. No
-other files need changes: `buildRules()` in `src/config.ts` already passes
-`simultaneousMappings` through `generateSimultaneousRules`, and emits chords
-ahead of everything else. A single-key rule for one of a chord's members can
-otherwise consume the chord's first key-down, and trigger order cannot express
-that dependency.
+No other files need changes: `buildRules()` in `src/config.ts` passes `simultaneousBindings` through `generateSimultaneousRules`, and emits chords ahead of everything else. A single-key rule for one of a chord's members can otherwise consume the chord's first key-down, and trigger order cannot express that dependency.
 
 ## References
 

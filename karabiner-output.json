@@ -2,6 +2,38 @@
   "complex_modifications": {
     "rules": [
       {
+        "description": "[⌥]+[⌥]:\n---\n\tOn Tap:\n\t\tAlways:\tEmit ⌃> + '/'",
+        "manipulators": [
+          {
+            "type": "basic",
+            "from": {
+              "simultaneous": [
+                {
+                  "key_code": "left_option"
+                },
+                {
+                  "key_code": "right_option"
+                }
+              ],
+              "modifiers": {
+                "optional": [
+                  "any"
+                ]
+              }
+            },
+            "to": [
+              {
+                "repeat": false,
+                "key_code": "slash",
+                "modifiers": [
+                  "right_control"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
         "description": "[CAPS] layer:\n---\n\tOn Tap:\n\t\tAlways:\tEmit ⌘⌥⌃⇧ + 'F15'\n\tOn Hold:\n\t\tAlone:\tEmit ⌘⌥⌃⇧ + key\n\t\tWith ⇧:\tEmit ⌘⌥⌃ + key\n\t\tWith ⌃:\tEmit ⌘⌥⇧ + key\n\t\tWith ⌥:\tEmit ⌘⌃⇧ + key\n\t\tWith ⌘:\tEmit ⌥⌃⇧ + key\n\t\t(the held modifier is consumed by the layer; two of them fall through)\n\t\t(where a rule already exists for that combination, it runs instead)",
         "manipulators": [
           {

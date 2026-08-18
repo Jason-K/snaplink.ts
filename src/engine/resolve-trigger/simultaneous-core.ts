@@ -61,8 +61,35 @@ function buildSimultaneousFromEvent(
   };
 }
 
+export type SimultaneousRemapCoreOpts = {
+  keys: string[];
+  to?: ToEvent[];
+  karOptions?: KarSimultaneousOptions;
+  simultaneousThresholdMs?: number;
+};
+
+/** Direct remap path: uses mapSimultaneous without tap-hold timeouts. */
+export function simultaneousRemap({
+  keys,
+  to,
+  karOptions,
+  simultaneousThresholdMs,
+}: AcceptUndefined<SimultaneousRemapCoreOpts>): Manipulator[] {
+  const mappedKeys = keys.map(mapSimKey);
+  const builder = mapSimultaneous(
+    mappedKeys as any[],
+    karOptions,
+    simultaneousThresholdMs,
+  ).modifiers("optionalAny");
+
+  if (to) to.forEach((e) => builder.to(e));
+
+  return builder.build();
+}
+
 export type SimultaneousTapHoldCoreOpts = {
   keys: string[];
+  to?: ToEvent[];
   alone?: ToEvent[];
   hold?: ToEvent[];
   thresholdMs?: number;
@@ -73,6 +100,7 @@ export type SimultaneousTapHoldCoreOpts = {
 /** Tap-hold path: uses mapSimultaneous builder from karabiner.ts. */
 export function simultaneousTapHold({
   keys,
+  to,
   alone,
   hold,
   thresholdMs = 300,
@@ -91,6 +119,7 @@ export function simultaneousTapHold({
     })
     .modifiers("optionalAny");
 
+  if (to) to.forEach((e) => builder.to(e));
   if (alone) alone.forEach((e) => builder.toIfAlone(e));
   if (hold) hold.forEach((e) => builder.toIfHeldDown(e));
   builder.toDelayedAction([], alone ?? []);

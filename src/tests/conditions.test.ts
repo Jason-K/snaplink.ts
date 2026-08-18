@@ -3,13 +3,7 @@ import test from "node:test";
 
 import { APPS, STATES, VARS } from "../data";
 import { state, unless } from "../engine/wrappers/condition-wrappers";
-import {
-  ifVarExpr,
-  toTrigger,
-  toUserCommand,
-  toVarExpr,
-  unlessVarExpr,
-} from "../engine/resolve-to-action";
+import { ifVarExpr, toTrigger, toUserCommand, toVarExpr, unlessVarExpr } from "../engine/resolve-to-action";
 
 test("toVarExpr emits documented expression fields", () => {
   assert.deepEqual(toVarExpr("mode", "mode != 0 ? 0 : 1", "0"), {
@@ -43,15 +37,12 @@ test("beta helpers serialize send_user_command and from_event", () => {
       },
     },
   });
-  assert.deepEqual(
-    toUserCommand({ command: "hide_layer" }, "/tmp/receiver.sock"),
-    {
-      send_user_command: {
-        payload: { command: "hide_layer" },
-        endpoint: "/tmp/receiver.sock",
-      },
+  assert.deepEqual(toUserCommand({ command: "hide_layer" }, "/tmp/receiver.sock"), {
+    send_user_command: {
+      payload: { command: "hide_layer" },
+      endpoint: "/tmp/receiver.sock",
     },
-  );
+  });
   assert.deepEqual(toTrigger(), { from_event: true });
 });
 
@@ -60,14 +51,14 @@ test("state builder checks STATES registry keys, VarValueSpec, and VarSpec", () 
   assert.deepEqual(condString, {
     var: VARS.rButtonDown,
     equals: 1,
-    description: "Button 2 is pressed",
+    description: "button 2 is pressed",
   });
 
   const condSpec = state(STATES.wheelDown);
   assert.deepEqual(condSpec, {
     var: VARS.wheelDown,
     equals: 1,
-    description: "Wheel is held down",
+    description: "wheel is held down",
   });
 
   const condUnless = state("rButtonDown", false);
@@ -75,7 +66,7 @@ test("state builder checks STATES registry keys, VarValueSpec, and VarSpec", () 
     var: VARS.rButtonDown,
     equals: 1,
     unless: true,
-    description: "Button 2 is pressed",
+    description: "button 2 is pressed",
   });
 
   const condVarSpec = state(VARS.lButtonDown, 1);
@@ -119,6 +110,3 @@ test("unless builder enforces negation across all items", () => {
     { app: APPS.zen, unless: true },
   ]);
 });
-
-
-

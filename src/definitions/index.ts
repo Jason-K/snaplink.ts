@@ -15,5 +15,5 @@ export const tapHoldBindings: Binding[] = [
   ...modifiedSingleKeyTapHoldBindings,
 ];
 
-export { simultaneousMappings } from "./simultaneous";
+export { simultaneousBindings, simultaneousMappings } from "./simultaneous";
 export { NUMPAD_REMAPS, SWAP_CTRL_FN } from "./simple-modifications";

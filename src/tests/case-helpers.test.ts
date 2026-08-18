@@ -3,8 +3,12 @@ import test from "node:test";
 import { APPS, CMDS, COMBOS, URLS, VARS } from "../data";
 import {
   bind,
+  bindChord,
   bindKeys,
+  bindPointer,
+  bindSimultaneous,
   bindTable,
+  chord,
   cmd,
   condApp,
   condNotApp,
@@ -30,6 +34,7 @@ import {
   sequence,
   setVar,
   shell,
+  simultaneous,
   tapAndHold,
   triggerKeys,
   triggerPointer,
@@ -295,6 +300,102 @@ test("from() wrapper handles single keys, key chords, SimOrder, TriggerModifiers
 
   const bChord = bind(["j", "k"], press(noop()), { timing: { simultaneousMs: 50 } });
   assert.deepEqual(bChord.trigger, { keys: ["j", "k"] });
+});
+
+test("simultaneous() and chord() DSL helpers construct trigger objects flexibly", () => {
+  // Variadic keys
+  assert.deepEqual(simultaneous("left_option", "right_option"), {
+    keys: ["left_option", "right_option"],
+  });
+  assert.deepEqual(chord("j", "k"), {
+    keys: ["j", "k"],
+  });
+
+  // Array of keys + modifiers + order
+  assert.deepEqual(simultaneous(["j", "k"], ["shift"], { down: "strict" }), {
+    keys: ["j", "k"],
+    modifiers: ["shift"],
+    order: { down: "strict" },
+  });
+
+  // Array of keys + string order
+  assert.deepEqual(chord(["j", "k"], "strict"), {
+    keys: ["j", "k"],
+    order: { down: "strict" },
+  });
+
+  // Configuration object with simultaneous / keys / simultaneous_options
+  assert.deepEqual(
+    simultaneous({
+      simultaneous: ["left_option", "right_option"],
+      modifiers: { optional: ["any"] },
+      simultaneous_options: {
+        key_down_order: "strict",
+        key_up_order: "strict_inverse",
+        key_up_when: "all",
+        detect_key_down_uninterruptedly: true,
+      },
+    }),
+    {
+      keys: ["left_option", "right_option"],
+      modifiers: { optional: ["any"] },
+      order: {
+        down: "strict",
+        up: "strict_inverse",
+        upWhen: "all",
+        detectUninterrupted: true,
+      },
+    },
+  );
+
+  // from() with { simultaneous: [...] } and { chord: [...] }
+  assert.deepEqual(
+    from({ simultaneous: ["left_option", "right_option"] }),
+    { keys: ["left_option", "right_option"] },
+  );
+  assert.deepEqual(
+    from({ chord: ["j", "k"], order: "strict" }),
+    { keys: ["j", "k"], order: { down: "strict" } },
+  );
+
+  // bindSimultaneous and bindChord shorthands
+  const b1 = bindSimultaneous(
+    ["left_option", "right_option"],
+    press(key("slash", ["right_control"])),
+  );
+  assert.deepEqual(b1.trigger, { keys: ["left_option", "right_option"] });
+
+  const b2 = bindChord(
+    ["j", "k"],
+    hold(app(APPS.myFinder)),
+    ["shift"],
+    { description: "J+K chord" },
+  );
+  assert.deepEqual(b2.trigger, { keys: ["j", "k"], modifiers: ["shift"] });
+  assert.equal(b2.description, "J+K chord");
+
+  // Compiles to expected Karabiner rules via defineBindings
+  const rules = defineBindings([
+    bind(
+      simultaneous("left_option", "right_option"),
+      to(press(key("slash", ["right_control"]))),
+    ),
+  ]);
+  assert.equal(rules.length, 1);
+  const m = (rules[0] as any).manipulators[0];
+  assert.equal(m.type, "basic");
+  assert.deepEqual(m.from.simultaneous, [
+    { key_code: "left_option" },
+    { key_code: "right_option" },
+  ]);
+  assert.deepEqual(m.from.modifiers, { optional: ["any"] });
+  assert.deepEqual(m.to, [
+    {
+      key_code: "slash",
+      modifiers: ["right_control"],
+      repeat: false,
+    },
+  ]);
 });
 
 test("defineBindings supports mixed key and pointer button simultaneous triggers", () => {

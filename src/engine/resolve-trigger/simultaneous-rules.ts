@@ -20,7 +20,8 @@ export type SimultaneousOptions = {
 
 export type SimultaneousConfig = {
   keys: TriggerKey[];
-  description: string;
+  description?: string;
+  to?: ActionSpec[];
   alone?: ActionSpec[];
   hold?: ActionSpec[];
   tapTap?: ActionSpec[];
@@ -48,13 +49,19 @@ function resolveOrder(simOpts: SimultaneousOptions | undefined): SimOrder | unde
 }
 
 export function generateSimultaneousRules(
-  mappings: Record<string, SimultaneousConfig>,
+  mappingsOrBindings: Record<string, SimultaneousConfig> | Binding[],
   tapHoldBindings: Binding[],
 ): Rule[] {
-  validateMappings(mappings, tapHoldBindings);
+  if (Array.isArray(mappingsOrBindings)) {
+    validateSimultaneousBindings(mappingsOrBindings, tapHoldBindings);
+    return defineBindings(mappingsOrBindings);
+  }
 
-  const bindings: Binding[] = Object.entries(mappings).map(([, config]) => {
+  validateMappings(mappingsOrBindings, tapHoldBindings);
+
+  const bindings: Binding[] = Object.entries(mappingsOrBindings).map(([, config]) => {
     const cases: Case[] = [];
+    if (config.to) cases.push({ phase: "press", do: config.to });
     if (config.alone) cases.push({ phase: "release", do: config.alone });
     if (config.hold) cases.push({ phase: "hold", do: config.hold });
     if (config.tapTap) cases.push({ tapCount: 2, phase: "release", do: config.tapTap });
@@ -91,6 +98,63 @@ function normalizedChordKey(keys: string[], keyDownOrder?: string): string {
   return `${sorted}__${keyDownOrder ?? "insensitive"}`;
 }
 
+function validateSimultaneousBindings(
+  bindings: Binding[],
+  tapHoldBindings: Binding[],
+): void {
+  for (const b of bindings) {
+    const keys = "keys" in b.trigger ? b.trigger.keys : [];
+    if (keys.length < 2) {
+      throw new Error(
+        `Simultaneous binding "${b.description ?? "unnamed"}": requires at least 2 keys, got ${keys.length}.`,
+      );
+    }
+    if (!b.cases.length) {
+      throw new Error(
+        `Simultaneous binding "${b.description ?? "unnamed"}": no action cases specified. This would produce a no-op rule.`,
+      );
+    }
+  }
+
+  // Check 1: duplicate chords (order-aware)
+  const seen = new Map<string, string>();
+  for (const b of bindings) {
+    const keys = "keys" in b.trigger ? b.trigger.keys : [];
+    const downOrder = "order" in b.trigger ? b.trigger.order?.down : undefined;
+    const key = normalizedChordKey(keys, downOrder);
+    const label = b.description ?? keys.join("+");
+    if (seen.has(key)) {
+      throw new Error(
+        `Simultaneous chord "${label}" is a duplicate of "${seen.get(key)}" — same keys and key_down_order.`,
+      );
+    }
+    seen.set(key, label);
+  }
+
+  // Check 2: tap-hold key overlap
+  const bareHoldKeys = new Set(
+    tapHoldBindings
+      .filter((b) => {
+        if (!("keys" in b.trigger)) return false;
+        const { mandatory, optional } = resolveModifiers(b.trigger.modifiers);
+        return mandatory.length === 0 && optional.length === 0;
+      })
+      .flatMap((b) => (b.trigger as { keys: string[] }).keys),
+  );
+  for (const b of bindings) {
+    const keys = "keys" in b.trigger ? b.trigger.keys : [];
+    const label = b.description ?? keys.join("+");
+    for (const key of keys) {
+      if (bareHoldKeys.has(key)) {
+        throw new Error(
+          `Simultaneous chord "${label}" conflict: key "${key}" is also defined as a bare tap-hold key. ` +
+            `Add a modifier prefix to the tap-hold entry (e.g., "cmd+${key}") to resolve the ambiguity.`,
+        );
+      }
+    }
+  }
+}
+
 function validateMappings(
   mappings: Record<string, SimultaneousConfig>,
   tapHoldBindings: Binding[],
@@ -107,9 +171,9 @@ function validateMappings(
         `Simultaneous chord "${label}": tapTap and tapTapHold are mutually exclusive.`,
       );
     }
-    if (!config.alone && !config.hold && !config.tapTap && !config.tapTapHold) {
+    if (!config.to && !config.alone && !config.hold && !config.tapTap && !config.tapTapHold) {
       throw new Error(
-        `Simultaneous chord "${label}": no action fields specified (alone, hold, tapTap, or tapTapHold). This would produce a no-op rule.`,
+        `Simultaneous chord "${label}": no action fields specified (to, alone, hold, tapTap, or tapTapHold). This would produce a no-op rule.`,
       );
     }
   }
