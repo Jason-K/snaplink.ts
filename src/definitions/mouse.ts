@@ -15,6 +15,7 @@ import {
   when,
   type Binding,
   button,
+  motionToScroll,
 } from "../engine";
 import type { PointerTweak } from "../data";
 
@@ -205,16 +206,9 @@ export const mouseBindings: Binding[] = [
  * every entry scoped, and test with the built-in trackpad available.
  */
 export const pointerTweaks: PointerTweak[] = [
-  {
-    kind: "motionToScroll",
-    description: "Hold fn and move the pointer to scroll",
-    // `fn` is what scopes this: without modifiers *and* without conditions, all
-    // pointer motion becomes scrolling permanently (1.3).
-    //
-    // `optional: ["any"]` matters as much as the mandatory half — without it
-    // the rule silently stops firing the moment any other modifier is held,
-    // which is the most common cause of "my rule doesn't work" (3.2). Here that
-    // would mean fn+shift+move doing nothing.
-    modifiers: { mandatory: ["fn"], optional: ["any"] },
-  },
+  motionToScroll({
+    description: "Hold right click and move the pointer to scroll",
+    when: VARS.rButtonDown,
+    speedMultiplier: 0.5,
+  }),
 ];
