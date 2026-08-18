@@ -11,29 +11,14 @@ import {
 } from "../engine/resolve-description/description-synthesizer";
 
 test("describeAction: app variants by mode + actionDesc", () => {
-  assert.equal(
-    describeAction({ type: "app", ref: APPS.excel }),
-    "open Microsoft Excel",
-  );
-  assert.equal(
-    describeAction({ type: "app", ref: APPS.excel, mode: "shell" }),
-    "open-shell Microsoft Excel",
-  );
-  assert.equal(
-    describeAction({ type: "app", ref: APPS.excel, actionDesc: "force" }),
-    "open Microsoft Excel | force",
-  );
+  assert.equal(describeAction({ type: "app", ref: APPS.excel }), "open Microsoft Excel");
+  assert.equal(describeAction({ type: "app", ref: APPS.excel, mode: "shell" }), "open-shell Microsoft Excel");
+  assert.equal(describeAction({ type: "app", ref: APPS.excel, actionDesc: "force" }), "open Microsoft Excel | force");
 });
 
 test("describeAction: appHistory / folder / raycast / cleanShot / command", () => {
-  assert.equal(
-    describeAction({ type: "appHistory", index: 2 }),
-    "Go back 2 apps",
-  );
-  assert.equal(
-    describeAction({ type: "folder", ref: PATHS.dlsDir }),
-    "open 'DLs'",
-  );
+  assert.equal(describeAction({ type: "appHistory", index: 2 }), "Go back 2 apps");
+  assert.equal(describeAction({ type: "folder", ref: PATHS.dlsDir }), "open 'DLs'");
   assert.equal(
     describeAction({
       type: "folder",
@@ -42,36 +27,18 @@ test("describeAction: appHistory / folder / raycast / cleanShot / command", () =
     }),
     "open 'DLs' | new tab",
   );
-  assert.equal(
-    describeAction({ type: "url", url: URLS.rayClipboard }),
-    "Call 'open Raycast clipboard manager'",
-  );
-  assert.equal(
-    describeAction({ type: "url", url: URLS.csxArea }),
-    "Capture area using CSX",
-  );
-  assert.equal(
-    describeAction({ type: "command", ref: CMDS.fillPw }),
-    "Run command 'Fill password'",
-  );
+  assert.equal(describeAction({ type: "url", url: URLS.rayClipboard }), "Call 'open Raycast clipboard manager'");
+  assert.equal(describeAction({ type: "url", url: URLS.csxArea }), "Capture area using CSX");
+  assert.equal(describeAction({ type: "command", ref: CMDS.fillPw }), "Run command 'Fill password'");
   // shell accepts a CommandRef too — describes via refDesc (not the raw command).
-  assert.equal(
-    describeAction({ type: "shell", command: CMDS.fillPw }),
-    "Run 'Fill password'",
-  );
-  assert.equal(
-    describeAction({ type: "shell", command: "echo ad-hoc" }),
-    "Run 'echo ad-hoc'",
-  );
+  assert.equal(describeAction({ type: "shell", command: CMDS.fillPw }), "Run 'Fill password'");
+  assert.equal(describeAction({ type: "shell", command: "echo ad-hoc" }), "Run 'echo ad-hoc'");
 });
 
 test("describeAction: actHere / caseChange / wrapString", () => {
   assert.equal(describeAction({ type: "actHere", action: "formatCutSeed" }), "Context action: formatCutSeed");
   assert.equal(describeAction({ type: "caseChange", operation: "uppercase" }), "Change case to uppercase");
-  assert.equal(
-    describeAction({ type: "wrapString", operation: "wrap_quotes" }),
-    "Wrap selection in wrap_quotes",
-  );
+  assert.equal(describeAction({ type: "wrapString", operation: "wrap_quotes" }), "Wrap selection in wrap_quotes");
 });
 
 test("describeAction: map", () => {
@@ -81,26 +48,14 @@ test("describeAction: map", () => {
     modifiers: ["command", "option"],
     refDesc: "Raycast Focus Mode",
   };
-  assert.equal(
-    describeAction({ type: "map", ref }),
-    "map 'Raycast Focus Mode'",
-  );
-  assert.equal(
-    describeAction({ type: "map", ref, actionDesc: "toggle" }),
-    "map 'Raycast Focus Mode' | toggle",
-  );
+  assert.equal(describeAction({ type: "map", ref }), "map 'Raycast Focus Mode'");
+  assert.equal(describeAction({ type: "map", ref, actionDesc: "toggle" }), "map 'Raycast Focus Mode' | toggle");
 });
 
 test("describeAction: key (with/without mods) + actionDesc", () => {
   assert.equal(describeAction({ type: "key", key: "f2" }), "Emit 'F2'");
-  assert.equal(
-    describeAction({ type: "key", key: "return_or_enter" }),
-    "Emit '⏎'",
-  );
-  assert.equal(
-    describeAction({ type: "key", key: "h", modifiers: ["left_command"] }),
-    "Emit ⌘ + 'H'",
-  );
+  assert.equal(describeAction({ type: "key", key: "return_or_enter" }), "Emit '⏎'");
+  assert.equal(describeAction({ type: "key", key: "h", modifiers: ["left_command"] }), "Emit ⌘ + 'H'");
   assert.equal(
     describeAction({
       type: "key",
@@ -109,10 +64,7 @@ test("describeAction: key (with/without mods) + actionDesc", () => {
     }),
     "Emit ⌘⌥ + 'H'",
   );
-  assert.equal(
-    describeAction({ type: "key", key: "f2", actionDesc: "edit cell" }),
-    "Emit 'F2' | edit cell",
-  );
+  assert.equal(describeAction({ type: "key", key: "f2", actionDesc: "edit cell" }), "Emit 'F2' | edit cell");
 });
 
 test("describeAction: url / shell / python / osascript", () => {
@@ -167,10 +119,7 @@ test("describeConditionGroup: app if/unless + multi-app", () => {
 
 test("describeConditionGroup: var if/unless", () => {
   assert.equal(describeConditionGroup([{ var: roleVar, equals: "AXTextField" }]), "Focused UI role");
-  assert.equal(
-    describeConditionGroup([{ var: roleVar, equals: "AXTextField", unless: true }]),
-    "not Focused UI role",
-  );
+  assert.equal(describeConditionGroup([{ var: roleVar, equals: "AXTextField", unless: true }]), "not Focused UI role");
 });
 
 test("describeConditionGroup: multiple joined with ' and '", () => {
@@ -183,20 +132,14 @@ test("describeConditionGroup: multiple joined with ' and '", () => {
 test("describeConditionGroup: device if/unless", () => {
   const dev = { name: "g502X", deviceDesc: "Logitech G502 X", product_id: 49305, vendor_id: 1133 };
   assert.equal(describeConditionGroup([{ device: dev as any }]), "on Logitech G502 X");
-  assert.equal(
-    describeConditionGroup([{ device: dev as any, unless: true }]),
-    "not on Logitech G502 X",
-  );
+  assert.equal(describeConditionGroup([{ device: dev as any, unless: true }]), "not on Logitech G502 X");
 });
 
 test("describeTrigger: single key + modifier chords", () => {
   assert.equal(describeTrigger({ keys: ["return_or_enter"] }), "[⏎]:");
   assert.equal(describeTrigger({ keys: ["escape"] }), "[␛]:");
   assert.equal(describeTrigger({ keys: ["home"] }), "[HOME]:");
-  assert.equal(
-    describeTrigger({ keys: ["h"], modifiers: ["left_command"] }),
-    "[⌘]+[H]:",
-  );
+  assert.equal(describeTrigger({ keys: ["h"], modifiers: ["left_command"] }), "[⌘]+[H]:");
   assert.equal(
     describeTrigger({
       keys: ["m"],
@@ -211,12 +154,9 @@ test("describeTrigger: simultaneous chord joins keys with ']+['", () => {
 });
 
 test("describeTrigger: pointer (button labels)", () => {
-  assert.equal(describeTrigger({ pointer: "left" }), "Left click:");
+  assert.equal(describeTrigger({ pointer: "left" }), "left click:");
   assert.equal(describeTrigger({ pointer: "shift_button" }), "Shift button:");
-  assert.equal(
-    describeTrigger({ pointer: "left", modifiers: ["left_command"] }),
-    "[⌘]+Left click:",
-  );
+  assert.equal(describeTrigger({ pointer: "left", modifiers: ["left_command"] }), "[⌘]+Left click:");
 });
 
 const evaluateCmd = { type: "command" as const, command: "x", refDesc: "Evaluate selection" };
@@ -224,14 +164,9 @@ const evaluateCmd = { type: "command" as const, command: "x", refDesc: "Evaluate
 test("synthesizeRuleDescription: simple unconditional remap", () => {
   const binding: Binding = {
     trigger: { keys: ["home"] },
-    cases: [
-      { phase: "press", do: [{ type: "key", key: "left_arrow", modifiers: ["left_command"] }] },
-    ],
+    cases: [{ phase: "press", do: [{ type: "key", key: "left_arrow", modifiers: ["left_command"] }] }],
   };
-  assert.equal(
-    synthesizeRuleDescription(binding),
-    "[HOME]:\n---\n\tOn Tap:\n\t\tAlways:\tEmit ⌘ + '←'",
-  );
+  assert.equal(synthesizeRuleDescription(binding), "[HOME]:\n---\n\tOn Tap:\n\t\tAlways:\tEmit ⌘ + '←'");
 });
 
 test("synthesizeRuleDescription: conditional tap+hold (spec §9 canonical)", () => {
@@ -265,7 +200,10 @@ test("synthesizeRuleDescription: multi-action case joined with ' then '", () => 
       {
         phase: "press",
         conditions: [{ app: { type: "app", bundleId: "w", refDesc: "Word" } }],
-        do: [{ type: "osascript", scriptPath: "/a.scpt" }, { type: "shell", command: "elevate" }],
+        do: [
+          { type: "osascript", scriptPath: "/a.scpt" },
+          { type: "shell", command: "elevate" },
+        ],
       },
     ],
   };
@@ -280,10 +218,7 @@ test("synthesizeRuleDescription: Case.description overrides the action line", ()
     trigger: { keys: ["x"] },
     cases: [{ phase: "press", do: [{ type: "noop" }], description: "Custom fragment" }],
   };
-  assert.equal(
-    synthesizeRuleDescription(binding),
-    "[X]:\n---\n\tOn Tap:\n\t\tAlways:\tCustom fragment",
-  );
+  assert.equal(synthesizeRuleDescription(binding), "[X]:\n---\n\tOn Tap:\n\t\tAlways:\tCustom fragment");
 });
 
 test("synthesizeManipulatorLabel: undefined when unconditional", () => {
@@ -292,23 +227,15 @@ test("synthesizeManipulatorLabel: undefined when unconditional", () => {
 });
 
 test("synthesizeManipulatorLabel: condition-group label when conditional", () => {
+  assert.equal(synthesizeManipulatorLabel([{ app: { type: "app", bundleId: "x", refDesc: "Excel" } }]), "In Excel");
   assert.equal(
-    synthesizeManipulatorLabel([{ app: { type: "app", bundleId: "x", refDesc: "Excel" } }]),
-    "In Excel",
-  );
-  assert.equal(
-    synthesizeManipulatorLabel([
-      { app: { type: "app", bundleId: "x", refDesc: "Excel" }, unless: true },
-    ]),
+    synthesizeManipulatorLabel([{ app: { type: "app", bundleId: "x", refDesc: "Excel" }, unless: true }]),
     "Outside Excel",
   );
 });
 
 test("describeTrigger formats optional modifiers correctly", () => {
-  assert.equal(
-    describeTrigger({ keys: ["a"], modifiers: { optional: ["left_shift"] } }),
-    "(⇧)?+[A]:",
-  );
+  assert.equal(describeTrigger({ keys: ["a"], modifiers: { optional: ["left_shift"] } }), "(⇧)?+[A]:");
   assert.equal(
     describeTrigger({
       keys: ["escape"],

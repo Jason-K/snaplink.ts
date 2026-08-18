@@ -5,10 +5,15 @@ import type {
   KeyCode,
   Phase,
   PointerButtonAlias,
+  PointerMotionToScroll,
+  PointerMotionTrigger,
+  PointerTransform,
   TriggerModifiers,
+  VarSpec,
 } from "../../data";
 import type { AcceptUndefined } from "../../types/util";
-import type { WhenWrapper } from "./condition-wrappers";
+import type { PointerAxis } from "../../types/karabiner";
+import { when, type StateItem, type WhenWrapper } from "./condition-wrappers";
 import { conditionKind } from "../resolve-conditions";
 import { from, type FromInput, triggerKeys, triggerPointer } from "./from-action-wrappers";
 import { CaseBuilder, type ActionInput, type ToWrapper } from "./to-action-wrappers";
@@ -393,3 +398,235 @@ export function bindTable(
     return bindKeys(keyCode, cases, modifiersOrOptions, options);
   });
 }
+
+/**
+ * Options accepted by {@link motionToScroll} in the Snaplink DSL.
+ */
+export type MotionToScrollOptions = {
+  /**
+   * Human-readable label for this rule in Karabiner Settings and logs.
+   *
+   * @example "Hold right button to scroll"
+   */
+  description: string;
+
+  /**
+   * Trigger input that activates scroll mode while held (mouse button, key, chord, or modifier).
+   *
+   * @example "button4"
+   * @example "fn"
+   * @example ["d", "f"]
+   * @example from("button4")
+   */
+  trigger?: PointerMotionTrigger;
+
+  /**
+   * Modifier keys that activate scroll mode, or optional modifiers to allow through.
+   *
+   * @example ["fn"]
+   * @example { mandatory: ["fn"], optional: ["any"] }
+   */
+  modifiers?: TriggerModifiers;
+
+  /**
+   * Conditions or {@link WhenWrapper} gating scroll mode (e.g. apps, devices, variable states).
+   *
+   * @example when: VARS.rButtonDown
+   * @example when: [VARS.rButtonDown, DEVICES.g502X]
+   * @example when: when(VARS.rButtonDown)
+   */
+  when?: WhenWrapper | Condition | Condition[] | StateItem | readonly StateItem[] | unknown;
+
+  /**
+   * Explicit condition list gating scroll mode.
+   *
+   * @example [condVar(VARS.rButtonDown)]
+   */
+  conditions?: (Condition | WhenWrapper)[];
+
+  /**
+   * Optional custom variable identifier or {@link VarSpec} used to signal scroll mode for non-modifier triggers.
+   */
+  variable?: VarSpec | string;
+
+  /**
+   * Whether momentum / inertial scrolling is enabled after pointer movement stops.
+   *
+   * @default true
+   */
+  momentumScroll?: boolean;
+
+  /**
+   * Multiplier applied to scroll speed. Higher values scroll faster.
+   *
+   * @default 1.0
+   * @example 1.5
+   */
+  speedMultiplier?: number;
+};
+
+/**
+ * Construct a `motionToScroll` pointer tweak with full intellisense and type validation.
+ *
+ * Supports both object-based options (with `when: VARS.rButtonDown`, `trigger: "button4"`, etc.)
+ * and fluent variadic syntax (`motionToScroll("description", VARS.rButtonDown, ...)`).
+ *
+ * @example
+ * ```ts
+ * // 1. Scoped by variable state (e.g. while right button is held):
+ * motionToScroll({
+ *   description: "Hold right click to scroll",
+ *   when: VARS.rButtonDown,
+ *   speedMultiplier: 1.0,
+ * })
+ *
+ * // 2. Fluent variadic syntax:
+ * motionToScroll("Hold right click to scroll", VARS.rButtonDown)
+ * motionToScroll("Hold right click in Zen", when(VARS.rButtonDown, APPS.zen))
+ *
+ * // 3. Scoped by mouse button:
+ * motionToScroll({
+ *   description: "Hold button4 to scroll",
+ *   trigger: "button4",
+ *   speedMultiplier: 1.5,
+ * })
+ *
+ * // 4. Scoped by modifier key:
+ * motionToScroll({
+ *   description: "Hold fn to scroll",
+ *   trigger: "fn",
+ * })
+ *
+ * // 5. Scoped by key chord:
+ * motionToScroll({
+ *   description: "Hold d+f to scroll",
+ *   trigger: ["d", "f"],
+ * })
+ * ```
+ */
+export function motionToScroll(options: MotionToScrollOptions): PointerMotionToScroll;
+export function motionToScroll(description: string, ...args: unknown[]): PointerMotionToScroll;
+export function motionToScroll(
+  optionsOrDescription: PointerMotionToScroll | MotionToScrollOptions | string,
+  ...args: unknown[]
+): PointerMotionToScroll {
+  if (typeof optionsOrDescription === "string") {
+    const description = optionsOrDescription;
+    let trigger: PointerMotionTrigger | undefined;
+    let modifiers: TriggerModifiers | undefined;
+    const rawConditions: Condition[] = [];
+    let variable: VarSpec | string | undefined;
+    let momentumScroll: boolean | undefined;
+    let speedMultiplier: number | undefined;
+
+    for (const arg of args) {
+      if (!arg) continue;
+      if (typeof arg === "object" && arg !== null) {
+        if ("kind" in arg && (arg as any).kind === "when") {
+          rawConditions.push(...(arg as WhenWrapper).conditions);
+          continue;
+        }
+        if ("speedMultiplier" in arg || "momentumScroll" in arg || "variable" in arg || "modifiers" in arg) {
+          const opts = arg as {
+            speedMultiplier?: number;
+            momentumScroll?: boolean;
+            variable?: VarSpec | string;
+            modifiers?: TriggerModifiers;
+          };
+          if (opts.speedMultiplier !== undefined) speedMultiplier = opts.speedMultiplier;
+          if (opts.momentumScroll !== undefined) momentumScroll = opts.momentumScroll;
+          if (opts.variable !== undefined) variable = opts.variable;
+          if (opts.modifiers !== undefined) modifiers = opts.modifiers;
+          continue;
+        }
+        if ("keys" in arg || "pointer" in arg || "any" in arg) {
+          trigger = arg as PointerMotionTrigger;
+          continue;
+        }
+      }
+      if (typeof arg === "string") {
+        trigger = arg as PointerMotionTrigger;
+        continue;
+      }
+      const resolved = when(arg as any);
+      rawConditions.push(...resolved.conditions);
+    }
+
+    const conditions = rawConditions.length > 0 ? (rawConditions as [Condition, ...Condition[]]) : undefined;
+    return {
+      kind: "motionToScroll",
+      description,
+      ...(trigger !== undefined ? { trigger } : {}),
+      ...(modifiers !== undefined ? { modifiers } : {}),
+      ...(conditions !== undefined ? { conditions } : {}),
+      ...(variable !== undefined ? { variable } : {}),
+      ...(momentumScroll !== undefined ? { momentumScroll } : {}),
+      ...(speedMultiplier !== undefined ? { speedMultiplier } : {}),
+    } as PointerMotionToScroll;
+  }
+
+  const opts = optionsOrDescription as MotionToScrollOptions;
+  const conditions: Condition[] = [];
+  if (opts.conditions) {
+    for (const c of opts.conditions) {
+      if ("kind" in c && (c as any).kind === "when") {
+        conditions.push(...(c as WhenWrapper).conditions);
+      } else {
+        conditions.push(c as Condition);
+      }
+    }
+  }
+  if (opts.when) {
+    if (typeof opts.when === "object" && opts.when !== null && "kind" in opts.when && (opts.when as any).kind === "when") {
+      conditions.push(...(opts.when as WhenWrapper).conditions);
+    } else {
+      const resolved = when(opts.when as any);
+      conditions.push(...resolved.conditions);
+    }
+  }
+
+  const condsTuple = conditions.length > 0 ? (conditions as [Condition, ...Condition[]]) : undefined;
+
+  return {
+    kind: "motionToScroll",
+    description: opts.description,
+    ...(opts.trigger !== undefined ? { trigger: opts.trigger } : {}),
+    ...(opts.modifiers !== undefined ? { modifiers: opts.modifiers } : {}),
+    ...(condsTuple !== undefined ? { conditions: condsTuple } : {}),
+    ...(opts.variable !== undefined ? { variable: opts.variable } : {}),
+    ...(opts.momentumScroll !== undefined ? { momentumScroll: opts.momentumScroll } : {}),
+    ...(opts.speedMultiplier !== undefined ? { speedMultiplier: opts.speedMultiplier } : {}),
+  } as PointerMotionToScroll;
+}
+
+export type PointerTransformOptions = {
+  description: string;
+  flip?: PointerTransform["flip"];
+  swap?: PointerTransform["swap"];
+  conditions?: Condition[];
+  discard?: [PointerAxis, ...PointerAxis[]];
+};
+
+/**
+ * Construct a `transform` pointer tweak to flip, swap, or discard pointer axes.
+ *
+ * @param options - Pointer transform configuration (flip, swap, discard, conditions).
+ * @returns A validated {@link PointerTransform} tweak definition.
+ *
+ * @example
+ * ```ts
+ * pointerTransform({
+ *   description: "Invert vertical scroll",
+ *   flip: ["vertical_wheel"],
+ * })
+ * ```
+ */
+export function pointerTransform(options: PointerTransformOptions | PointerTransform): PointerTransform {
+  return {
+    kind: "transform",
+    ...options,
+  } as PointerTransform;
+}
+
+
+

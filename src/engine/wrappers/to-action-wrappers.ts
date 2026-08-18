@@ -937,7 +937,7 @@ export function appHistory(
     }
     finalDesc = opts.actionDesc ?? actionDesc;
   } else {
-    finalExclude = exclude;
+    finalExclude = exclude as AppHistoryExclude;
   }
 
   return {

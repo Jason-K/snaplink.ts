@@ -35,6 +35,7 @@ export type {
   TriggerModifiers,
 } from "./bindings";
 export type {
+  PointerMotionTrigger,
   PointerMotionToScroll,
   PointerTransform,
   PointerTweak,

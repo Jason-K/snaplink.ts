@@ -29,6 +29,7 @@ export type {
   ActionSpec,
   AppHistoryExclude,
   AppHistoryOptions,
+  PointerMotionTrigger,
   PointerMotionToScroll,
   PointerTransform,
   PointerTweak,
