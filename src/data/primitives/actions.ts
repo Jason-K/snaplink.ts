@@ -87,6 +87,8 @@ export type ActionSpec =
       /** Switch application history state by relative index. */
       type: "appHistory";
       index: number;
+      exclude?: AppHistoryExclude;
+      actionDesc?: string;
     }
   | {
       /**
