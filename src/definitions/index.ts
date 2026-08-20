@@ -7,13 +7,10 @@ import { singleKeyTapHoldBindings } from "./single-key";
 export { buildCapsLockBindings, capsVars } from "./caps-lock";
 export { disabledHotkeys } from "./disable-hotkeys";
 export { antinoteGuardBinding, globalGuardBinding, guardBindings } from "./guards";
-export { mouseBindings, pointerTweaks } from "./mouse";
+//  export { mouseBindings, pointerTweaks } from "./mouse";
 
 /** All tap-hold bindings. */
-export const tapHoldBindings: Binding[] = [
-  ...singleKeyTapHoldBindings,
-  ...modifiedSingleKeyTapHoldBindings,
-];
+export const tapHoldBindings: Binding[] = [...singleKeyTapHoldBindings, ...modifiedSingleKeyTapHoldBindings];
 
 export { simultaneousBindings, simultaneousMappings } from "./simultaneous";
 export { NUMPAD_REMAPS, SWAP_CTRL_FN } from "./simple-modifications";

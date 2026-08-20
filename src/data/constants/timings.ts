@@ -5,7 +5,7 @@ export const TIMINGS = {
   simultaneousMs: 50,
   delayLeaderHoldMs: 200,
   timeoutDoubleTapMs: 300,
-  timeoutWheelChordMs: 200,
+  timeoutWheelChordMs: 300,
   privilegesPostElevationDelayMs: 1000,
   privDelaySec: 0.2,
 } as const;

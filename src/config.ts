@@ -11,9 +11,9 @@ import {
   buildCapsLockBindings,
   disabledHotkeys,
   guardBindings,
-  mouseBindings,
+  // mouseBindings,
   NUMPAD_REMAPS,
-  pointerTweaks,
+  // pointerTweaks,
   simultaneousBindings,
   simultaneousMappings,
   tapHoldBindings,
@@ -41,7 +41,7 @@ import type { Rule } from "./types/karabiner";
 export const BINDING_SETS: ReadonlyArray<{ name: string; bindings: Binding[] }> = [
   { name: "tap-hold", bindings: tapHoldBindings },
   { name: "guards", bindings: guardBindings },
-  { name: "mouse", bindings: mouseBindings },
+  // { name: "mouse", bindings: mouseBindings },
   { name: "disabled-hotkeys", bindings: disabledHotkeys },
 ];
 
@@ -77,7 +77,8 @@ export const CAPS_LAYER_SET: { name: string; bindings: Binding[] } = {
  * Test any addition with a second pointing device attached, or with the
  * built-in trackpad available as a fallback.
  */
-export const POINTER_TWEAKS: PointerTweak[] = pointerTweaks;
+// export const POINTER_TWEAKS: PointerTweak[] = pointerTweaks;
+export const POINTER_TWEAKS: PointerTweak[] = [];
 
 /** Device-scoped settings and simple modifications. */
 export const DEVICE_CONFIGS: DeviceConfig[] = [

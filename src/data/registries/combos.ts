@@ -107,6 +107,11 @@ const OTHER_HKS = {
     activeAppOnly: true,
     options: { repeat: false },
   }),
+  excelPalette: mapSpec("u", VM.C_C_, "search Excel commands", {
+    app: APPS.excel,
+    activeAppOnly: true,
+    options: { repeat: false },
+  }),
 };
 
 /**

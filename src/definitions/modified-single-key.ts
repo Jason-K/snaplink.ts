@@ -54,6 +54,7 @@ const modLetterBindings: Binding[] = [
   // side, so this stays as two explicit cases rather than tapAndHold() —
   // tapAndHold() would apply state(APPS.word) to both.
   bind(from("p", ["L.cmd"]), to(release(CMDS.wordPrint).when(APPS.word), hold(COMBOS.showPopclip))),
+  bind(from("p", VM.C__S), to(press(COMBOS.excelPalette)), when(APPS.excel)),
   bind(from("s", ["R.opt"]), to(tapAndHold(CMDS.spotifyToggle, URLS.raySpotifySearch))),
   bind(from("t", VM.COCS), to(tapAndHold(CMDS.newTypinatorRule, CMDS.lastTypinatorRule))),
   bind(from("u", ["L.cmd"]), to(press(COMBOS.skimUnderline)), when(APPS.skim)),

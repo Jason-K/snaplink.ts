@@ -17,7 +17,7 @@ export const DEVICES = {
     mouse_flip_vertical_wheel: true,
     pointing_motion_xy_multiplier: 10,
     pointing_motion_wheels_multiplier: 5,
-    mouse_modify_events: true,
+    mouse_modify_events: false,
     ignore_vendor_events: true,
     ignore: false,
   },

@@ -1,6 +1,5 @@
 import { PATHS } from "./paths";
 import type { CommandSpec } from "../primitives/commands";
-import { TIMINGS } from "../constants/timings";
 import { URLS } from "./urls";
 
 // ---------------------------------------------------------
@@ -8,9 +7,7 @@ import { URLS } from "./urls";
 // ---------------------------------------------------------
 
 // PRIVILEGES
-const rmPriv = `'${PATHS.binPrivCLI.path}' -r && sleep ${TIMINGS.privDelaySec}`;
-const addPriv = `'${PATHS.binPrivCLI.path}' -a && sleep ${TIMINGS.privDelaySec}`;
-const getPriv = `${rmPriv} && ${addPriv}`;
+const getPriv = `${PATHS.getPrivileges.path}`;
 // UTILITIES
 const sendKeys = `'${PATHS.binSendKeys.path}' --initial-delay 0 --delay 0.005`;
 // 1PASSWORD
@@ -59,8 +56,8 @@ const neru = (action: string, desc: string): CommandSpec => cmdEntry(`${PATHS.bi
 
 const Passwords_Privileges = {
   getPrivileges: cmdEntry(`${getPriv}`, "get privileges"),
-  fillPw: cmdEntry(`${getPriv} && ${fillPw}`, "fill password"),
-  fillUnPw: cmdEntry(`${getPriv} && ${fillUnAndPw}`, "fill username and password"),
+  fillPw: cmdEntry(`${getPriv} 'fill password' && ${fillPw}`, "fill password"),
+  fillUnPw: cmdEntry(`${getPriv} 'fill username and password' && ${fillUnAndPw}`, "fill username and password"),
 };
 
 const Kill_Apps = {

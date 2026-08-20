@@ -16,6 +16,7 @@ import {
   type Binding,
   button,
   motionToScroll,
+  delayedSingleTap,
 } from "../engine";
 import type { PointerTweak } from "../data";
 
@@ -42,35 +43,22 @@ export const mouseBindings: Binding[] = [
     ),
   ),
   // -------------------------------------------------------------
-  // WHEEL LEFT — Move window left/up (hold) / Change workspace (hold in Zen)
+  // WHEEL LEFT — NOOP unless right button is down to prevent misfiring; hold with right button moves window; tap with right button to move workspace
   // -------------------------------------------------------------
   bind(
     from("wheelLeft"),
-    to(
-      // overrides declared in REVERSE of the bespoke prepend order so the
-      // emitted manipulator order matches (groupByConditions keeps declaration
-      // order between condition sets that neither implies the other).
-      // Zen + right-button + wheel-up → prev workspace
-      press(key("left_arrow", VM.C_CS)).when([APPS.zen, VARS.rButtonDown, [VARS.wheelDown, 0]]),
-      // wheel held down → swallow (the wheel-as-button mapping handles it)
-      press([]).when("wheelDown"),
-      // base hold — wheel guards on the base only (matches bespoke injection)
-      hold(URLS.hsWinLeftTop).when([VARS.wheelDown, false], [VARS.rButtonDown, false]),
-    ),
+    to(hold(URLS.hsWinLeftTop), delayedSingleTap(key("left_arrow", VM.C_CS)).when([APPS.zen, VARS.rButtonDown])),
     timing({
       aloneMs: TIMINGS.timeoutWheelChordMs,
       holdMs: TIMINGS.timeoutWheelChordMs,
     }),
   ),
   // -------------------------------------------------------------
-  // WHEEL RIGHT — Move window right/down (hold) / Change workspace (hold in Zen)
+  // WHEEL RIGHT — NOOP unless right button is down to prevent misfiring; hold with right button moves window; tap with right button changes the workspace in Zen
   // -------------------------------------------------------------
   bind(
     from("wheelRight"),
-    to(
-      press(key("right_arrow", VM.C_CS)).when([APPS.zen, VARS.rButtonDown, [VARS.wheelDown, 0]]),
-      hold(URLS.hsWinRightBottom).when([VARS.wheelDown, false], [VARS.rButtonDown, false]),
-    ),
+    to(hold(URLS.hsWinRightBottom), delayedSingleTap(key("right_arrow", VM.C_CS)).when([APPS.zen, VARS.rButtonDown])),
     timing({
       aloneMs: TIMINGS.timeoutWheelChordMs,
       holdMs: TIMINGS.timeoutWheelChordMs,
@@ -105,8 +93,8 @@ export const mouseBindings: Binding[] = [
   bind(
     from("middleBack"),
     to(
-      release([URLS.csxOcrNoLinebreaks]).when([VARS.lButtonDown, false]),
-      release([URLS.csxOcr]).when(VARS.lButtonDown),
+      release([URLS.csxOcrNoLinebreaks]).when([VARS.rButtonDown, false]),
+      release([URLS.csxOcr]).when(VARS.rButtonDown),
       hold([CMDS.ocrToMd]),
     ),
   ),

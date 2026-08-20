@@ -16,7 +16,7 @@ import type { AcceptUndefined } from "../../types/util";
 import type { PointerAxis } from "../../types/karabiner";
 import { when, type StateItem, type WhenWrapper } from "./condition-wrappers";
 import { conditionKind } from "../resolve-conditions";
-import { from, type FromInput, simultaneous, triggerKeys, triggerPointer } from "./from-action-wrappers";
+import { from, type FromInput, triggerKeys, triggerPointer } from "./from-action-wrappers";
 import { CaseBuilder, type ActionInput, type ToWrapper } from "./to-action-wrappers";
 
 export type BindingOptionsSpec = Partial<Omit<Binding, "trigger" | "cases">>;

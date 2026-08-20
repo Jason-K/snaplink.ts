@@ -5,7 +5,6 @@ import {
   bind,
   bindChord,
   bindKeys,
-  bindPointer,
   bindSimultaneous,
   bindTable,
   chord,

@@ -70,6 +70,7 @@ const WORK_DIRS = {
 };
 
 const SCRIPT_FILES = {
+  getPrivileges: script("apps/privileges/add-priv.sh", "ensure active user has admin privileges"),
   here2there: script("active_process/take_action_here/take_action_here.sh", "Here2There script"),
   recentDls: script("filesystem/recent_changes/recent_dl.sh", "recent Dls script"),
   stringThings: script("strings/text_processor/interfaces/cli.py", "text processor cli entrypoint"),
