@@ -19,6 +19,38 @@ import { conditionKind } from "../resolve-conditions";
 import { from, type FromInput, triggerKeys, triggerPointer } from "./from-action-wrappers";
 import { CaseBuilder, type ActionInput, type ToWrapper } from "./to-action-wrappers";
 
+/**
+ * Configuration options for a Karabiner `Binding` (excluding trigger and cases).
+ *
+ * All properties are optional and can be passed to `bind()`, `options()`, or via `BindingOptions`.
+ *
+ * ### Available Options:
+ * - `description` (`string`): Human-readable rule label in Karabiner Settings GUI and output JSON.
+ * - `timing` ({@link BindingTiming}): Millisecond thresholds (`aloneMs`, `holdMs`, `heldThresholdMs`, `delayedMs`, `simultaneousMs`).
+ * - `conditions` ({@link Condition}[]): Hoisted conditions applied across all manipulators in this binding.
+ * - `eventOptions` ({@link BindingEventOptions}): Processing flags (`halt: true`, `repeat: true`).
+ * - `multiTap` ({@link BindingMultiTap}): Multi-tap configuration (`allowPassThrough`, `mods`, `firstTapPendingVar`).
+ * - `afterKeyUp` ({@link Action}[]): Actions executed after key release (`to_after_key_up`).
+ * - `otherKeyPressed` ({@link BindingOtherKeyPressedEntry}[]): Chords that rewrite this held key (`to_if_other_key_pressed`).
+ * - `whileHoldVar` ({@link VarSpec}): Variable set to 1 while held and 0 on release.
+ * - `suppress` (`boolean`): Suppress trigger fallback across the entire binding.
+ * - `suppressCancelFallback` (`boolean`): Clear `to_if_canceled` fallback channel on delayed actions.
+ * - `modWhileDown` (`boolean`): Assert modifier while held down without hold threshold delay.
+ * - `guardVar` (`string`): Variable name override for double-tap guard.
+ * - `guardMs` (`number`): Timeout for double-tap guard in milliseconds.
+ * - `ruleGroup` ({@link BindingRuleGroup}): Group ID and description to merge distinct triggers into one shared rule in UI.
+ *
+ * @example
+ * ```ts
+ * {
+ *   description: "Cmd+J -> Down Arrow",
+ *   timing: { aloneMs: 200, holdMs: 250 },
+ *   conditions: [condApp(APPS.finder)],
+ *   suppress: true,
+ *   ruleGroup: { id: "caps_layer", description: "Caps Lock Layer" },
+ * }
+ * ```
+ */
 export type BindingOptionsSpec = Partial<Omit<Binding, "trigger" | "cases">>;
 
 /**
@@ -32,12 +64,25 @@ export type OptionsWrapper = {
 /**
  * Wraps binding options into an `OptionsWrapper` for consumption by `bind()`.
  *
- * @param opts - Partial binding options (e.g. `description`, `timing`, `suppress`, `ruleGroup`).
+ * @param opts - Partial binding options object. Supports:
+ * - `description`: Rule label in Karabiner Settings GUI.
+ * - `timing`: Timing parameters (`aloneMs`, `holdMs`, `heldThresholdMs`, `delayedMs`, `simultaneousMs`).
+ * - `conditions`: Hoisted conditions applied across all manipulators in this binding.
+ * - `eventOptions`: Processing flags (`halt`, `repeat`).
+ * - `multiTap`: Multi-tap configuration (`allowPassThrough`, `mods`, `firstTapPendingVar`).
+ * - `afterKeyUp`: Actions executed on key release (`to_after_key_up`).
+ * - `otherKeyPressed`: Key rewrites while held (`to_if_other_key_pressed`).
+ * - `whileHoldVar`: Variable set to 1 while held and 0 on release.
+ * - `suppress`: Suppress trigger fallback across binding.
+ * - `suppressCancelFallback`: Clear `to_if_canceled` fallback channel.
+ * - `modWhileDown`: Assert modifier while key is held down without hold threshold delay.
+ * - `guardVar` / `guardMs`: Double-tap guard variable and timeout (ms).
+ * - `ruleGroup`: Group ID and description to merge distinct triggers into one rule.
  * @returns An `OptionsWrapper` object.
  *
  * @example
  * ```ts
- * options({ description: "Toggle app window", suppress: true })
+ * options({ description: "Toggle app window", suppress: true, timing: { aloneMs: 200 } })
  * ```
  */
 export function options(opts: BindingOptionsSpec): OptionsWrapper {
@@ -50,12 +95,18 @@ export function options(opts: BindingOptionsSpec): OptionsWrapper {
 /**
  * Creates an `OptionsWrapper` specifying custom timing parameters for a binding.
  *
- * @param opts - Timing configuration object specifying delays, hold thresholds, and repeat parameters.
+ * @param opts - Timing configuration object:
+ * - `aloneMs`: `basic.to_if_alone_timeout_milliseconds` (default 1000ms). Max duration key can be held and still trigger `to_if_alone` upon release.
+ * - `holdMs`: Hold duration threshold in milliseconds.
+ * - `heldThresholdMs`: `basic.to_if_held_down_threshold_milliseconds` (default 500ms). Duration key must remain pressed before `to_if_held_down` fires.
+ * - `delayedMs`: `basic.to_delayed_action_delay_milliseconds` (default 500ms). Delay before `to_delayed_action` triggers (for double-tap / multi-tap).
+ * - `simultaneousMs`: `basic.simultaneous_threshold_milliseconds` (default 50ms). Time window for simultaneous chords.
  * @returns An `OptionsWrapper` containing the timing configuration.
  *
  * @example
  * ```ts
- * timing({ holdMs: 200, tapMs: 150 })
+ * timing({ aloneMs: 200, holdMs: 200 })
+ * timing({ heldThresholdMs: 300, delayedMs: 250 })
  * ```
  */
 export function timing(opts: AcceptUndefined<NonNullable<Binding["timing"]>>): OptionsWrapper {
@@ -63,9 +114,64 @@ export function timing(opts: AcceptUndefined<NonNullable<Binding["timing"]>>): O
 }
 
 /**
- * Binding options specification combined with optional trigger modifiers.
+ * Complete binding options specification, combining {@link BindingOptionsSpec} with optional trigger modifiers.
+ *
+ * Can be passed as the 3rd argument (`modifiersOrOptions`) or 4th argument (`options`) to:
+ * - `bindKeys(keys, cases, modifiersOrOptions?, options?)`
+ * - `bindPointer(pointer, cases, modifiersOrOptions?, options?)`
+ * - `bindSimultaneous(keys, cases, modifiersOrOptions?, options?)` / `bindChord(...)`
+ * - `bindTable(phase, table, modifiersOrOptions?, options?)`
+ *
+ * ### Accepted Properties:
+ * - `modifiers` ({@link TriggerModifiers}): Trigger modifier keys (`["cmd", "opt"]`, `VM.COCS`, `{ mandatory: ["cmd"], optional: ["any"] }`).
+ * - `description` (`string`): Rule label in Karabiner Settings GUI and output JSON.
+ * - `timing` ({@link BindingTiming}): Millisecond thresholds (`aloneMs`, `holdMs`, `heldThresholdMs`, `delayedMs`, `simultaneousMs`).
+ * - `conditions` ({@link Condition}[]): Hoisted conditions applied across all manipulators in this binding.
+ * - `eventOptions` ({@link BindingEventOptions}): Processing flags (`halt: true`, `repeat: true`).
+ * - `multiTap` ({@link BindingMultiTap}): Multi-tap options (`allowPassThrough`, `mods`, `firstTapPendingVar`).
+ * - `afterKeyUp` ({@link Action}[]): Actions executed on key release (`to_after_key_up`).
+ * - `otherKeyPressed` ({@link BindingOtherKeyPressedEntry}[]): Chords that rewrite this held key (`to_if_other_key_pressed`).
+ * - `whileHoldVar` ({@link VarSpec}): Variable set to 1 while held and 0 on release.
+ * - `suppress` (`boolean`): Suppress trigger fallback across the entire binding.
+ * - `suppressCancelFallback` (`boolean`): Clear `to_if_canceled` fallback channel.
+ * - `modWhileDown` (`boolean`): Assert modifier while held down without hold threshold delay.
+ * - `guardVar` (`string`): Variable name override for double-tap guard.
+ * - `guardMs` (`number`): Timeout for double-tap guard in milliseconds.
+ * - `ruleGroup` ({@link BindingRuleGroup}): Group ID and description to merge distinct triggers into one shared rule in UI.
+ *
+ * @example
+ * ```ts
+ * // 1. As a modifiers array:
+ * bindKeys("j", press(key("down_arrow")), ["cmd", "opt"])
+ *
+ * // 2. As an options object with modifiers and timing:
+ * bindKeys("j", press(key("down_arrow")), {
+ *   modifiers: ["cmd"],
+ *   description: "Cmd+J triggers Down Arrow",
+ *   timing: { aloneMs: 200 },
+ *   suppress: true,
+ * })
+ *
+ * // 3. Modifiers as 3rd arg, options as 4th arg:
+ * bindKeys("j", press(key("down_arrow")), ["cmd"], {
+ *   description: "Cmd+J triggers Down Arrow",
+ *   timing: { aloneMs: 200 },
+ * })
+ * ```
  */
 export type BindingOptions = BindingOptionsSpec & {
+  /**
+   * Modifier key requirements for the trigger.
+   *
+   * Accepts:
+   * - Array of modifier names: `["command", "option"]`, `["cmd", "opt"]`, `["shift"]`, `["L.cmd"]`, `["R.opt"]`
+   * - Virtual modifier aliases: `VM.COCS`, `VM.COC_`, `VM.C__S`
+   * - Object with mandatory and optional modifiers: `{ mandatory: ["cmd"], optional: ["any"] }`
+   *
+   * @example ["cmd", "shift"]
+   * @example VM.COCS
+   * @example { mandatory: ["control"], optional: ["any"] }
+   */
   modifiers?: TriggerModifiers;
 };
 
@@ -149,9 +255,13 @@ function isTriggerModifiers(val: unknown): val is TriggerModifiers {
 /**
  * Flexible argument types accepted by {@link bind}.
  *
- * Supports action wrappers (`ToWrapper`), condition wrappers (`WhenWrapper`),
- * option wrappers (`OptionsWrapper`), single or array of `Case` items,
- * single or array of `Condition` items, and inline `BindingOptionsSpec` objects.
+ * Supports:
+ * - Action wrappers: `to(...)` containing cases
+ * - Condition wrappers: `when(...)` containing conditions / state items
+ * - Option wrappers: `options(...)` and `timing(...)`
+ * - Individual `Case` or `Case[]` items (from `press()`, `release()`, `hold()`, `tapAndHold()`, etc.)
+ * - Individual `Condition` or `Condition[]` items (from `ifApp()`, `ifDevice()`, `ifVar()`, etc.)
+ * - Inline `BindingOptionsSpec` configuration objects
  */
 export type BindArg =
   | ToWrapper
@@ -167,22 +277,36 @@ export type BindArg =
  * Constructs a Karabiner `Binding` from a trigger and a flexible list of cases, conditions, and options.
  *
  * Recognized wrappers & primitives accepted by `bind()`:
+ * - Trigger builders: `from("a")`, `from("a", ["cmd"])`, `from({ keys: ["j", "k"], order: "strict" })`
  * - Action wrappers: `to(...)` containing case wrappers (`press()`, `release()`, `tap()`, `hold()`, `doubleTap()`, `doubleTapHold()`, `delayedSingleTap()`, `guard()`) and action builders (`key()`, `button()`, `app()`, `url()`, `folder()`, `cmd()`, `shell()`, `python()`, `osascript()`, `setVar()`, `cut()`, `copy()`, `paste()`, `sequence()`, `map()`, `noop()`, `actHere()`, `appHistory()`)
  * - Condition wrappers: `when(...)` containing condition builders (`state()`, `unless()`, `ifApp()`, `condApp()`, `unlessApp()`, `ifDevice()`, `ifUserVar()`, `unlessUserVar()`, etc.)
- * - Option wrappers: `options(...)` and `timing(...)` (or inline object literal options matching `BindingOptionsSpec`)
+ * - Option wrappers: `options(...)` and `timing(...)` (or inline object literal options matching {@link BindingOptionsSpec})
  *
  * @param trigger - The input trigger specification (key code, pointer button, trigger object, or array of inputs).
- * @param args - Combination of action cases (`press()`, `to()`), conditions (`when()`, `ifApp()`), and options (`options()`, `timing()`, or object literal options).
+ * @param args - Combination of action cases (`to()`, `press()`), conditions (`when()`, `ifApp()`), and options (`options()`, `timing()`, or object literal options).
  * @returns A fully constructed `Binding` object.
  *
  * @example
  * ```ts
+ * // Basic key remapping:
+ * bind(from("a", ["cmd"]), to(press(key("b"))))
+ *
+ * // Tap vs hold with app condition and options:
  * bind(
- *   from("a"),
- *   to(press(key("b", ["cmd"]))),
- *   when(ifApp("com.apple.finder")),
- *   options({ description: "Map 'a' to Cmd+B in Finder" })
- * );
+ *   from("p", ["cmd"]),
+ *   to(
+ *     release(cmd(CMDS.wordPrint)).when(ifApp("com.microsoft.Word")),
+ *     hold(map(COMBOS.showPopclip)),
+ *   ),
+ *   options({ description: "Cmd+P: Print in Word / PopClip elsewhere", timing: { aloneMs: 200 } })
+ * )
+ *
+ * // Simultaneous key chord:
+ * bind(
+ *   from({ keys: ["j", "k"], order: "strict" }),
+ *   to(press(key("escape"))),
+ *   when(ifApp("com.apple.Terminal"))
+ * )
  * ```
  */
 export function bind(
@@ -258,20 +382,31 @@ export function bind(
 /**
  * Creates a key-triggered Karabiner `Binding`.
  *
- * @param keys - Key code or array of key codes acting as the trigger.
- * @param cases - Action case or array of cases to execute when triggered.
- * @param modifiersOrOptions - Optional trigger modifiers (e.g. `["cmd", "opt"]`) or `BindingOptions`.
- * @param options - Additional binding options if modifiers were supplied as the 3rd argument.
+ * @param keys - Key code or array of key codes acting as the trigger (e.g. `"j"`, `["j", "k"]`).
+ * @param cases - Action case or array of cases to execute when triggered (e.g. `press(...)`, `hold(...)`, `tapAndHold(...)`).
+ * @param modifiersOrOptions - Optional trigger modifiers (e.g. `["cmd", "opt"]`, `VM.COCS`, `{ mandatory: ["cmd"], optional: ["any"] }`) OR a full `BindingOptions` configuration object (with `description`, `timing`, `conditions`, `eventOptions`, `multiTap`, `suppress`, `ruleGroup`, etc.).
+ * @param options - Additional `BindingOptions` if a modifier array/object was passed as the 3rd argument (`modifiersOrOptions`).
  * @returns A fully constructed `Binding` object for key triggers.
  *
  * @example
  * ```ts
+ * // 1. With modifiers array:
+ * bindKeys("j", press(key("down_arrow")), ["cmd"])
+ *
+ * // 2. With modifiers and options:
  * bindKeys(
  *   "j",
  *   press(key("down_arrow")),
  *   ["cmd"],
- *   { description: "Cmd+J triggers Down Arrow" }
- * );
+ *   { description: "Cmd+J triggers Down Arrow", timing: { aloneMs: 200 } }
+ * )
+ *
+ * // 3. With full options object as 3rd arg:
+ * bindKeys("j", press(key("down_arrow")), {
+ *   modifiers: ["cmd"],
+ *   description: "Cmd+J triggers Down Arrow",
+ *   suppress: true,
+ * })
  * ```
  */
 export function bindKeys(
@@ -298,20 +433,24 @@ export function bindKeys(
 /**
  * Creates a pointer button-triggered Karabiner `Binding`.
  *
- * @param pointer - Pointer button alias (e.g. `"button1"`, `"right"`, `"left"`).
- * @param cases - Action case or array of cases to execute when triggered.
- * @param modifiersOrOptions - Optional trigger modifiers or `BindingOptions`.
- * @param options - Additional binding options if modifiers were supplied as the 3rd argument.
+ * @param pointer - Pointer button alias (e.g. `"button1"`, `"button4"`, `"right"`, `"left"`).
+ * @param cases - Action case or array of cases to execute when triggered (e.g. `press(...)`, `hold(...)`, `tapAndHold(...)`).
+ * @param modifiersOrOptions - Optional trigger modifiers (e.g. `["cmd", "opt"]`, `VM.COCS`, `{ mandatory: ["cmd"], optional: ["any"] }`) OR a full `BindingOptions` configuration object (with `description`, `timing`, `conditions`, `eventOptions`, `multiTap`, `suppress`, `ruleGroup`, etc.).
+ * @param options - Additional `BindingOptions` if a modifier array/object was passed as the 3rd argument (`modifiersOrOptions`).
  * @returns A fully constructed `Binding` object for pointer button triggers.
  *
  * @example
  * ```ts
+ * // 1. Mouse button tap and hold:
+ * bindPointer("button4", tapAndHold(key("bracket_left", ["cmd"]), key("bracket_right", ["cmd"])))
+ *
+ * // 2. With modifiers and description:
  * bindPointer(
  *   "button4",
  *   press(key("bracket_left", ["cmd"])),
- *   undefined,
- *   { description: "Mouse button 4 triggers Cmd+[" }
- * );
+ *   ["cmd"],
+ *   { description: "Cmd+Mouse Button 4 -> Back" }
+ * )
  * ```
  */
 export function bindPointer(
@@ -338,16 +477,22 @@ export function bindPointer(
 /**
  * Creates a simultaneous key chord-triggered Karabiner `Binding`.
  *
- * @param keys - Array of keys or pointers to trigger simultaneously.
- * @param cases - Action case or array of cases to execute when triggered.
- * @param modifiersOrOptions - Optional trigger modifiers (e.g. `["shift"]`) or `BindingOptions`.
- * @param options - Additional binding options if modifiers were supplied as the 3rd argument.
+ * @param keys - Key code, pointer button, or array of keys acting as the simultaneous chord (e.g. `["j", "k"]`, `["left_option", "right_option"]`).
+ * @param cases - Action case or array of cases to execute when chord is pressed (e.g. `press(...)`, `hold(...)`, `tapAndHold(...)`).
+ * @param modifiersOrOptions - Optional trigger modifiers (e.g. `["shift"]`, `VM.COCS`, `{ mandatory: ["cmd"], optional: ["any"] }`) OR a full `BindingOptions` configuration object (with `description`, `timing`, `conditions`, `eventOptions`, `multiTap`, `suppress`, `ruleGroup`, etc.).
+ * @param options - Additional `BindingOptions` if modifiers were supplied as the 3rd argument.
  * @returns A fully constructed `Binding` object for simultaneous triggers.
  *
  * @example
  * ```ts
+ * // 1. Basic simultaneous chord:
  * bindSimultaneous(["left_option", "right_option"], press(key("slash", ["right_control"])))
- * bindSimultaneous(["j", "k"], hold(app(APPS.finder)), ["shift"], { description: "J+K chord" })
+ *
+ * // 2. Chord with modifiers and options:
+ * bindSimultaneous(["j", "k"], hold(app(APPS.finder)), ["shift"], {
+ *   description: "Shift+J+K chord opens Finder",
+ *   timing: { simultaneousMs: 60 },
+ * })
  * ```
  */
 export function bindSimultaneous(
@@ -382,37 +527,21 @@ export const bindChord = bindSimultaneous;
  * modifiers, and options — the case where a whole family of keys wraps one
  * action the same way (`focusWinRight`/`focusWinLeft`/`focusWinTop`/...).
  *
- * A table value is either an action — auto-normalized the same way
- * `press()`/`release()`/`hold()`/`tap()` normalize registry primitives (see
- * {@link ActionInput}) — wrapped in `phase` for that entry, or an
- * already-built `Case`/`Case[]` (from `press()`, `hold()`, `.when(...)`,
- * `tapAndHold()`, etc.) used as-is. That escape hatch means one entry needing
- * its own condition, or a different phase than the rest of the table, does
- * not force the whole table back to individual `bind()` calls.
+ * A table value is either:
+ * - A bare action or registry primitive (`URLS.*`, `COMBOS.*`, `CMDS.*`, `APPS.*`) — auto-normalized and wrapped in `phase`.
+ * - An action array `[action1, action2]`.
+ * - A pre-built `Case` / `Case[]` (from `press()`, `hold()`, `.when(...)`, `tapAndHold()`, etc.) used as-is.
+ *   This escape hatch allows individual entries to carry custom conditions or different phases.
  *
- * @param phase - Trigger phase applied to every entry that is a bare action rather than a pre-built `Case`.
- * @param table - Map of key code to action(s) or pre-built case(s).
- * @param modifiersOrOptions - Optional trigger modifiers, shared by every entry, or `BindingOptions`.
- * @param options - Additional binding options, shared by every entry, if modifiers were supplied as the 3rd argument.
- * Inherited from `bindKeys()`: to skip modifiers and pass options, pass
- * `options` as the 3rd argument, not the 4th — an explicit `undefined` 3rd
- * argument is not equivalent to omitting it, and the 4th argument is
- * silently dropped in that case.
- * @returns One `Binding` per table entry. Order follows JavaScript's own
- * object-key iteration — ascending numeric-string keys (`"0"`-`"9"`, etc.)
- * first, then the rest in declaration order — not necessarily literal table
- * order when the two are mixed. Harmless for these bindings since each entry
- * targets a distinct key trigger, but worth knowing if diffing exact array
- * position (e.g. against a golden-output fixture).
+ * @param phase - Trigger phase (`"press"`, `"release"`, `"hold"`) applied to bare action entries.
+ * @param table - Map of key codes to actions or pre-built cases: `Partial<Record<KeyCode, ActionInput | ActionInput[] | Case | Case[]>>`.
+ * @param modifiersOrOptions - Optional trigger modifiers shared by every entry (e.g. `["cmd", "opt"]`, `VM.COCS`, `{ mandatory: ["cmd"], optional: ["any"] }`) OR a full `BindingOptions` configuration object.
+ * @param options - Additional `BindingOptions` shared by every entry, if modifiers were supplied as the 3rd argument.
+ * @returns An array of `Binding` objects, one per table entry.
  *
  * @example
  * ```ts
- * // Before:
- * bind(from("e", VM.COCS), to(release(map(COMBOS.focusWinRight)))),
- * bind(from("f", VM.COCS), to(release(map(COMBOS.focusWinBottom)))),
- * bind(from("q", VM.COCS), to(release(map(COMBOS.focusWinLeft)))),
- * bind(from("r", VM.COCS), to(release(map(COMBOS.focusWinTop)))),
- * // After:
+ * // 1. Table with shared phase and modifiers:
  * bindTable("release", {
  *   e: COMBOS.focusWinRight,
  *   f: COMBOS.focusWinBottom,
@@ -420,11 +549,22 @@ export const bindChord = bindSimultaneous;
  *   r: COMBOS.focusWinTop,
  * }, VM.COCS)
  *
- * // A pre-built Case overrides the table's phase/conditions for one entry:
+ * // 2. Table with options object as 3rd arg:
+ * bindTable("hold", {
+ *   "8": APPS.ringCentral,
+ *   keypad_5: url(URLS.winsUnstash, true),
+ * }, {
+ *   modifiers: ["shift"],
+ *   timing: { holdMs: 200 },
+ *   description: "Numeric keypad window stash bindings",
+ * })
+ *
+ * // 3. Pre-built Case overrides for specific entries:
  * bindTable("hold", {
  *   n: shell(CMDS.neruHints),
- *   p: hold(map(COMBOS.showPopclip)).when(condApp(APPS.finder)),
- * })
+ *   p: hold(COMBOS.showPopclip).when(condApp(APPS.finder)),
+ *   s: press(URLS.hsFormatSelection),
+ * }, VM.COCS)
  * ```
  */
 export function bindTable(

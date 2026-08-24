@@ -23,7 +23,6 @@ export function fromModifiersObj(trigger: Trigger): FromModifiers {
   const modifiersObj: FromModifiers = {};
   if (mandatory.length) modifiersObj.mandatory = mandatory as Modifier[];
   if (optional.length) modifiersObj.optional = optional as Modifier[];
-  else if (!mandatory.length) modifiersObj.optional = [];
   return modifiersObj;
 }
 
@@ -38,8 +37,13 @@ function triggerKeyToFromKey(key: string): FromKeyType {
  * Convert a high-level Trigger specification into a Karabiner `FromEvent` matcher object.
  */
 export function triggerToFrom(trigger: Trigger): FromEvent {
+  const mods = fromModifiersObj(trigger);
+  const hasMods = Object.keys(mods).length > 0;
   if ("any" in trigger) {
-    return { any: trigger.any, modifiers: fromModifiersObj(trigger) };
+    return {
+      any: trigger.any,
+      ...(hasMods ? { modifiers: mods } : {}),
+    };
   }
   const keys = getTriggerKeys(trigger);
   if (keys.length > 1) {
@@ -54,6 +58,6 @@ export function triggerToFrom(trigger: Trigger): FromEvent {
   }
   return {
     ...triggerKeyToFromKey(keys[0]!),
-    modifiers: fromModifiersObj(trigger),
+    ...(hasMods ? { modifiers: mods } : {}),
   };
 }

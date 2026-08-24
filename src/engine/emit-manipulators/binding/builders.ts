@@ -99,6 +99,7 @@ export function buildGuard(b: Binding, resolved: ResolvedCase[]): Manipulator[] 
     );
   }
   const modifiersObj = fromModifiersObj(b.trigger);
+  const hasMods = Object.keys(modifiersObj).length > 0;
   const conds = deviceLast(resolved.flatMap((c) => c.conditions));
 
   const secondPress = map(key as any);
@@ -106,7 +107,7 @@ export function buildGuard(b: Binding, resolved: ResolvedCase[]): Manipulator[] 
   for (const e of combo) secondPress.to(e);
   secondPress.to(toSetVar(varName, 0));
   for (const c of conds) secondPress.condition(c as any);
-  (secondPress as any).from.modifiers = modifiersObj;
+  if (hasMods) (secondPress as any).from.modifiers = modifiersObj;
 
   const firstPress = map(key as any);
   firstPress.condition({ type: "variable_if", name: varName, value: 0 } as any);
@@ -114,7 +115,7 @@ export function buildGuard(b: Binding, resolved: ResolvedCase[]): Manipulator[] 
   firstPress.to(toSetVar(varName, 1));
   firstPress.toDelayedAction([toSetVar(varName, 0)], [toSetVar(varName, 0)]);
   for (const c of conds) firstPress.condition(c as any);
-  (firstPress as any).from.modifiers = modifiersObj;
+  if (hasMods) (firstPress as any).from.modifiers = modifiersObj;
 
   const built = [...secondPress.build(), ...firstPress.build()];
   stampLabel(built, guardCase?.rawConditions);
@@ -316,7 +317,10 @@ export function buildModWhileDown(
   for (const e of g.pressDo) builder.to(e);
   for (const e of g.releaseDo) builder.toIfAlone(e);
   const m = builder.build()[0] as any;
-  m.from.modifiers = fromModifiersObj(b.trigger);
+  const mods = fromModifiersObj(b.trigger);
+  if (Object.keys(mods).length > 0) {
+    m.from.modifiers = mods;
+  }
   return [m as Manipulator];
 }
 
@@ -361,18 +365,21 @@ export function buildKeyTapHold(b: Binding, g: CaseGroup): Manipulator[] {
     });
   }
   const modifiersObj = fromModifiersObj(b.trigger);
-  manipulators.forEach((m: any) => {
-    m.from.modifiers = modifiersObj;
-  });
+  if (Object.keys(modifiersObj).length > 0) {
+    manipulators.forEach((m: any) => {
+      m.from.modifiers = modifiersObj;
+    });
+  }
   return manipulators;
 }
 
 export function buildPointerTapHold(b: Binding, g: CaseGroup): Manipulator[] {
   const pointerKey = getTriggerKeys(b.trigger)[0]!;
   const { button } = resolveButton(pointerKey);
+  const mods = fromModifiersObj(b.trigger);
   const from: Record<string, unknown> = {
     pointing_button: button,
-    modifiers: fromModifiersObj(b.trigger),
+    ...(Object.keys(mods).length > 0 ? { modifiers: mods } : {}),
   };
   const alone = g.hasRelease ? g.releaseDo : undefined;
   const hold = g.hasHold ? g.holdDo : undefined;

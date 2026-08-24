@@ -47,6 +47,14 @@ const modLetterBindings: Binding[] = [
     },
     VM.COCS,
   ),
+  ...bindTable(
+    "press",
+    {
+      a: APPS.antinote,
+      o: APPS.outlook,
+    },
+    ["R.cmd"],
+  ),
   bind(from("h", ["L.cmd"]), to(press(COMBOS.skimHighlight)), when(APPS.skim)),
   bind(from("k", ["R.opt"]), to(hold(actHere("kitty")))),
   bind(from("m", ["L.cmd"]), to(hold(COMBOS.restoreMinimizedWindow))),

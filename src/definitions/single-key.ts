@@ -45,6 +45,7 @@ const letterBindings: Binding[] = [
     h: URLS.rayHere2There,
     j: URLS.rayRecentDownloads,
     k: APPS.kitty,
+    m: COMBOS.restoreMinimizedWindow,
     n: CMDS.neruHints,
     o: URLS.csxOcrNoLinebreaks,
     p: COMBOS.showPopclip,
@@ -59,7 +60,8 @@ const letterBindings: Binding[] = [
   }),
   // Distinct from bare "s" above by its shift modifier; kept out of the
   // table since a table key can only hold one value.
-  bind(from("s", ["shift"]), to(hold(url(URLS.csxWindow)))),
+  bind(from("s", ["shift"]), to(hold(URLS.csxWindow))),
+  bind(from("m", ["shift"]), to(hold(COMBOS.showMenuItems))),
 ];
 
 const symbolBindings: Binding[] = [

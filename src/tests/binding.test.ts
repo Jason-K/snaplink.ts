@@ -55,6 +55,10 @@ test("resolveCondition var if/unless -> variable_if/unless", () => {
   );
 });
 
+test("triggerToFrom single key without modifiers has no modifiers property", () => {
+  assert.deepEqual(triggerToFrom({ keys: ["c"] }) as any, { key_code: "c" });
+});
+
 test("triggerToFrom single key with modifiers", () => {
   assert.deepEqual(
     triggerToFrom({ keys: ["a"], modifiers: ["left_command"] }) as any,
@@ -87,7 +91,7 @@ test("defineBindings remap: one press case -> single manipulator with to", () =>
   const built = rules[0] as any;
   assert.equal(built.description, "[HOME]        →    Move to line start (on tap)");
   const m = built.manipulators[0];
-  assert.deepEqual(m.from, { key_code: "home", modifiers: { optional: [] } });
+  assert.deepEqual(m.from, { key_code: "home" });
   assert.deepEqual(m.to, [{ key_code: "left_arrow", modifiers: ["left_command"] }]);
 });
 
@@ -364,7 +368,7 @@ test("buildMultiTap: multiTap.mods still overrides the trigger's modifiers", () 
     },
   ]);
   for (const m of (rules[0] as any).manipulators) {
-    assert.deepEqual(m.from.modifiers, {}, "mods: [] means no modifiers at all");
+    assert.equal(m.from.modifiers, undefined, "mods: [] means no modifiers at all");
   }
 });
 

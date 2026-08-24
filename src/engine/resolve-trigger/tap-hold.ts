@@ -251,13 +251,14 @@ export function varTapTapHoldFrom({
   mods,
   passThrough,
 }: AcceptUndefined<VarTapTapHoldFromOpts>) {
-  const fromEvent = cloneFromEvent(from) as any;
-  const modifiers =
-    mods !== undefined
-      ? mods.length === 0
-        ? {}
-        : { mandatory: mods }
-      : (fromEvent.modifiers ?? { optional: ["any"] });
+  const fromBase = cloneFromEvent(from);
+  if (mods !== undefined) {
+    if (mods.length === 0) {
+      delete fromBase.modifiers;
+    } else {
+      fromBase.modifiers = { mandatory: mods };
+    }
+  }
 
   // NOTE: a filter dropping hold events that re-emit the trigger's own modifier
   // key used to be computed here and then never used — `to_if_held_down` below
@@ -271,10 +272,7 @@ export function varTapTapHoldFrom({
 
   const secondTap: BasicManipulator = {
     type: "basic",
-    from: {
-      ...cloneFromEvent(from),
-      modifiers,
-    },
+    from: cloneFromEvent(fromBase),
     conditions: [{ type: "variable_if", name: firstTapPendingVar, value: 1 } as any],
     parameters: secondTapParams,
     description:
@@ -313,10 +311,7 @@ export function varTapTapHoldFrom({
   if (allowPassThrough) {
     firstTap = {
       type: "basic",
-      from: {
-        ...cloneFromEvent(from),
-        modifiers,
-      },
+      from: cloneFromEvent(fromBase),
       parameters: firstTapParams,
       description:
         description || `${firstTapPendingVar} first tap (pass-through)`,
@@ -340,10 +335,7 @@ export function varTapTapHoldFrom({
   } else {
     firstTap = {
       type: "basic",
-      from: {
-        ...cloneFromEvent(from),
-        modifiers,
-      },
+      from: cloneFromEvent(fromBase),
       parameters: firstTapParams,
       description:
         description || `${firstTapPendingVar} first tap (tap / tap-hold)`,

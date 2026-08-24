@@ -126,14 +126,50 @@ export function triggerPointer(
 }
 
 /**
- * Options object for defining a simultaneous / chord trigger.
+ * Options object for defining a simultaneous key chord trigger.
  */
 export type SimultaneousTriggerOptions = {
+  /**
+   * Keys involved in the chord: array of key codes or aliases.
+   *
+   * @example ["j", "k"]
+   * @example ["left_option", "right_option"]
+   */
   keys?: TriggerKey | TriggerKey[];
+
+  /**
+   * Alias for `keys`.
+   *
+   * @example ["d", "f"]
+   */
   simultaneous?: TriggerKey | TriggerKey[];
+
+  /**
+   * Alias for `keys`.
+   *
+   * @example ["spacebar", "j"]
+   */
   chord?: TriggerKey | TriggerKey[];
+
+  /**
+   * Modifier key requirements for the chord (e.g. `["shift"]`, `VM.COCS`, `{ mandatory: ["cmd"], optional: ["any"] }`).
+   *
+   * @example ["shift"]
+   * @example { mandatory: ["command"], optional: ["any"] }
+   */
   modifiers?: TriggerModifiers;
+
+  /**
+   * Key press down/up ordering constraint (`"insensitive"`, `"strict"`, `"strict_inverse"`, or full {@link SimOrder}).
+   *
+   * @example "strict"
+   * @example { down: "strict", up: "insensitive" }
+   */
   order?: SimOrder | "insensitive" | "strict" | "strict_inverse";
+
+  /**
+   * Karabiner-native simultaneous options (e.g. `detect_key_down_uninterruptedly`, `key_down_order`, `to_after_key_up`).
+   */
   simultaneous_options?: SimultaneousOptions;
 };
 
@@ -179,6 +215,10 @@ function isOrderArg(val: unknown): val is SimOrder | "insensitive" | "strict" | 
  * - Array of keys + modifiers: `simultaneous(["j", "k"], ["shift"])`
  * - Array of keys + modifiers + order: `simultaneous(["j", "k"], ["shift"], { down: "strict" })`
  * - Configuration object: `simultaneous({ keys: ["j", "k"], modifiers: { optional: ["any"] } })`
+ *
+ * @param first - First key code, array of key codes, or a {@link SimultaneousTriggerOptions} configuration object.
+ * @param rest - Remaining key codes, modifier array/object, or order constraint.
+ * @returns A normalized `Trigger` specification representing the simultaneous chord.
  *
  * @example
  * ```ts
@@ -282,6 +322,7 @@ export const chord = simultaneous;
  * @example
  * ```ts
  * anyInput("key_code")
+ * anyInput("pointing_button", { mandatory: ["fn"] })
  * ```
  */
 export function anyInput(
@@ -294,7 +335,17 @@ export function anyInput(
 /**
  * Flexible input type accepted by {@link from} to create trigger specifications.
  *
- * Accepts existing `Trigger` objects, key codes, pointer button aliases, arrays of inputs, or trigger configuration objects.
+ * Accepts:
+ * - A pre-built {@link Trigger} object
+ * - A single key code string: `"a"`, `"spacebar"`, `"escape"`, `"f12"`
+ * - A pointer button alias: `"button1"`, `"button4"`, `"left"`, `"right"`
+ * - An array of keys for simultaneous chords: `["j", "k"]`, `["d", "f"]`
+ * - Single-key configuration object: `{ key: "a", modifiers: ["cmd"] }`
+ * - Simultaneous key configuration objects:
+ *   - `{ keys: ["j", "k"], order: "strict" }`
+ *   - `{ simultaneous: ["j", "k"], simultaneous_options: { ... } }`
+ *   - `{ chord: ["left_option", "right_option"] }`
+ * - Pointer configuration object: `{ pointer: "button4", modifiers: ["cmd"] }`
  */
 export type FromInput =
   | Trigger
@@ -309,14 +360,24 @@ export type FromInput =
 /**
  * Coerces a flexible {@link FromInput} into a standardized `Trigger` object.
  *
- * @param input - Key code, pointer button, trigger object, or input array.
- * @param modifiers - Optional fallback/override trigger modifiers.
- * @param order - Optional fallback/override simultaneous order rule.
+ * @param input - Key code, pointer button, trigger object, input array, or configuration object.
+ * @param modifiers - Optional trigger modifiers (e.g. `["cmd", "opt"]`, `VM.COCS`, `{ mandatory: ["cmd"], optional: ["any"] }`).
+ * @param order - Optional simultaneous key press order constraint ("insensitive", "strict", "strict_inverse", or {@link SimOrder}).
  * @returns A resolved `Trigger` object.
  *
  * @example
  * ```ts
+ * // 1. Single key with modifiers:
  * from("a", ["cmd"])
+ * from("spacebar", VM.COCS)
+ *
+ * // 2. Mouse button:
+ * from("button4")
+ * from("button4", ["cmd"])
+ *
+ * // 3. Simultaneous key chord:
+ * from(["j", "k"])
+ * from(["j", "k"], ["shift"], "strict")
  * from({ keys: ["j", "k"], order: "strict" })
  * from({ simultaneous: ["left_option", "right_option"] })
  * ```

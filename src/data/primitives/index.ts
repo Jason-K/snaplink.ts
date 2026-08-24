@@ -27,6 +27,11 @@ export type {
 export type { ProfileSpec, SimpleModificationPair } from "./profiles";
 export type {
   Binding,
+  BindingEventOptions,
+  BindingMultiTap,
+  BindingOtherKeyPressedEntry,
+  BindingRuleGroup,
+  BindingTiming,
   Case,
   Condition,
   Phase,

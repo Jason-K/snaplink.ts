@@ -28,6 +28,10 @@ const ONEPIECE_HKS = {
     app: APPS.onePiece,
     options: { repeat: false },
   }),
+  showMenuItems: mapSpec("m", ["left_option"], "show menu items", {
+    app: APPS.onePiece,
+    options: { repeat: false },
+  }),
 };
 
 const RAYCAST_HKS = {
