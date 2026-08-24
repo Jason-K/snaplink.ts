@@ -6,6 +6,7 @@ import {
   bindTable,
   from,
   hold,
+  key,
   press,
   release,
   tapAndHold,
@@ -31,11 +32,7 @@ const modNumBindings: Binding[] = [
 ];
 
 const modLetterBindings: Binding[] = [
-  bind(from("a", ["shift"]), to(hold(URLS.antinoteNewNote))),
-  // The four focusWin* keys share modifier and phase, so they're a table.
-  // "s" (evalSelection) shares the same VM.COCS modifier but a different
-  // phase (press, not release) — folded in via a pre-built Case, bindTable's
-  // escape hatch for the one entry that doesn't fit the table's shape.
+  // Hyper + ____ bindings
   ...bindTable(
     "release",
     {
@@ -47,6 +44,14 @@ const modLetterBindings: Binding[] = [
     },
     VM.COCS,
   ),
+  bind(from("t", VM.COCS), to(tapAndHold(CMDS.newTypinatorRule, CMDS.lastTypinatorRule))),
+
+  // Ctrl + Shift + ____ bindings
+  bind(from("p", VM.C__S), to(press(COMBOS.excelPalette)), when(APPS.excel)),
+
+  // Right command + ____ bindings
+  // Sxitch - suppress right_command to allow quick launch when used in chord; call Sxitch otherwise.
+  bind(from("R.cmd"), to(release(key("R.cmd")))),
   ...bindTable(
     "press",
     {
@@ -55,17 +60,19 @@ const modLetterBindings: Binding[] = [
     },
     ["R.cmd"],
   ),
-  bind(from("h", ["L.cmd"]), to(press(COMBOS.skimHighlight)), when(APPS.skim)),
+
+  // Right Option + ____ bindings
   bind(from("k", ["R.opt"]), to(hold(actHere("kitty")))),
-  bind(from("m", ["L.cmd"]), to(hold(COMBOS.restoreMinimizedWindow))),
-  // Condition applies only to the tap (print) side, not the hold (popclip)
-  // side, so this stays as two explicit cases rather than tapAndHold() —
-  // tapAndHold() would apply state(APPS.word) to both.
-  bind(from("p", ["L.cmd"]), to(release(CMDS.wordPrint).when(APPS.word), hold(COMBOS.showPopclip))),
-  bind(from("p", VM.C__S), to(press(COMBOS.excelPalette)), when(APPS.excel)),
   bind(from("s", ["R.opt"]), to(tapAndHold(CMDS.spotifyToggle, URLS.raySpotifySearch))),
-  bind(from("t", VM.COCS), to(tapAndHold(CMDS.newTypinatorRule, CMDS.lastTypinatorRule))),
+
+  // Left command + ____ bindings
+  bind(from("h", ["L.cmd"]), to(press(COMBOS.skimHighlight)), when(APPS.skim)),
   bind(from("u", ["L.cmd"]), to(press(COMBOS.skimUnderline)), when(APPS.skim)),
+  bind(from("m", ["L.cmd"]), to(hold(COMBOS.restoreMinimizedWindow))),
+  bind(from("p", ["L.cmd"]), to(release(CMDS.wordPrint).when(APPS.word), hold(COMBOS.showPopclip))),
+
+  // Shift + ____ bindings
+  bind(from("a", ["shift"]), to(hold(URLS.antinoteNewNote))),
 ];
 
 const modSymbolBindings: Binding[] = [
@@ -73,10 +80,8 @@ const modSymbolBindings: Binding[] = [
   bind(
     from("slash", ["L.cmd"]),
     to(
-      // AUTHENTICATION DIALOG fill password.
-      press(CMDS.fillPw).when(STATE_GROUPS.isPasswordEdit),
-      // AUTHENTICATION DIALOG: fill username and password.
-      press(CMDS.fillUnPw).when(STATE_GROUPS.isUserEdit),
+      press(CMDS.fillPw).when(STATE_GROUPS.isPasswordEdit), // AUTHENTICATION DIALOG fill password.
+      press(CMDS.fillUnPw).when(STATE_GROUPS.isUserEdit), // AUTHENTICATION DIALOG: fill username and password.
       press(CMDS.wordGetPath).when(APPS.word),
     ),
   ),

@@ -12,6 +12,7 @@ import type {
   Condition,
   KeyCode,
   MapSpec,
+  ModKey,
   PathSpec,
   Phase,
   UrlSpec,
@@ -646,6 +647,24 @@ export function url(ref: UrlSpec | string, background?: boolean, actionDesc?: st
  * Re-exported from the action vocabulary so the wrapper layer and the spec it
  * produces cannot drift apart.
  */
+/**
+ * Configuration options for key, consumer key, and mouse button output events.
+ *
+ * Re-exported from {@link ActionEventOptions}.
+ *
+ * ### Available Options:
+ * - `repeat` (`boolean`): Whether the key repeats while held down. (Default `false` in Snaplink; Karabiner native default is `true`). Set `false` on the last event of a sequence to prevent stuck repeating keys.
+ * - `halt` (`boolean`): In `to_if_alone` or `to_if_held_down`, cancels subsequent `to_after_key_up` and `to_delayed_action` channels when this action fires.
+ * - `lazy` (`boolean`): Suppresses the modifier key's events until another non-modifier key is pressed with it.
+ * - `hold_down_milliseconds` (`number`): Gap in ms between key_down and key_up when sent together. `caps_lock` tap events need ~200ms to register.
+ *
+ * @example
+ * ```ts
+ * { repeat: true }
+ * { halt: true, lazy: true }
+ * { hold_down_milliseconds: 200 }
+ * ```
+ */
 export type KeyOptions = ActionEventOptions;
 
 /**
@@ -653,16 +672,17 @@ export type KeyOptions = ActionEventOptions;
  * volume, and brightness keys (`to.consumer_key_code`), a namespace distinct
  * from `to.key_code` and not covered by {@link key}'s alias table.
  *
- * @param keyName - Consumer key code name (e.g. "volume_increment", "mute", "play_or_pause") or a raw usage integer.
- * @param modifiersOrOptions - Optional array of modifier keys or a `KeyOptions` configuration.
- * @param options - Key options (`repeat`, `halt`, `lazy`) when modifiers are provided as 2nd parameter.
- * @param actionDesc - Optional human-readable description for the action.
- * @returns An `ActionSpec` of type "consumerKey".
+ * @param keyName - Consumer key code name (e.g. `"volume_increment"`, `"mute"`, `"play_or_pause"`) or a raw usage integer.
+ * @param modifiersOrOptions - Optional array of modifier keys (`["cmd"]`, `["shift", "opt"]`, `VM.COCS`) OR a {@link KeyOptions} configuration object (`{ repeat?: boolean, halt?: boolean, lazy?: boolean, hold_down_milliseconds?: number }`).
+ * @param options - Additional {@link KeyOptions} configuration (`{ repeat?, halt?, lazy?, hold_down_milliseconds? }`) when modifiers are provided as 2nd parameter.
+ * @param actionDesc - Optional human-readable description for documentation/logs.
+ * @returns An {@link ActionSpec} of type "consumerKey".
  *
  * @example
  * ```ts
  * consumerKey("volume_increment")
  * consumerKey("play_or_pause", { halt: true })
+ * consumerKey("display_brightness_increment", ["shift"], { repeat: true })
  * ```
  */
 export function consumerKey(
@@ -693,11 +713,11 @@ export function consumerKey(
 /**
  * Creates an action spec for a key press event.
  *
- * @param keyName - Target key code or alias (e.g. "a", "spacebar", "left_command").
- * @param modifiersOrOptions - Optional array of modifier keys or a `KeyOptions` configuration.
- * @param options - Key options (`repeat`, `halt`, `lazy`) when modifiers are provided as 2nd parameter.
- * @param actionDesc - Optional human-readable description for the action.
- * @returns An `ActionSpec` of type "key".
+ * @param keyName - Target key code or alias (e.g. `"a"`, `"spacebar"`, `"left_command"`, `"escape"`, `"f12"`).
+ * @param modifiersOrOptions - Optional array of modifier keys (`["cmd"]`, `["shift", "opt"]`, `VM.COCS`) OR a {@link KeyOptions} configuration object (`{ repeat?: boolean, halt?: boolean, lazy?: boolean, hold_down_milliseconds?: number }`).
+ * @param options - Additional {@link KeyOptions} configuration (`{ repeat?, halt?, lazy?, hold_down_milliseconds? }`) when modifiers are provided as 2nd parameter.
+ * @param actionDesc - Optional human-readable description for documentation/logs.
+ * @returns An {@link ActionSpec} of type "key".
  *
  * @example
  * ```ts
@@ -707,7 +727,7 @@ export function consumerKey(
  * ```
  */
 export function key(
-  keyName: KeyCode,
+  keyName: KeyCode | ModKey,
   modifiersOrOptions?: ActionKeyModifier[] | KeyOptions,
   options?: KeyOptions,
   actionDesc?: string,
@@ -743,6 +763,10 @@ export function key(
  * Values are Karabiner mouse-key units, not pixels, and the actual speed also
  * depends on System Settings > Mouse (gotcha 6.10).
  *
+ * @param opts - Movement distances in Karabiner units (`left`, `right`, `up`, `down`, `speedMultiplier`).
+ * @param actionDesc - Optional human-readable description for the action.
+ * @returns An {@link ActionSpec} of type "mouseKey".
+ *
  * @example
  * ```ts
  * mouseMove({ right: 1536 })
@@ -773,6 +797,10 @@ export function mouseMove(
  * `vertical_wheel > 0` scrolls **down** but `horizontal_wheel > 0` scrolls
  * **left** — the horizontal axis is inverted relative to the vertical one
  * (gotcha 6.10). Scroll direction also follows System Settings > Mouse.
+ *
+ * @param opts - Scroll distances (`up`, `down`, `left`, `right`, `speedMultiplier`).
+ * @param actionDesc - Optional human-readable description for the action.
+ * @returns An {@link ActionSpec} of type "mouseKey".
  *
  * @example
  * ```ts
@@ -806,16 +834,17 @@ export function mouseKey(spec: ToMouseKey, actionDesc?: string): ActionSpec {
 /**
  * Creates an action spec for a mouse button press event.
  *
- * @param buttonName - Target mouse button name or alias (e.g. "button1", "button2").
- * @param modifiersOrOptions - Optional array of modifier keys or a `KeyOptions` configuration.
- * @param options - Key options (`repeat`, `halt`, `lazy`) when modifiers are provided as 2nd parameter.
+ * @param buttonName - Target mouse button name or alias (e.g. `"button1"`, `"button2"`, `"button4"`, `"left"`, `"right"`).
+ * @param modifiersOrOptions - Optional array of modifier keys (`["cmd"]`, `["shift"]`) OR a {@link KeyOptions} configuration object.
+ * @param options - Additional {@link KeyOptions} (`repeat`, `halt`, `lazy`, `hold_down_milliseconds`) when modifiers are provided as 2nd parameter.
  * @param actionDesc - Optional human-readable description for the action.
- * @returns An `ActionSpec` of type "button".
+ * @returns An {@link ActionSpec} of type "button".
  *
  * @example
  * ```ts
  * button("button1")
  * button("button2", ["cmd"])
+ * button("button4", ["cmd", "shift"], { halt: true })
  * ```
  */
 export function button(
@@ -852,14 +881,15 @@ export function button(
 /**
  * Creates an action spec for a map reference.
  *
- * @param ref - `MapSpec` target reference.
- * @param options - Optional key options (`repeat`, `halt`, `lazy`).
+ * @param ref - `MapSpec` target reference (e.g. `COMBOS.focusWinRight`, `COMBOS.showPopclip`).
+ * @param options - Optional {@link KeyOptions} (`repeat`, `halt`, `lazy`, `hold_down_milliseconds`).
  * @param actionDesc - Optional human-readable description for the action.
- * @returns An `ActionSpec` of type "map".
+ * @returns An {@link ActionSpec} of type "map".
  *
  * @example
  * ```ts
- * map(MAP_ID.navigation, { repeat: true })
+ * map(COMBOS.focusWinRight)
+ * map(COMBOS.showPopclip, { halt: true })
  * ```
  */
 export function map(ref: MapSpec, options?: KeyOptions, actionDesc?: string): ActionSpec {
@@ -877,12 +907,13 @@ export function map(ref: MapSpec, options?: KeyOptions, actionDesc?: string): Ac
 /**
  * Creates an in-place context action spec.
  *
- * @param action - Action identifier string.
- * @returns An `ActionSpec` of type "actHere".
+ * @param action - Action identifier string (e.g. `"kitty"`, `"qspace"`, `"copy"`).
+ * @returns An {@link ActionSpec} of type "actHere".
  *
  * @example
  * ```ts
- * actHere("toggle_sidebar")
+ * actHere("kitty")
+ * actHere("qspace")
  * ```
  */
 export function actHere(action: string): ActionSpec {
@@ -892,10 +923,10 @@ export function actHere(action: string): ActionSpec {
 /**
  * Creates an action spec to navigate application history.
  *
- * @param index - Delta index in the app history stack.
- * @param exclude - Optional target or list of targets (bundle IDs, regexes, AppSpecs, paths) or options object to exclude.
+ * @param index - Delta index in the app history stack (1 = previous app, 2 = 2nd previous app).
+ * @param exclude - Optional {@link AppHistoryExclude} or {@link AppHistoryOptions} specifying bundle IDs or file paths to exclude.
  * @param actionDesc - Optional human-readable description for the action.
- * @returns An `ActionSpec` of type "appHistory".
+ * @returns An {@link ActionSpec} of type "appHistory".
  *
  * @example
  * ```ts
@@ -949,15 +980,15 @@ export function appHistory(
 }
 
 /**
- * Creates an action spec to open a folder path.
+ * Creates an action spec to open a folder path in Finder or replacement file manager.
  *
- * @param ref - `PathSpec` or directory path string.
+ * @param ref - {@link PathSpec} (e.g. `PATHS.downloads`) or directory path string.
  * @param actionDesc - Optional human-readable description for the action.
- * @returns An `ActionSpec` of type "folder".
+ * @returns An {@link ActionSpec} of type "folder".
  *
  * @example
  * ```ts
- * folder(PATH_ID.downloads)
+ * folder(PATHS.downloads)
  * folder("~/Documents", "Open Documents folder")
  * ```
  */
@@ -972,13 +1003,14 @@ export function folder(ref: PathSpec, actionDesc?: string): ActionSpec {
 /**
  * Creates an action spec from a registered command reference.
  *
- * @param ref - `CommandSpec` reference.
+ * @param ref - {@link CommandSpec} reference (e.g. `CMDS.neruHints`, `CMDS.wordPrint`).
  * @param actionDesc - Optional human-readable description for the action.
- * @returns An `ActionSpec` of type "command".
+ * @returns An {@link ActionSpec} of type "command".
  *
  * @example
  * ```ts
- * cmd(COMMAND_ID.raycastClipboard)
+ * cmd(CMDS.neruHints)
+ * cmd(CMDS.wordPrint, "Print Word Document")
  * ```
  */
 export function cmd(ref: CommandSpec, actionDesc?: string): ActionSpec {
@@ -992,14 +1024,15 @@ export function cmd(ref: CommandSpec, actionDesc?: string): ActionSpec {
 /**
  * Creates an action spec to run a shell command.
  *
- * @param command - Shell command string or `CommandSpec`.
+ * @param command - Shell command string or {@link CommandSpec}.
  * @param actionDesc - Optional human-readable description for the action.
- * @returns An `ActionSpec` of type "shell".
+ * @returns An {@link ActionSpec} of type "shell".
  *
  * @example
  * ```ts
  * shell("echo 'Hello World'")
  * shell("open -a Terminal .", "Open terminal in current dir")
+ * shell(CMDS.recentFiles)
  * ```
  */
 export function shell(command: string | CommandSpec, actionDesc?: string): ActionSpec {
@@ -1014,9 +1047,9 @@ export function shell(command: string | CommandSpec, actionDesc?: string): Actio
  * Creates an action spec to execute a Python script.
  *
  * @param scriptPath - File path to the Python script.
- * @param options - Argument array or configuration object containing `venv`, `args`, or `actionDesc`.
+ * @param options - Argument array (`["--verbose"]`) or configuration object containing `venv` (virtualenv path), `args` (cli arguments), or `actionDesc`.
  * @param actionDesc - Optional human-readable description when `options` is passed as an argument array.
- * @returns An `ActionSpec` of type "python".
+ * @returns An {@link ActionSpec} of type "python".
  *
  * @example
  * ```ts
@@ -1050,7 +1083,7 @@ export function python(
  * @param scriptPath - Path to the script file.
  * @param args - Optional positional command line arguments.
  * @param actionDesc - Optional human-readable description for the action.
- * @returns An `ActionSpec` of type "osascript".
+ * @returns An {@link ActionSpec} of type "osascript".
  *
  * @example
  * ```ts
@@ -1067,9 +1100,9 @@ export function osascript(scriptPath: string, args?: string[], actionDesc?: stri
 }
 
 /**
- * Creates a no-op (no operation) action spec.
+ * Creates a no-op (no operation) action spec. Swallows the trigger without emitting output.
  *
- * @returns An `ActionSpec` of type "noop".
+ * @returns An {@link ActionSpec} of type "noop".
  *
  * @example
  * ```ts
@@ -1086,10 +1119,10 @@ export function noop(): ActionSpec {
  * (`to.sticky_modifier`). Karabiner does not accept booleans here (6.9); use
  * `"on"` / `"off"` / `"toggle"`.
  *
- * @param flag - Which modifier goes sticky.
+ * @param flag - Which modifier goes sticky (e.g. `"left_shift"`, `"left_command"`, `"fn"`).
  * @param toggle - `"on"`, `"off"`, or `"toggle"` (default).
  * @param actionDesc - Optional human-readable description for the action.
- * @returns An `ActionSpec` of type "sticky".
+ * @returns An {@link ActionSpec} of type "sticky".
  *
  * @example
  * ```ts
@@ -1114,9 +1147,9 @@ export function sticky(
  * Creates an action spec that puts the Mac to sleep
  * (`software_function.iokit_power_management_sleep_system`).
  *
- * @param delayMilliseconds - Delay before sleeping. Karabiner defaults to 500.
+ * @param delayMilliseconds - Delay before sleeping. Karabiner defaults to 500ms.
  * @param actionDesc - Optional human-readable description for the action.
- * @returns An `ActionSpec` of type "sleepSystem".
+ * @returns An {@link ActionSpec} of type "sleepSystem".
  *
  * @example
  * ```ts
@@ -1135,15 +1168,15 @@ export function sleepSystem(delayMilliseconds?: number, actionDesc?: string): Ac
 /**
  * Creates an action spec to set or toggle a Karabiner variable.
  *
- * @param varSpec - Variable specification target.
- * @param value - Value to set for the variable (defaults to 1).
+ * @param varSpec - Variable specification target (e.g. `VARS.rButtonDown`, `VARS.myMode`).
+ * @param value - Value to set for the variable (defaults to 1). Strict types (`1 != true`).
  * @param toggle - If true, toggles variable between 0 and 1.
- * @returns An `ActionSpec` of type "setVar".
+ * @returns An {@link ActionSpec} of type "setVar".
  *
  * @example
  * ```ts
  * setVar(VARS.rButtonDown, 1)
- * setVar(VAR_ID.leaderActive, 1, true)
+ * setVar(VARS.myMode, 1, true)
  * ```
  */
 export function setVar(varSpec: VarSpec, value: number | string | boolean = 1, toggle = false): ActionSpec {
@@ -1158,7 +1191,7 @@ export function setVar(varSpec: VarSpec, value: number | string | boolean = 1, t
 /**
  * Creates a clipboard cut action spec (⌘+X).
  *
- * @returns An `ActionSpec` of type "cut".
+ * @returns An {@link ActionSpec} of type "cut".
  *
  * @example
  * ```ts
@@ -1175,9 +1208,9 @@ export function cut(): ActionSpec {
  *
  * @param x - Points (`100`) or percent (`"50%"`).
  * @param y - Points (`100`) or percent (`"50%"`).
- * @param opts - Screen index and relative-positioning options.
+ * @param opts - Screen index and relative-positioning options (`screen`, `relativeTo`, `fallbackTo`).
  * @param actionDesc - Optional human-readable description for the action.
- * @returns An `ActionSpec` of type "cursorTo".
+ * @returns An {@link ActionSpec} of type "cursorTo".
  *
  * @example
  * ```ts
@@ -1213,7 +1246,7 @@ export function cursorTo(
  *
  * @param button - CGMouseButton: 0 left (default), 1 right, 2 middle, 3+ other.
  * @param actionDesc - Optional human-readable description for the action.
- * @returns An `ActionSpec` of type "doubleClick".
+ * @returns An {@link ActionSpec} of type "doubleClick".
  *
  * @example
  * ```ts
@@ -1232,7 +1265,7 @@ export function doubleClick(button = 0, actionDesc?: string): ActionSpec {
 /**
  * Creates a clipboard copy action spec (⌘+C).
  *
- * @returns An `ActionSpec` of type "copy".
+ * @returns An {@link ActionSpec} of type "copy".
  *
  * @example
  * ```ts
@@ -1246,7 +1279,7 @@ export function copy(): ActionSpec {
 /**
  * Creates a clipboard paste action spec (⌘+V).
  *
- * @returns An `ActionSpec` of type "paste".
+ * @returns An {@link ActionSpec} of type "paste".
  *
  * @example
  * ```ts

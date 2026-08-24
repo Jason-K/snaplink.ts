@@ -269,13 +269,15 @@ export const condNotVar = unlessUserVar;
 /**
  * Creates an application condition.
  *
- * @param app - AppSpec, PathSpec, string bundle ID/path, or list of apps.
+ * @param app - {@link AppSpec}, {@link PathSpec}, string bundle ID / path, or array of apps.
  * @param isForemost - True for frontmost application matching; false for unless (not frontmost).
- * @returns A `Condition` object.
+ * @returns A {@link Condition} object.
  *
  * @example
  * ```ts
+ * condApp(APPS.finder)
  * condApp("com.apple.finder")
+ * condApp([APPS.safari, APPS.zen])
  * ```
  */
 export function condApp(
@@ -292,13 +294,14 @@ export function condApp(
 export const ifApp = condApp;
 
 /**
- * Creates a negated application condition (unless application is frontmost).
+ * Creates a negated application condition (active unless specified application is frontmost).
  *
- * @param app - AppSpec, PathSpec, string bundle ID/path, or list of apps.
- * @returns A `Condition` object with `unless: true`.
+ * @param app - {@link AppSpec}, {@link PathSpec}, string bundle ID / path, or array of apps.
+ * @returns A {@link Condition} object with `unless: true`.
  *
  * @example
  * ```ts
+ * unlessApp(APPS.excel)
  * condNotApp("com.apple.finder")
  * ```
  */
@@ -312,15 +315,16 @@ export function condNotApp(
 export const unlessApp = condNotApp;
 
 /**
- * Creates a hardware device condition.
+ * Creates a hardware device condition matching the physical event source.
  *
- * @param device - Target `DeviceSpec`.
+ * @param device - Target {@link DeviceSpec} (e.g. `DEVICES.g502X`, `DEVICES.appleKeyboard`).
  * @param unlessOrOpts - Optional boolean for `unless`, or `{ unless?: boolean }` options.
- * @returns A `Condition` object.
+ * @returns A {@link Condition} object.
  *
  * @example
  * ```ts
- * condDevice(DEVICES.appleKeyboard)
+ * condDevice(DEVICES.g502X)
+ * ifDevice(DEVICES.appleKeyboard)
  * ```
  */
 export function condDevice(
@@ -341,15 +345,19 @@ export function condDevice(
 export const ifDevice = condDevice;
 
 /**
- * Whether a device is **connected**, regardless of what produced the event.
+ * Creates a condition testing whether a device is **connected**, regardless of what device produced the event.
  *
  * `condDevice` tests the event's own source, so it cannot express "while the
  * mouse is plugged in" for a keystroke typed on the built-in keyboard — that is
  * what this is for (KE 14.8.4+, gotcha 8.5).
  *
+ * @param deviceExists - Target {@link DeviceSpec} to check connection status.
+ * @param unlessOrOpts - Optional boolean for `unless`, or `{ unless?: boolean }` options.
+ * @returns A {@link Condition} object.
+ *
  * @example
  * ```ts
- * when(condDeviceExists(DEVICES.g502X))
+ * condDeviceExists(DEVICES.g502X)
  * ```
  */
 export function condDeviceExists(
@@ -365,12 +373,16 @@ export function condDeviceExists(
 export const ifDeviceExists = condDeviceExists;
 
 /**
- * The **virtual** keyboard type configured in Karabiner, not the physical
+ * Creates a condition for the **virtual** keyboard type configured in Karabiner, not the physical
  * device (gotcha 8.6). Note `[` is `close_bracket` on JIS.
+ *
+ * @param keyboardType - {@link KeyboardType} (`"ansi"`, `"iso"`, or `"jis"`).
+ * @param unlessOrOpts - Optional boolean for `unless`, or `{ unless?: boolean }` options.
+ * @returns A {@link Condition} object.
  *
  * @example
  * ```ts
- * when(condKeyboardType("jis"))
+ * condKeyboardType("jis")
  * ```
  */
 export function condKeyboardType(
@@ -386,12 +398,16 @@ export function condKeyboardType(
 export const ifKeyboardType = condKeyboardType;
 
 /**
- * Active input source. Every field is a regular expression; entries are ORed
- * and keys within one entry are ANDed (gotchas 8.1, 8.2).
+ * Creates a condition matching the active input source.
+ * Every field is a regular expression; entries are ORed and keys within one entry are ANDed.
+ *
+ * @param inputSource - {@link InputSourceSpecifier} (language regex, input source ID regex).
+ * @param unlessOrOpts - Optional boolean for `unless`, or `{ unless?: boolean }` options.
+ * @returns A {@link Condition} object.
  *
  * @example
  * ```ts
- * when(condInputSource({ language: "^en$" }))
+ * condInputSource({ language: "^en$" })
  * ```
  */
 export function condInputSource(
@@ -407,15 +423,19 @@ export function condInputSource(
 export const ifInputSource = condInputSource;
 
 /**
- * Whether Simple Modifications already rewrote this event (gotcha 2.5).
+ * Creates a condition checking whether Simple Modifications already rewrote this event (gotcha 2.5).
  *
  * Simple Modifications run *before* Complex Modifications, so a remapped key
  * arrives here as the new key. This is how Function Keys Modifications are
  * stopped from re-changing an fx key that a complex rule already handled.
  *
+ * @param eventChanged - Boolean indicating whether the event has been modified.
+ * @param unlessOrOpts - Optional boolean for `unless`, or `{ unless?: boolean }` options.
+ * @returns A {@link Condition} object.
+ *
  * @example
  * ```ts
- * when(condEventChanged(false))   // only untouched events
+ * condEventChanged(false) // only untouched events
  * ```
  */
 export function condEventChanged(

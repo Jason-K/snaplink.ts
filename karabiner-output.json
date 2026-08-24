@@ -27142,6 +27142,32 @@
         ]
       },
       {
+        "description": "[⌘]:\n---\n\tOn Tap:\n\t\tAlways:\tEmit '⌘'",
+        "manipulators": [
+          {
+            "type": "basic",
+            "from": {
+              "key_code": "right_command"
+            },
+            "to_if_alone": [
+              {
+                "repeat": false,
+                "key_code": "right_command"
+              }
+            ],
+            "to_delayed_action": {
+              "to_if_invoked": [],
+              "to_if_canceled": [
+                {
+                  "repeat": false,
+                  "key_code": "right_command"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
         "description": "[⇧]:\n---\n\tOn Tap:\n\t\tnot Caps lock pressed:\tEmit '⇧'\n\tOn Hold:\n\t\tnot Caps lock pressed:\tEmit '⇧'\n\tOn Double Tap:\n\t\tnot Caps lock pressed:\tCall 'open Raycast clipboard manager'",
         "manipulators": [
           {
