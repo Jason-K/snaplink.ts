@@ -18,13 +18,20 @@ import {
   tapHoldBindings,
 } from "./definitions";
 import type { Binding, PointerTweak } from "./data";
-import type { AnalysisReport, DeviceConfig, PlannedBinding, RulePlan } from "./engine";
+import type {
+  AnalysisReport,
+  DeviceConfig,
+  LintReport,
+  PlannedBinding,
+  RulePlan,
+} from "./engine";
 import {
   assertNoConflictsInOrder,
   buildDeviceConfig,
   emitPointerTweaks,
   emitRules,
   generateSimultaneousRules,
+  lintBindings,
   planRules,
 } from "./engine";
 import type { Rule } from "./types/karabiner";
@@ -98,16 +105,29 @@ export function orderedBindings(): PlannedBinding[] {
 /**
  * Compile every binding set into the final ordered rule list.
  *
- * Conflict analysis runs first, over the planned order rather than the
- * declaration order, and throws on any rule that a preceding rule makes
- * unreachable — so an unfireable binding fails the build rather than sitting
- * silently dead in the config.
+ * Two analyses run over the planned order — the order Karabiner will actually
+ * evaluate, not the declaration order — and they answer different questions:
+ *
+ * - **Conflicts** (`assertNoConflictsInOrder`) — can this rule ever be reached?
+ *   A rule a preceding rule makes unreachable is unambiguously a mistake, so
+ *   this *throws* and the build fails.
+ * - **Gesture lint** (`lintBindings`) — will a rule that *is* reached do what
+ *   it says? Dead-zone thresholds, options read from a different field than the
+ *   one that was set, actions a later stage drops. Any of these can be
+ *   deliberate, so the report is returned for the caller to print and the build
+ *   continues.
  *
  * @throws {import('./engine').RuleConflictError} on unreachable rules.
  */
-export function buildRules(): { rules: Rule[]; analysis: AnalysisReport } {
+export function buildRules(): {
+  rules: Rule[];
+  analysis: AnalysisReport;
+  lint: LintReport;
+} {
   const plans = rulePlan();
-  const analysis = assertNoConflictsInOrder(plans.flatMap((p) => p.bindings));
+  const ordered = plans.flatMap((p) => p.bindings);
+  const analysis = assertNoConflictsInOrder(ordered);
+  const lint = lintBindings(ordered);
   const rules = [
     // Chords stay ahead of everything: a single-key rule for one of a chord's
     // members can consume the chord's first key-down, and trigger order alone
@@ -119,5 +139,5 @@ export function buildRules(): { rules: Rule[]; analysis: AnalysisReport } {
     // the emitted ordering readable.
     ...emitPointerTweaks(POINTER_TWEAKS),
   ];
-  return { rules, analysis };
+  return { rules, analysis, lint };
 }

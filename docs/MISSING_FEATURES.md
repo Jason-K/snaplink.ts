@@ -102,7 +102,7 @@ In Karabiner-Elements, `complex_modifications` rules run in a single pass on inp
   3. The hold trigger specifies `suppressCancelFallback: true` so that when a chord key cancels `to_if_alone`, no stray fallback key is emitted from `to_delayed_action.to_if_canceled`.
   4. Chord bindings are defined with phase `"press"` and conditioned on `when(VARS.fooDown)`.
 
-**Recommended DSL Wrapper (`holdLayer`)**:
+**Implemented as `holdLayer()`** (`src/engine/wrappers/binding-wrappers.ts`). The sketch it grew from:
 
 ```ts
 /**
@@ -176,30 +176,39 @@ Two ordering constraints do the real work, both following from gotcha 2.1 (first
 1. **The unmapped-key guard must come last.** A `from.any: key_code` catch-all with `optional: ["any"]`, conditioned on each layer variable and emitting nothing, stops stray keys leaking into the frontmost app while a modal layer is active. Placed anywhere but last, it eats the layer's own mappings.
 2. **Every other rule family needs suppression.** Rules outside the layer must carry `variable_unless` on the leader variable and every sublayer variable, or they fire while the layer is active.
 
-**Recommended DSL Wrapper (`modalLayer`)**:
+**Implemented as `modalLayer()`** (`src/engine/modal-layer.ts`), which owns the
+first four rows of the table above and the catch-all ordering constraint;
+`ModalLayer.suppress()` is the second constraint, applied by the caller because
+only the caller knows what "every other rule family" is. A commented, complete
+example lives in `src/definitions/modal-layers.ts`.
 
 ```ts
-modalLayer({
+const nav = modalLayer({
   leader: "spacebar",
-  tapAlone: key("spacebar"),
+  enterOn: "hold",              // a tap still types a space
   escapeKey: "escape",
-  layers: {
+  onUnmapped: "swallow",        // or "exit" / "passthrough"
+  mappings: { q: APPS.qspace },
+  sublayers: {
     d: {
       description: "Downloads",
-      mappings: {
-        f: folder(FOLDERS.downloads),
-      },
+      mappings: { f: folder(PATHS.downloads) },
     },
     w: {
       description: "Window management",
-      mappings: {
-        h: URLS.hsWinLeftTop,
-        l: URLS.hsWinRightBottom,
-      },
+      sticky: true,             // stays up: nudging a window is repeated
+      mappings: { h: URLS.hsWinLeftTop, l: URLS.hsWinRightBottom },
     },
   },
 });
 ```
+
+**The timeout row is not implemented, deliberately.** `to_delayed_action` is the
+only timer Karabiner offers; it is scoped to one manipulator and cancelled by
+the next key press — precisely the event that should *not* end a leader
+sequence. A timer wired to it expires mid-sequence, or stops meaning anything
+after the first keystroke. The exits are all explicit instead: a mapping firing,
+escape, the leader again, or any unmapped key under `onUnmapped: "exit"`.
 
 ### Deliberately unwired
 
@@ -238,7 +247,8 @@ Covers `from.integer_value` and alternate key namespaces in `from`.
 
 ### Shape C — a modal layer
 
-Covers item 5 (leader keys).
+Covers item 5 (leader keys). **Implemented**; kept as the recipe for the next
+layer family, since the shape generalises.
 
 A layer is not one binding; it is a family of rules plus an ordering constraint
 on everything else. `buildCapsLockBindings()` in `src/engine/caps-layer.ts` is
@@ -266,7 +276,7 @@ Start from `src/engine/caps-layer.ts` and the choreography table in item 5.
 | `set_notification_message`            | Deferred: native replacement for Hammerspoon layer-indicator IPC chain when needed. |
 | `select_input_source`                 | Shape A; no current use case.                                                       |
 | alternate namespaces, `integer_value` | On demand. Wire when a specific key or device needs it.                             |
-| modal layers (Shape C)                | Independent feature design. Size against `caps-layer.ts`.                           |
+| modal layers (Shape C)                | **Done** — `modalLayer()` in `src/engine/modal-layer.ts`. Timeout excluded; see item 5B. |
 
 ---
 

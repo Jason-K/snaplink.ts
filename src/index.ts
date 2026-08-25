@@ -26,6 +26,7 @@ import {
 } from "./data";
 import { buildRules, DEVICE_CONFIGS } from "./config";
 import {
+  formatLintReport,
   getProfileSpec,
   readKarabinerConfig,
   resolveProfileName,
@@ -46,11 +47,17 @@ function main(): void {
   // Compiling inside main() keeps conflict errors on the same reporting path as
   // write errors — at module scope a RuleConflictError escaped the handler below
   // and surfaced as a raw stack trace.
-  const { rules, analysis } = buildRules();
+  const { rules, analysis, lint } = buildRules();
 
   for (const warning of analysis.warnings) {
     console.warn(`⚠ [${warning.kind}] ${warning.message}`);
   }
+
+  // Advisory, unlike the conflict errors above: a lint finding can be a
+  // deliberate choice, so it is reported and the build continues.
+  // `npm run explain -- --lint` prints the same report on demand.
+  const lintText = formatLintReport(lint);
+  if (lintText) console.warn(`\n${lintText}\n`);
 
   // One read of karabiner.json for the whole build; one atomic write back.
   const config = dryRun ? undefined : readKarabinerConfig(configPath);

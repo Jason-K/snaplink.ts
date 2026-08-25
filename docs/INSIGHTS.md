@@ -179,23 +179,84 @@ export const simultaneousBindings: Binding[] = [
 
 No other files need changes: `buildRules()` in `src/config.ts` passes `simultaneousBindings` through `generateSimultaneousRules`, and emits chords ahead of everything else. A single-key rule for one of a chord's members can otherwise consume the chord's first key-down, and trigger order cannot express that dependency.
 
+## Modal layers
+
+Three layer builders now, and what separates them is how long the layer outlives
+the keypress that opened it:
+
+| | Lifetime | Builder |
+| --- | --- | --- |
+| Modifier layer | while its key is held, translating every key through a modifier set | `caps-layer.ts` |
+| Momentary hold layer | while its trigger is held | `holdLayer()` |
+| Modal leader layer | until something explicitly closes it | `modal-layer.ts` |
+
+The caps-lock layer is still the only one this configuration *emits*, and the
+only one that takes every other binding as input (adoption). Both it and a
+modal layer must be planned as their own set in `src/config.ts`, ahead of the
+plain rules: a layer manipulator carries no mandatory modifiers, so trigger
+order alone sorts it level with the plain rule for the same key and the plain
+rule consumes the event first.
+
+### What makes the modal one the hard case
+
+A momentary layer cannot get stuck — releasing the trigger ends it. A modal
+layer can, and a stuck modal layer eats every keystroke after it. Five things
+have to agree, and `modal-layer.ts` owns the first four:
+
+1. Entering clears the leader's own output.
+2. Entering a sublayer clears the root variable **in the same `to` array**. Two
+   live layer variables mean two live sets of mappings for one key, and the
+   earlier-emitted one silently wins.
+3. Every exit path clears *every* variable, not only its own level.
+4. Unmapped keys are swallowed by a `from.any` catch-all — which must be
+   evaluated last, or it eats the layer's own mappings. `compareTriggerSortKeys`
+   already sorts catch-alls last within a set, which is the property this leans
+   on rather than re-implementing.
+5. Every rule outside the layer carries `variable_unless` on every layer
+   variable. This one is the caller's, via `ModalLayer.suppress()`, because only
+   the caller knows what "everything else" is.
+
+### Why there is no timeout
+
+`to_delayed_action` is the only timer Karabiner offers. It is scoped to a single
+manipulator, and it is cancelled by the next key press — precisely the event
+that should *not* end a leader sequence. Wiring a layer timeout to it produces
+one that expires mid-sequence, or one whose timer stops meaning anything after
+the first keystroke. Both are worse than no timeout, so the exits are explicit.
+
+## Gesture lint
+
+`analyze-conflicts/` answers *can this rule be reached*. `analyze-bindings/`
+answers the other half — *will a rule that is reached behave the way it reads* —
+and the two split along a clean line: an unreachable rule is unambiguously
+wrong, so conflicts throw; a lint finding can be deliberate, so it reports.
+
+The rule that pays for the module on its own is `tap-hold-dead-zone`. Karabiner
+cancels `to_if_alone` when the key is held past
+`basic.to_if_alone_timeout_milliseconds` (gotcha 7.2), and `to_if_held_down`
+does not fire until `basic.to_if_held_down_threshold_milliseconds`. Set the hold
+threshold *above* the alone timeout and a release between the two runs neither
+channel — the key is dead for that interval, with perfectly valid JSON and no
+warning from anything. The usual way in is setting one threshold and inheriting
+the other:
+
+```ts
+timing({ aloneMs: 150 })    // holdMs stays 400 → 250 ms of nothing
+timing("snappy")            // 200 / 200 → no gap, no overlap
+```
+
+Upstream's own tap-hold examples set the two equal, which is what every
+`TIMING_PROFILES` entry does.
+
+Every other rule is derived the same way — from a specific line of the emitter,
+named in the rule's doc comment, and pinned by a test that compiles a binding
+and reads the parameters back. A rule that cannot point at such a line does not
+belong there: the module reports facts about the compiled output, not opinions
+about binding style.
+
 ## References
 
 - [Karabiner-Elements official examples](https://karabiner-elements.pqrs.org/docs/json/typical-complex-modifications-examples/)
 - [Double-press pattern](https://karabiner-elements.pqrs.org/docs/json/typical-complex-modifications-examples/#change-double-press-of-q-to-escape)
 - [Complex modifications manipulator definition](https://karabiner-elements.pqrs.org/docs/json/complex-modifications-manipulator-definition/)
 - [`to_delayed_action` reference](https://karabiner-elements.pqrs.org/docs/json/complex-modifications-manipulator-definition/to-delayed-action/)
-
-## Modal layers
-
-The caps-lock layer (`src/engine/caps-layer.ts`) is the only layer this
-configuration emits, and the only one implemented inside the `Binding` pipeline
-— it takes every other binding as input, returns `Binding[]`, and is planned
-separately in `src/config.ts` so it is emitted ahead of the plain rules for the
-same keys.
-
-A leader-key layer (tap to enter a mode, then select) is a different mechanism
-and does not exist here. A pre-`Binding` implementation was removed on
-2026-08-12; the variable choreography and the two ordering constraints that make
-it work are recorded in
-[MISSING_FEATURES.md](./MISSING_FEATURES.md) under *Modal layers (leader keys)*.

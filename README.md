@@ -58,6 +58,9 @@ Inside `src/engine/`, each pass gets a directory:
 | `emit-manipulators/` | Assemble the final `Manipulator[]` for one binding |
 | `emit-rules/` | Group bindings into rules and order them (see below) |
 | `analyze-conflicts/` | Detect rules that other rules make unreachable |
+| `analyze-bindings/` | Gesture lint: the failure modes inside one binding |
+| `caps-layer.ts` | The caps lock modifier layer (see below) |
+| `modal-layer.ts` | Leader-key modal layers (see below) |
 | `config-writer.ts` | The single atomic writer for `karabiner.json` |
 
 ## Authoring a binding
@@ -86,6 +89,56 @@ bind(
 
 Descriptions are derived automatically from the trigger, conditions, and
 actions — you only set `description` to override.
+
+### Timing: pick a feel, not four numbers
+
+```ts
+options({ timing: { aloneMs: 200, holdMs: 200 } })   // explicit
+timing("snappy")                                      // the same thing, named
+timing("deliberate", { delayedMs: 300 })              // profile plus one override
+```
+
+Karabiner's four thresholds are independent, and one combination fails
+silently: set the hold threshold **above** the alone timeout and a release
+between the two runs neither channel — the tap has timed out, the hold has not
+fired, and the key emits nothing. The usual way in is setting one and
+inheriting the other (`timing({ aloneMs: 150 })` keeps the default 400 ms hold
+threshold and buys a 250 ms dead window).
+
+Every profile in `TIMING_PROFILES` sets `aloneMs === holdMs`, which is the only
+relation with neither a dead zone nor a double-fire zone, and what upstream's
+own tap-hold examples do:
+
+| Profile | tap / hold | double-tap window | For |
+| --- | --- | --- | --- |
+| `instant` | 120 ms | 200 ms | Keys never typed in prose — mouse buttons, keypad, function keys |
+| `snappy` | 200 ms | 250 ms | Letter and symbol keys that keep their normal meaning on tap |
+| `balanced` | 300 ms | 300 ms | A hold disruptive enough that a stray one is worse than a late tap |
+| `relaxed` | 500 ms | 350 ms | Holds that launch or switch something |
+| `deliberate` | 800 ms | 450 ms | Destructive holds. Pair with `guard()` |
+
+### Scoping a block of bindings
+
+Attaching the same condition to every case of every binding is where scoping
+goes wrong: miss one and it fires everywhere. These make the scope a property
+of the block:
+
+```ts
+...forApp(APPS.excel, [
+  bind(from("p", VM.C__S), to(press(COMBOS.excelPalette))),
+  bind(from("return_or_enter"), to(hold(key("f2")))),
+]),
+
+...whileVar(VARS.rCmdDown, quickLaunchBindings),
+...withTiming("snappy", bindTable("hold", { a: APPS.antinote, b: APPS.brave })),
+...group("Window management", bindTable("release", { … }, VM.COCS)),
+```
+
+`forApp` / `exceptInApp` / `whileVar` / `unlessVar` / `onDevice` / `scoped` add
+conditions; `withOptions` / `withTiming` supply option *defaults* that a
+binding's own settings override field-by-field; `group` merges a block into one
+row in the Karabiner GUI. Nesting composes, outermost condition first, and
+nothing mutates its input.
 
 ## The caps lock layer
 
@@ -185,6 +238,76 @@ Three cases are left to emit the combination instead:
   A confirm-before-fire guard is written against one specific combination
   anyway.
 
+## Layers
+
+Karabiner has no concept of a layer. Every layer here is a *composition* of
+`set_variable`, `variable_if`, `from.any`, `to_if_alone`, `to_after_key_up` and
+ordering — which is why the builders exist: the composition is where the silent
+failures live, not in any one manipulator.
+
+Three kinds, in increasing order of how much they can go wrong:
+
+| | Up while | Built by |
+| --- | --- | --- |
+| **Modifier layer** | its key is held; translates every key through a modifier set | `capsLayer()` — one layer only, see above |
+| **Momentary hold layer** | its trigger is held; chords fire directly | `holdLayer()` |
+| **Modal leader layer** | after its leader is released, until something closes it | `modalLayer()` |
+
+### Momentary hold layers
+
+```ts
+...holdLayer({
+  trigger: "R.cmd",
+  variable: VARS.rCmdDown,
+  tapAlone: key("R.cmd", { repeat: false }),   // tap still does its normal thing
+  bindings: { a: APPS.antinote, b: APPS.brave, o: APPS.outlook },
+}),
+```
+
+The trap it closes: a chord key cancels the trigger's `to_if_alone`, and the
+cancel fallback then *replays* the tap action on top of the chord. `holdLayer()`
+sets `suppressCancelFallback: true`; the `hold-layer-leak` lint rule reports a
+hand-rolled layer that forgot to.
+
+### Modal leader layers
+
+```ts
+const nav = modalLayer({
+  leader: "spacebar",
+  enterOn: "hold",                       // a tap still types a space
+  mappings: { q: APPS.qspace },
+  sublayers: {
+    w: { description: "Windows", sticky: true, mappings: { h: URLS.hsWinLeftTop } },
+  },
+});
+```
+
+The layer outlives the keypress that opened it, which is what makes it useful
+and what makes it dangerous — a stuck modal layer eats everything you type
+afterwards. `modalLayer()` owns four of the five obligations: clearing the
+leader's own output on entry, handing off root → sublayer in one `to` array,
+clearing *every* variable on *every* exit path, and swallowing unmapped keys
+behind a `from.any` catch-all that `compareTriggerSortKeys` already orders last.
+
+The fifth is yours, because only you know what "everything else" is:
+
+```ts
+export const MODAL_LAYER_SET = { name: "nav-layer", bindings: nav.bindings };
+export const BINDING_SETS = [
+  { name: "tap-hold", bindings: nav.suppress(tapHoldBindings) },   // ← gate the rest
+];
+export function rulePlan(): RulePlan[] {
+  return [...planRules([MODAL_LAYER_SET]), ...planRules(BINDING_SETS)];
+}
+```
+
+`src/definitions/modal-layers.ts` carries a complete commented example. Exits
+are all explicit — a mapping fires, escape, the leader again, or (with
+`onUnmapped: "exit"`) any unmapped key. There is deliberately no timeout:
+`to_delayed_action` is the only timer Karabiner offers, it is scoped to one
+manipulator, and it is cancelled by the next key press — precisely the event
+that should *not* end a leader sequence.
+
 ## Rule emission
 
 A *manipulator* is what fires; a *rule* is what the Karabiner-Elements GUI shows
@@ -249,6 +372,30 @@ Two rules that share a trigger but have provably disjoint conditions — `var ==
 against `var != 1`, or two different frontmost apps — are **not** a conflict. This
 is why plain signature-equality checking is not enough.
 
+## Gesture lint
+
+Conflict detection answers *can this rule be reached*. Gesture lint answers the
+other half — *will a rule that is reached do what it says* — over the same
+planned order, and reports rather than throws, because unlike an unreachable
+rule these can each be deliberate:
+
+| Rule | What the compiled output does |
+| --- | --- |
+| `tap-hold-dead-zone` | A window between the two thresholds where the key emits nothing |
+| `hold-layer-leak` | A hold layer replays its tap action when you use the layer |
+| `multi-tap-ignores-hold-ms` | `holdMs` set on a path that reads `aloneMs ?? heldThresholdMs` |
+| `chord-ignores-hold-ms` | The same, for a simultaneous trigger |
+| `multi-tap-passthrough-drops-tap` | `allowPassThrough` overwrites the single-tap action |
+| `hold-reemits-trigger-modifier` | A hold event the emitter filters out to avoid a stuck modifier |
+| `gate-var-never-set` | A binding gated on a variable nothing writes — it can never fire |
+| `layer-var-never-read` | A hold layer whose variable gates nothing |
+| `timing-without-gesture` | Tap/hold thresholds on a binding with no tap or hold channel |
+| `simultaneous-ms-without-chord` | A chord window on a single-input trigger |
+
+Every rule is derived from a specific line of the emitter and names it. Each
+finding carries the concrete edit that resolves it. The build prints the report;
+`npm run explain -- --lint` prints it on demand.
+
 ## Debugging a binding
 
 ```bash
@@ -257,6 +404,7 @@ npm run explain -- cmd+q
 npm run explain -- L.cmd+d      # sided modifiers
 npm run explain -- j,k          # a chord
 npm run explain -- --conflicts  # full conflict report
+npm run explain -- --lint       # full gesture-lint report
 ```
 
 The first *reachable* rule in the list is the one that fires.
