@@ -12,6 +12,7 @@ import type {
   TriggerModifiers,
   VarSpec,
 } from "../../data";
+import { isTimingProfileName, TIMING_PROFILES, type TimingProfileName } from "../../data";
 import type { AcceptUndefined } from "../../types/util";
 import type { PointerAxis } from "../../types/karabiner";
 import { when, type StateItem, type WhenWrapper } from "./condition-wrappers";
@@ -103,24 +104,51 @@ export function options(opts: BindingOptionsSpec): OptionsWrapper {
 }
 
 /**
- * Creates an `OptionsWrapper` specifying custom timing parameters for a binding.
+ * Creates an `OptionsWrapper` specifying timing parameters for a binding.
  *
- * @param opts - Timing configuration object:
+ * Two ways to call it, and the first is the one to reach for:
+ *
+ * **By profile** — `timing("snappy")` names a *feel* and expands to a
+ * complete, internally coherent {@link TIMING_PROFILES} entry. Every profile
+ * sets `aloneMs === holdMs`, which is the only relation with neither of the two
+ * silent failure modes: a **dead zone** (`holdMs > aloneMs` — a release between
+ * the thresholds emits nothing, because `to_if_alone` has already timed out and
+ * `to_if_held_down` has not fired yet) or a **double-fire zone**
+ * (`holdMs < aloneMs` — a release between them can run both). Picking a profile
+ * makes both unrepresentable.
+ *
+ * A second argument overrides individual fields on top of the profile, for the
+ * case where one threshold genuinely differs — `timing("snappy", { delayedMs: 400 })`.
+ * Overrides are *not* re-balanced, so overriding `holdMs` or `aloneMs` alone
+ * can reintroduce a gap; `lintBindings()` reports it if it does.
+ *
+ * **By explicit thresholds** — the original form, still available for the cases
+ * no profile fits:
  * - `aloneMs`: `basic.to_if_alone_timeout_milliseconds` (default 1000ms). Max duration key can be held and still trigger `to_if_alone` upon release.
  * - `holdMs`: Hold duration threshold in milliseconds.
  * - `heldThresholdMs`: `basic.to_if_held_down_threshold_milliseconds` (default 500ms). Duration key must remain pressed before `to_if_held_down` fires.
  * - `delayedMs`: `basic.to_delayed_action_delay_milliseconds` (default 500ms). Delay before `to_delayed_action` triggers (for double-tap / multi-tap).
  * - `simultaneousMs`: `basic.simultaneous_threshold_milliseconds` (default 50ms). Time window for simultaneous chords.
+ *
+ * @param optsOrProfile - A {@link TimingProfileName} (`"instant"`, `"snappy"`, `"balanced"`, `"relaxed"`, `"deliberate"`) or an explicit timing object.
+ * @param overrides - Field overrides applied on top of a named profile. Ignored when the first argument is already an object.
  * @returns An `OptionsWrapper` containing the timing configuration.
  *
  * @example
  * ```ts
- * timing({ aloneMs: 200, holdMs: 200 })
- * timing({ heldThresholdMs: 300, delayedMs: 250 })
+ * timing("snappy")                          // aloneMs 200 / holdMs 200 / delayedMs 250
+ * timing("deliberate", { delayedMs: 300 })  // profile, one field overridden
+ * timing({ aloneMs: 200, holdMs: 200 })     // explicit, still fine
  * ```
  */
-export function timing(opts: AcceptUndefined<NonNullable<Binding["timing"]>>): OptionsWrapper {
-  return options({ timing: opts });
+export function timing(
+  optsOrProfile: TimingProfileName | AcceptUndefined<NonNullable<Binding["timing"]>>,
+  overrides?: AcceptUndefined<NonNullable<Binding["timing"]>>,
+): OptionsWrapper {
+  if (isTimingProfileName(optsOrProfile)) {
+    return options({ timing: { ...TIMING_PROFILES[optsOrProfile], ...(overrides ?? {}) } });
+  }
+  return options({ timing: optsOrProfile });
 }
 
 /**

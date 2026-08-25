@@ -11,5 +11,6 @@ export { antinoteGuardBinding, globalGuardBinding, guardBindings } from "./guard
 /** All tap-hold bindings. */
 export const tapHoldBindings: Binding[] = singleKeyTapHoldBindings;
 
+export { modalLayerBindings } from "./modal-layers";
 export { simultaneousBindings } from "./simultaneous";
 export { NUMPAD_REMAPS, SWAP_CTRL_FN } from "./simple-modifications";

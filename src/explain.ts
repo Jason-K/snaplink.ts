@@ -12,6 +12,7 @@
  *   npm run explain -- L.cmd+d           # sided modifiers
  *   npm run explain -- j,k               # a chord
  *   npm run explain -- --conflicts       # full conflict report
+ *   npm run explain -- --lint            # full gesture-lint report
  */
 
 import { BINDING_SETS, orderedBindings } from "./config";
@@ -20,7 +21,9 @@ import {
   analyzeConflictsInOrder,
   describeBinding,
   describeConditionGroup,
+  formatLintReport,
   from,
+  lintBindings,
   rulesMatching,
   type AnalyzedBinding,
   type TriggerKey,
@@ -97,6 +100,21 @@ export function explainConflicts(): string {
   return lines.join("\n");
 }
 
+/**
+ * Human-readable gesture-lint report across the whole configuration.
+ *
+ * The same report the build prints, on demand and without writing anything.
+ * Where `--conflicts` answers "can this rule be reached", this answers "will a
+ * rule that is reached behave the way it reads".
+ */
+export function explainLint(): string {
+  const report = lintBindings(orderedBindings());
+  return (
+    formatLintReport(report) ||
+    `Analyzed ${orderedBindings().length} bindings across ${BINDING_SETS.length} sets. No findings.`
+  );
+}
+
 function main(argv: string[]): void {
   const args = argv.filter((a) => a !== "--explain");
 
@@ -106,14 +124,15 @@ function main(argv: string[]): void {
         "Usage:",
         "  npm run explain -- <key>          e.g. q, cmd+q, L.cmd+d, j,k",
         "  npm run explain -- --conflicts    full conflict report",
+        "  npm run explain -- --lint         full gesture-lint report",
       ].join("\n"),
     );
     return;
   }
 
-  console.log(
-    args[0] === "--conflicts" ? explainConflicts() : explainTrigger(args.join(" ")),
-  );
+  if (args[0] === "--conflicts") console.log(explainConflicts());
+  else if (args[0] === "--lint") console.log(explainLint());
+  else console.log(explainTrigger(args.join(" ")));
 }
 
 main(process.argv.slice(2));
