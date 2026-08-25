@@ -9,8 +9,15 @@ import type {
 import type { InputSourceSpecifier, KeyboardType } from "../../types/karabiner";
 import { STATES, VARS } from "../../data";
 
+// Type-only imports to enable IDE IntelliSense {@link ...} symbol resolution in JSDoc comments.
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import type { APPS, DEVICES } from "../../data";
+import type { bind, bindKeys } from "./binding-wrappers";
+/* eslint-enable @typescript-eslint/no-unused-vars */
+
 /**
- * Container wrapping one or more `Condition` objects created by {@link when}.
+ * Container wrapping one or more {@link Condition} objects created by {@link when}.
+ * Consumed by {@link bind} or passed to case wrappers (`.when(...)`).
  */
 export type WhenWrapper = {
   kind: "when";
@@ -18,34 +25,40 @@ export type WhenWrapper = {
 };
 
 /**
- * Wraps one or more conditions into a `WhenWrapper` container for consumption by `bind()`.
+ * Groups one or more conditions into a hoisted {@link WhenWrapper} container for consumption by {@link bind} or case builders.
  *
- * Accepts already-built `Condition`s (and arrays of them, as before) or bare
- * state specs — registry keys, apps, devices, vars, `[target, value]` tuples,
- * or `{ app/var, ... }` objects — resolved through the same machinery as
- * `state()`, so `when(APPS.word)` and `when(condApp(APPS.word))` produce an
- * identical condition. Each rest argument is resolved independently, so a
- * bare spec, a pre-built `Condition`, and an array of either can be mixed
- * freely in one call.
+ * Use when gating bindings or action cases to activate only when specific conditions are met (such as frontmost applications,
+ * connected devices, active input sources, or Karabiner variable states).
  *
- * Recognized condition wrappers & builders:
- * - `state(...)` / `condState(...)` / `ifState(...)` — evaluates state specs, registry keys (`STATES`, `VARS`), apps, devices, or `[target, value]` tuples
- * - `unless(...)` / `condUnless(...)` — enforces state specs, registry keys, apps, or devices to be false/negated
- * - `ifApp(...)` / `condApp(...)` — matches frontmost application(s)
- * - `unlessApp(...)` / `condNotApp(...)` — matches when application(s) are NOT frontmost
- * - `ifDevice(...)` / `condDevice(...)` — matches hardware device specifications
- * - `ifUserVar(...)` / `ifKeVar(...)` / `condVar(...)` / `ifVar(...)` — matches Karabiner variable values
- * - `unlessUserVar(...)` / `unlessKeVar(...)` / `condNotVar(...)` — matches when variable values do NOT match
+ * Accepts pre-built {@link Condition}s (e.g. from {@link ifApp}, {@link ifDevice}, {@link ifUserVar}, {@link state}, {@link unless})
+ * or bare state specs (`APPS.*`, `DEVICES.*`, `STATES.*`, `VARS.*`, `[target, value]` tuples) that are automatically resolved via {@link state}.
+ *
+ * ### Recognized condition wrappers:
+ * - {@link state} / {@link condState} / {@link ifState} — evaluates state specs, registry keys (`STATES`, `VARS`), apps, devices, or `[target, value]` tuples
+ * - {@link unless} / {@link condUnless} — enforces state specs, registry keys, apps, or devices to be false/negated
+ * - {@link ifApp} / {@link condApp} — matches frontmost application(s)
+ * - {@link unlessApp} / {@link condNotApp} — matches when application(s) are NOT frontmost
+ * - {@link ifDevice} / {@link condDevice} — matches physical hardware event source devices
+ * - {@link ifDeviceExists} / {@link condDeviceExists} — matches connected devices regardless of event source
+ * - {@link ifUserVar} / {@link ifKeVar} / {@link condVar} / {@link ifVar} — matches Karabiner variable values
+ * - {@link unlessUserVar} / {@link unlessKeVar} / {@link condNotVar} — matches when variable values do NOT match
+ * - {@link ifKeyboardType} / {@link condKeyboardType} — matches virtual keyboard type (`"ansi"`, `"iso"`, `"jis"`)
+ * - {@link ifInputSource} / {@link condInputSource} — matches active keyboard input source language/layout
+ * - {@link ifEventChanged} / {@link condEventChanged} — matches whether event was rewritten by Simple Modifications
  *
  * @param items - Conditions, condition arrays, bare state specs, or state spec arrays to combine.
- * @returns A `WhenWrapper` object.
+ * @returns A {@link WhenWrapper} object containing the resolved condition list.
  *
  * @example
  * ```ts
- * when(ifApp("com.apple.finder"), state("rButtonDown"))
- * when(unless(VARS.wheelDown), state(APPS.zen))
- * when(APPS.word)                 // bare spec, inferred via state()
- * when(APPS.word, VARS.wheelDown) // multiple bare specs
+ * // 1. Pre-built condition helpers:
+ * when(ifApp("com.apple.finder"), ifUserVar(VARS.rButtonDown, 1))
+ *
+ * // 2. Negated conditions:
+ * when(unlessApp(APPS.excel), unless(VARS.wheelDown))
+ *
+ * // 3. Bare state specs (automatically inferred via state()):
+ * when(APPS.word, VARS.wheelDown)
  * ```
  */
 export function when(
@@ -140,17 +153,26 @@ function isSpecOrItem(val: unknown): boolean {
 }
 
 /**
- * Creates a variable condition matching a `VarSpec` or `VarValueSpec`.
+ * Creates a condition matching a Karabiner state variable (`VarSpec` or `VarValueSpec`).
  *
- * @param varOrValueSpec - Variable spec or variable value spec reference.
- * @param equalsOrUnless - Value to match, boolean for `unless`, or `{ unless?: boolean }` options.
- * @param unlessOrOpts - Optional boolean for `unless`, or `{ unless?: boolean }` options.
- * @returns A `Condition` object.
+ * Use when restricting a binding or action case to trigger only when a specific Karabiner variable equals an expected value
+ * (e.g. tracking layer state, modifier holds, or mode toggles).
+ *
+ * @param varOrValueSpec - Variable spec (e.g. `VARS.rButtonDown`, `STATES.isTextField`) or variable value spec reference.
+ * @param equalsOrUnless - Expected value to match (defaults to `1`), boolean for `unless`, or `{ unless?: boolean }` options.
+ * @param unlessOrOpts - Optional boolean for `unless` (negation), or `{ unless?: boolean }` options.
+ * @returns A {@link Condition} object.
  *
  * @example
  * ```ts
- * ifUserVar(VARS.rButtonDown, 1)
- * ifUserVar(STATES.rButtonDown)
+ * // 1. Variable equals 1:
+ * ifUserVar(VARS.rButtonDown)
+ *
+ * // 2. Variable equals specific numeric or string value:
+ * ifUserVar(VARS.layerMode, 2)
+ *
+ * // 3. From pre-defined state spec:
+ * ifUserVar(STATES.isTextField)
  * ```
  */
 export function ifUserVar(
@@ -197,16 +219,21 @@ export function ifUserVar(
 }
 
 /**
- * Creates a negated variable condition matching a `VarSpec` or `VarValueSpec`.
+ * Creates a negated condition for a Karabiner state variable (`VarSpec` or `VarValueSpec`).
  *
- * @param varOrValueSpec - Variable spec or variable value spec reference.
- * @param equals - Optional value expected NOT to match.
- * @returns A `Condition` object with `unless: true`.
+ * Use when restricting a binding or action case to trigger only when a specific Karabiner variable does NOT equal a given value.
+ *
+ * @param varOrValueSpec - Variable spec (e.g. `VARS.rButtonDown`, `STATES.isSecureInputSubrole`) or variable value spec reference.
+ * @param equals - Expected value NOT to match (defaults to `1`).
+ * @returns A {@link Condition} object with `unless: true`.
  *
  * @example
  * ```ts
- * unlessUserVar(VARS.rButtonDown, 1)
- * unlessUserVar(STATES.rButtonDown)
+ * // 1. Variable is NOT set to 1:
+ * unlessUserVar(VARS.rButtonDown)
+ *
+ * // 2. State is NOT active:
+ * unlessUserVar(STATES.isSecureInputSubrole)
  * ```
  */
 export function unlessUserVar(
@@ -220,12 +247,14 @@ export function unlessUserVar(
 }
 
 /**
- * Creates a condition for a Karabiner-Elements variable. Alias for `ifUserVar`.
+ * Creates a condition for a Karabiner-Elements variable. Alias for {@link ifUserVar}.
+ *
+ * Use when gating bindings on Karabiner variable states.
  *
  * @param varOrValueSpec - Variable spec or variable value spec reference.
  * @param equalsOrUnless - Value to match, boolean for `unless`, or options.
  * @param unlessOrOpts - Optional boolean for `unless`, or options.
- * @returns A `Condition` object.
+ * @returns A {@link Condition} object.
  *
  * @example
  * ```ts
@@ -241,11 +270,13 @@ export function ifKeVar(
 }
 
 /**
- * Creates a negated condition for a Karabiner-Elements variable. Alias for `unlessUserVar`.
+ * Creates a negated condition for a Karabiner-Elements variable. Alias for {@link unlessUserVar}.
+ *
+ * Use when gating bindings to activate only when a variable does not match a value.
  *
  * @param varOrValueSpec - Variable spec or variable value spec reference.
  * @param equals - Optional value expected NOT to match.
- * @returns A `Condition` object with `unless: true`.
+ * @returns A {@link Condition} object with `unless: true`.
  *
  * @example
  * ```ts
@@ -259,24 +290,31 @@ export function unlessKeVar(
   return unlessUserVar(varOrValueSpec, equals);
 }
 
-/** Alias for {@link ifUserVar}. */
+/** Alias for {@link ifUserVar}. Creates a variable condition matching a Karabiner state variable. */
 export const condVar = ifUserVar;
-/** Alias for {@link ifUserVar}. */
+/** Alias for {@link ifUserVar}. Creates a variable condition matching a Karabiner state variable. */
 export const ifVar = ifUserVar;
-/** Alias for {@link unlessUserVar}. */
+/** Alias for {@link unlessUserVar}. Creates a negated variable condition matching a Karabiner state variable. */
 export const condNotVar = unlessUserVar;
 
 /**
- * Creates an application condition.
+ * Creates an application condition restricting a binding to when specified apps are frontmost.
  *
- * @param app - {@link AppSpec}, {@link PathSpec}, string bundle ID / path, or array of apps.
- * @param isForemost - True for frontmost application matching; false for unless (not frontmost).
+ * Use when scoping bindings or shortcuts to specific macOS applications (e.g. Finder, Xcode, Safari, VS Code).
+ *
+ * @param app - {@link AppSpec} (e.g. `APPS.finder`), {@link PathSpec}, bundle ID string (e.g. `"com.apple.finder"`), or array of apps.
+ * @param isForemost - True for frontmost application matching; false for unless (not frontmost). Defaults to `true`.
  * @returns A {@link Condition} object.
  *
  * @example
  * ```ts
+ * // 1. Single app spec:
  * condApp(APPS.finder)
+ *
+ * // 2. String bundle ID:
  * condApp("com.apple.finder")
+ *
+ * // 3. Multiple apps:
  * condApp([APPS.safari, APPS.zen])
  * ```
  */
@@ -290,19 +328,24 @@ export function condApp(
   };
 }
 
-/** Alias for {@link condApp}. */
+/** Alias for {@link condApp}. Creates an application condition restricting a binding to frontmost apps. */
 export const ifApp = condApp;
 
 /**
- * Creates a negated application condition (active unless specified application is frontmost).
+ * Creates a negated application condition restricting a binding to when specified apps are NOT frontmost.
  *
- * @param app - {@link AppSpec}, {@link PathSpec}, string bundle ID / path, or array of apps.
+ * Use when excluding bindings or shortcuts from activating in specific macOS applications (e.g. avoiding conflicts in games or IDEs).
+ *
+ * @param app - {@link AppSpec} (e.g. `APPS.excel`), {@link PathSpec}, bundle ID string, or array of apps.
  * @returns A {@link Condition} object with `unless: true`.
  *
  * @example
  * ```ts
+ * // 1. Single app exclusion:
  * unlessApp(APPS.excel)
- * condNotApp("com.apple.finder")
+ *
+ * // 2. Multiple app exclusions:
+ * condNotApp([APPS.figma, APPS.photoshop])
  * ```
  */
 export function condNotApp(
@@ -311,14 +354,16 @@ export function condNotApp(
   return condApp(app, false);
 }
 
-/** Alias for {@link condNotApp}. */
+/** Alias for {@link condNotApp}. Creates a negated application condition. */
 export const unlessApp = condNotApp;
 
 /**
- * Creates a hardware device condition matching the physical event source.
+ * Creates a hardware device condition matching the physical event source device.
+ *
+ * Use when restricting a binding or hotkey to events originating from a specific physical keyboard, mouse, or trackball.
  *
  * @param device - Target {@link DeviceSpec} (e.g. `DEVICES.g502X`, `DEVICES.appleKeyboard`).
- * @param unlessOrOpts - Optional boolean for `unless`, or `{ unless?: boolean }` options.
+ * @param unlessOrOpts - Optional boolean for `unless` (negation), or `{ unless?: boolean }` options.
  * @returns A {@link Condition} object.
  *
  * @example
@@ -341,23 +386,26 @@ export function condDevice(
   };
 }
 
-/** Alias for {@link condDevice}. */
+/** Alias for {@link condDevice}. Creates a hardware event source device condition. */
 export const ifDevice = condDevice;
 
 /**
- * Creates a condition testing whether a device is **connected**, regardless of what device produced the event.
+ * Creates a condition testing whether a hardware device is currently connected to the system.
  *
- * `condDevice` tests the event's own source, so it cannot express "while the
- * mouse is plugged in" for a keystroke typed on the built-in keyboard — that is
- * what this is for (KE 14.8.4+, gotcha 8.5).
+ * Use when activating bindings only while a specific external keyboard, mouse, or accessory is plugged in / paired,
+ * regardless of which device produced the input event.
  *
  * @param deviceExists - Target {@link DeviceSpec} to check connection status.
- * @param unlessOrOpts - Optional boolean for `unless`, or `{ unless?: boolean }` options.
+ * @param unlessOrOpts - Optional boolean for `unless` (negation), or `{ unless?: boolean }` options.
  * @returns A {@link Condition} object.
  *
  * @example
  * ```ts
+ * // 1. Active while external mouse is connected:
  * condDeviceExists(DEVICES.g502X)
+ *
+ * // 2. Active only on internal keyboard when external keyboard is disconnected:
+ * ifDeviceExists(DEVICES.externalKeyboard, true)
  * ```
  */
 export function condDeviceExists(
@@ -369,20 +417,22 @@ export function condDeviceExists(
   return { deviceExists, ...(unless ? { unless } : {}) };
 }
 
-/** Alias for {@link condDeviceExists}. */
+/** Alias for {@link condDeviceExists}. Creates a condition testing whether a device is connected. */
 export const ifDeviceExists = condDeviceExists;
 
 /**
- * Creates a condition for the **virtual** keyboard type configured in Karabiner, not the physical
- * device (gotcha 8.6). Note `[` is `close_bracket` on JIS.
+ * Creates a condition matching the virtual keyboard layout type configured in Karabiner.
  *
- * @param keyboardType - {@link KeyboardType} (`"ansi"`, `"iso"`, or `"jis"`).
- * @param unlessOrOpts - Optional boolean for `unless`, or `{ unless?: boolean }` options.
+ * Use when restricting key bindings to specific physical virtual layout types (`"ansi"`, `"iso"`, `"jis"`).
+ *
+ * @param keyboardType - {@link KeyboardType} or array of types (`"ansi"`, `"iso"`, or `"jis"`).
+ * @param unlessOrOpts - Optional boolean for `unless` (negation), or `{ unless?: boolean }` options.
  * @returns A {@link Condition} object.
  *
  * @example
  * ```ts
  * condKeyboardType("jis")
+ * ifKeyboardType(["ansi", "iso"])
  * ```
  */
 export function condKeyboardType(
@@ -394,20 +444,26 @@ export function condKeyboardType(
   return { keyboardType, ...(unless ? { unless } : {}) };
 }
 
-/** Alias for {@link condKeyboardType}. */
+/** Alias for {@link condKeyboardType}. Creates a virtual keyboard layout type condition. */
 export const ifKeyboardType = condKeyboardType;
 
 /**
- * Creates a condition matching the active input source.
- * Every field is a regular expression; entries are ORed and keys within one entry are ANDed.
+ * Creates a condition matching the active keyboard input source language or layout ID.
  *
- * @param inputSource - {@link InputSourceSpecifier} (language regex, input source ID regex).
- * @param unlessOrOpts - Optional boolean for `unless`, or `{ unless?: boolean }` options.
+ * Use when restricting key mappings to specific language input methods (e.g. English, Japanese, French).
+ * Every field is a regular expression; multiple criteria are evaluated according to Karabiner regex matching rules.
+ *
+ * @param inputSource - {@link InputSourceSpecifier} or array of specifiers (language regex, input source ID regex).
+ * @param unlessOrOpts - Optional boolean for `unless` (negation), or `{ unless?: boolean }` options.
  * @returns A {@link Condition} object.
  *
  * @example
  * ```ts
+ * // 1. English language input source:
  * condInputSource({ language: "^en$" })
+ *
+ * // 2. Specific layout ID:
+ * ifInputSource({ input_source_id: "^com\\.apple\\.keylayout\\.US$" })
  * ```
  */
 export function condInputSource(
@@ -419,23 +475,22 @@ export function condInputSource(
   return { inputSource, ...(unless ? { unless } : {}) };
 }
 
-/** Alias for {@link condInputSource}. */
+/** Alias for {@link condInputSource}. Creates an active input source condition. */
 export const ifInputSource = condInputSource;
 
 /**
- * Creates a condition checking whether Simple Modifications already rewrote this event (gotcha 2.5).
+ * Creates a condition checking whether Simple Modifications already rewrote this event.
  *
- * Simple Modifications run *before* Complex Modifications, so a remapped key
- * arrives here as the new key. This is how Function Keys Modifications are
- * stopped from re-changing an fx key that a complex rule already handled.
+ * Use when differentiating between untouched raw hardware events and events previously modified by Simple Modifications
+ * or Function Keys Modifications.
  *
- * @param eventChanged - Boolean indicating whether the event has been modified.
- * @param unlessOrOpts - Optional boolean for `unless`, or `{ unless?: boolean }` options.
+ * @param eventChanged - Boolean indicating whether the event has been modified (`true` for modified, `false` for untouched).
+ * @param unlessOrOpts - Optional boolean for `unless` (negation), or `{ unless?: boolean }` options.
  * @returns A {@link Condition} object.
  *
  * @example
  * ```ts
- * condEventChanged(false) // only untouched events
+ * condEventChanged(false) // Only activate on untouched events
  * ```
  */
 export function condEventChanged(
@@ -447,7 +502,7 @@ export function condEventChanged(
   return { eventChanged, ...(unless ? { unless } : {}) };
 }
 
-/** Alias for {@link condEventChanged}. */
+/** Alias for {@link condEventChanged}. Creates an event changed status condition. */
 export const ifEventChanged = condEventChanged;
 
 function resolveSingleState(target: unknown, valOverride?: unknown): Condition {
@@ -562,7 +617,7 @@ export type StateSpecInput =
   | string;
 
 /**
- * Tuple representation `[target, value]` for overriding expected state values.
+ * Tuple representation `[target, value]` for overriding expected state values in {@link state} and {@link when}.
  */
 export type StateTuple =
   | [StateSpecInput, string | number | boolean]
@@ -570,14 +625,14 @@ export type StateTuple =
   | (StateSpecInput | string | number | boolean)[];
 
 /**
- * Explicit variable or app condition specification object.
+ * Explicit variable or app condition specification object for {@link state} and {@link when}.
  */
 export type StateObject =
   | { var: StateSpecInput; value?: string | number | boolean; equals?: string | number | boolean; unless?: boolean }
   | { app: StateSpecInput; value?: string | number | boolean; unless?: boolean };
 
 /**
- * Supported state items in {@link state} and {@link unless} conditions.
+ * Supported state items accepted by {@link state}, {@link unless}, and {@link when}.
  */
 export type StateItem =
   | StateSpecInput
@@ -585,11 +640,13 @@ export type StateItem =
   | StateObject;
 
 /**
- * Flexible condition builder evaluating state specifications (`STATES`, `VARS`, apps, devices, or tuple overrides).
+ * Flexible condition builder evaluating state specifications (`STATES`, `VARS`, apps, devices, or `[target, value]` tuples).
+ *
+ * Use when constructing conditions from mixed inputs (registry specs, variable targets, app definitions, or value override tuples).
  * Assumes specified items are required to be true/active unless explicitly overridden (e.g. `[VARS.wheelDown, 0]`).
  *
  * @param tuple - A `[target, value]` tuple pair override.
- * @returns A single `Condition` object.
+ * @returns A single {@link Condition} object.
  *
  * @example
  * ```ts
@@ -605,7 +662,7 @@ export function state(
  *
  * @param item - Target specification or registry key.
  * @param value - Optional expected comparison value or boolean options.
- * @returns A single `Condition` object.
+ * @returns A single {@link Condition} object.
  *
  * @example
  * ```ts
@@ -622,7 +679,7 @@ export function state(
  * Evaluates an array of state specifications.
  *
  * @param items - Array of state items or tuple overrides.
- * @returns An array of `Condition` objects.
+ * @returns An array of {@link Condition} objects.
  *
  * @example
  * ```ts
@@ -638,7 +695,7 @@ export function state(
  * @param first - First state specification or tuple override.
  * @param second - Second state specification or tuple override.
  * @param rest - Additional state specifications.
- * @returns An array of `Condition` objects.
+ * @returns An array of {@link Condition} objects.
  *
  * @example
  * ```ts
@@ -677,16 +734,18 @@ export function state(
   return resolveStateItem(arg1);
 }
 
-/** Alias for {@link state}. */
+/** Alias for {@link state}. Flexible condition builder evaluating state specifications. */
 export const condState = state;
-/** Alias for {@link state}. */
+/** Alias for {@link state}. Flexible condition builder evaluating state specifications. */
 export const ifState = state;
 
 /**
- * Condition builder enforcing that all specified items must be false/inactive/negated.
+ * Condition builder enforcing that all specified state items must be false / inactive / negated.
+ *
+ * Use when gating bindings to activate only when one or more variables, apps, or states are NOT active.
  *
  * @param items - Array of state items to require as false/negated.
- * @returns An array of negated `Condition` objects.
+ * @returns An array of negated {@link Condition} objects.
  *
  * @example
  * ```ts
@@ -702,7 +761,7 @@ export function unless(
  * @param first - First state item to require false.
  * @param second - Second state item to require false.
  * @param rest - Additional state items to require false.
- * @returns An array of negated `Condition` objects.
+ * @returns An array of negated {@link Condition} objects.
  *
  * @example
  * ```ts
@@ -718,7 +777,7 @@ export function unless(
  * Enforces a single state specification to be false/inactive/negated.
  *
  * @param item - Target state item to require false.
- * @returns A single negated `Condition` object.
+ * @returns A single negated {@link Condition} object.
  *
  * @example
  * ```ts
@@ -742,6 +801,6 @@ export function unless(
   return resolveSingleState(arg1, false);
 }
 
-/** Alias for {@link unless}. */
+/** Alias for {@link unless}. Condition builder enforcing that all specified items are false/negated. */
 export const condUnless = unless;
 

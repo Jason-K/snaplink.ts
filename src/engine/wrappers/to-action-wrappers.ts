@@ -23,14 +23,38 @@ import { resolveKeyAlias } from "../utils";
 import { state } from "./condition-wrappers";
 import type { StateItem } from "./condition-wrappers";
 
+// Type-only imports to enable IDE IntelliSense {@link ...} symbol resolution in JSDoc comments.
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import type { APPS, CMDS, COMBOS, DEVICES, PATHS, URLS, VARS } from "../../data";
+import type { bind, bindKeys, bindPointer } from "./binding-wrappers";
+import type {
+  condApp,
+  condDevice,
+  condNotApp,
+  condNotVar,
+  condState,
+  condUnless,
+  condVar,
+  ifApp,
+  ifDevice,
+  ifKeVar,
+  ifState,
+  ifUserVar,
+  ifVar,
+  unless,
+  unlessApp,
+  unlessKeVar,
+  unlessUserVar,
+  WhenWrapper,
+} from "./condition-wrappers";
+import type { from } from "./from-action-wrappers";
+/* eslint-enable @typescript-eslint/no-unused-vars */
+
 /**
- * Anything `press()`/`release()`/`hold()`/`tap()`/`doubleTap()`/`guard()` accept
- * as an action: a built {@link Action} (an `ActionSpec` or a raw `ToEvent`), or
- * a raw registry primitive (`URLS.*`, `COMBOS.*`, `CMDS.*`, `APPS.*`) that gets
- * promoted to its corresponding `ActionSpec` automatically. `PathSpec` is
- * deliberately excluded — it is ambiguous between "open in Finder" (`folder()`)
- * and an `AppTarget` for `app()`, and nothing in this codebase disambiguates
- * that today, so it stays wrapper-explicit.
+ * Union of all inputs accepted by action phase wrappers ({@link press}, {@link release}, {@link hold}, {@link tap}, {@link doubleTap}, {@link guard}, {@link tapAndHold}).
+ *
+ * Accepts built {@link Action} objects, or bare registry primitives ({@link UrlSpec} from `URLS.*`, {@link MapSpec} from `COMBOS.*`, {@link CommandSpec} from `CMDS.*`, {@link AppSpec} from `APPS.*`)
+ * that are automatically promoted to their corresponding {@link ActionSpec}.
  */
 export type ActionInput = Action | UrlSpec | MapSpec | CommandSpec | AppSpec;
 
@@ -71,8 +95,10 @@ function normalizeAction(action: ActionInput): Action {
 }
 
 /**
- * Fluent builder for `Case` items in Karabiner bindings.
- * Implements `Case` directly so instances can be placed into `cases: [...]` arrays.
+ * Fluent builder for {@link Case} items in Karabiner bindings.
+ *
+ * Implements {@link Case} directly so builder instances can be placed into `cases: [...]` arrays or returned from phase functions.
+ * Provides chaining methods (`.when(...)`, `.withTapCount(...)`, `.withDelayed(...)`, `.guardProtection(...)`, `.describe(...)`, `.withSuppress(...)`).
  */
 export class CaseBuilder implements Case {
   phase?: Phase;
@@ -85,11 +111,11 @@ export class CaseBuilder implements Case {
   declare guard?: boolean;
 
   /**
-   * Constructs a new `CaseBuilder` instance.
+   * Constructs a new {@link CaseBuilder} instance.
    *
-   * @param phase - Key lifecycle phase ("press", "release", or "hold").
-   * @param actions - Action or list of actions to execute.
-   * @param conditions - Optional condition or list of conditions required for this case.
+   * @param phase - Lifecycle phase (`"press"`, `"release"`, or `"hold"`).
+   * @param actions - Target action(s) or registry primitive(s) to execute.
+   * @param conditions - Optional condition or array of conditions.
    */
   constructor(phase: Phase, actions: ActionInput | ActionInput[], conditions?: Condition | Condition[]) {
     this.phase = phase;
@@ -107,25 +133,22 @@ export class CaseBuilder implements Case {
   }
 
   /**
-   * Add one or more conditions to this case.
+   * Adds one or more condition filters to this case.
    *
-   * Accepts already-built `Condition`s (and arrays of them, as before) or
-   * bare state specs — registry keys, apps, devices, vars, `[target, value]`
-   * tuples, or `{ app/var, ... }` objects — resolved through the same
-   * machinery as `state()`, so `.when(APPS.word)` and
-   * `.when(condApp(APPS.word))` attach an identical condition.
+   * Use when gating a specific action case to only trigger under certain conditions (e.g. frontmost app, active layer variable, source device).
+   * Accepts pre-built {@link Condition} objects, {@link WhenWrapper} containers, bare registry specs (`APPS.*`, `DEVICES.*`, `VARS.*`), or `[target, value]` tuples.
    *
-   * Recognized condition wrappers & builders:
-   * - `state(...)` / `condState(...)` / `ifState(...)` — evaluates state specs, registry keys (`STATES`, `VARS`), apps, devices, or `[target, value]` tuples
-   * - `unless(...)` / `condUnless(...)` — enforces state specs, registry keys, apps, or devices to be false/negated
-   * - `ifApp(...)` / `condApp(...)` — matches frontmost application(s)
-   * - `unlessApp(...)` / `condNotApp(...)` — matches when application(s) are NOT frontmost
-   * - `ifDevice(...)` / `condDevice(...)` — matches hardware device specifications
-   * - `ifUserVar(...)` / `ifKeVar(...)` / `condVar(...)` / `ifVar(...)` — matches Karabiner variable values
-   * - `unlessUserVar(...)` / `unlessKeVar(...)` / `condNotVar(...)` — matches when variable values do NOT match
+   * Recognized condition builders:
+   * - {@link state} / {@link condState} / {@link ifState} — evaluates state specs, registry keys (`STATES`, `VARS`), apps, devices, or tuples
+   * - {@link unless} / {@link condUnless} — enforces state specs, registry keys, apps, or devices to be false/negated
+   * - {@link ifApp} / {@link condApp} — matches frontmost application(s)
+   * - {@link unlessApp} / {@link condNotApp} — matches when application(s) are NOT frontmost
+   * - {@link ifDevice} / {@link condDevice} — matches hardware source device specifications
+   * - {@link ifUserVar} / {@link ifKeVar} / {@link condVar} / {@link ifVar} — matches Karabiner variable values
+   * - {@link unlessUserVar} / {@link unlessKeVar} / {@link condNotVar} — matches when variable values do NOT match
    *
-   * @param items - Conditions, condition arrays, bare state specs, or state spec arrays to attach to this case.
-   * @returns `this` for method chaining.
+   * @param items - Conditions, condition arrays, or bare state specs to attach.
+   * @returns `this` for fluent method chaining.
    *
    * @example
    * ```ts
@@ -146,14 +169,16 @@ export class CaseBuilder implements Case {
   }
 
   /**
-   * Set tap count requirement (e.g. 2 for double tap).
+   * Sets the required tap count threshold to trigger this case.
    *
-   * @param count - Tap count threshold required to trigger this case.
-   * @returns `this` for method chaining.
+   * Use when configuring multi-tap bindings (e.g. tap count 2 for double-tap, tap count 3 for triple-tap).
+   *
+   * @param count - Integer tap count required (e.g. `2` for double-tap).
+   * @returns `this` for fluent method chaining.
    *
    * @example
    * ```ts
-   * press(key("space")).withTapCount(2)
+   * press(key("spacebar")).withTapCount(2)
    * ```
    */
   withTapCount(count: number): this {
@@ -162,10 +187,12 @@ export class CaseBuilder implements Case {
   }
 
   /**
-   * Mark action as delayed (multi-tap).
+   * Marks whether execution is delayed until the multi-tap window expires.
    *
-   * @param isDelayed - Whether execution is delayed until multi-tap window expires.
-   * @returns `this` for method chaining.
+   * Use when defining single-tap fallback actions on multi-tap keys so the single tap does not fire prematurely during double taps.
+   *
+   * @param isDelayed - Whether execution is delayed (defaults to `true`).
+   * @returns `this` for fluent method chaining.
    *
    * @example
    * ```ts
@@ -178,14 +205,16 @@ export class CaseBuilder implements Case {
   }
 
   /**
-   * Enable double-tap guard protection on this case.
+   * Enables or disables double-tap guard confirmation protection on this case.
    *
-   * @param isGuarded - Whether double-tap guard protection is enabled.
-   * @returns `this` for method chaining.
+   * Use when protecting destructive actions (e.g. killing processes, quitting apps) from accidental single key presses.
+   *
+   * @param isGuarded - Whether guard protection is enabled (defaults to `true`).
+   * @returns `this` for fluent method chaining.
    *
    * @example
    * ```ts
-   * press(shell("rm -rf ~/temp")).guardProtection()
+   * press(shell("killall Finder")).guardProtection(true)
    * ```
    */
   guardProtection(isGuarded = true): this {
@@ -194,10 +223,12 @@ export class CaseBuilder implements Case {
   }
 
   /**
-   * Set optional action fragment description.
+   * Sets an optional human-readable description for this action case.
    *
-   * @param text - Human-readable description text for the case.
-   * @returns `this` for method chaining.
+   * Use when documenting specific case actions for debugging or GUI inspector logs.
+   *
+   * @param text - Description string for the case.
+   * @returns `this` for fluent method chaining.
    *
    * @example
    * ```ts
@@ -210,10 +241,12 @@ export class CaseBuilder implements Case {
   }
 
   /**
-   * Suppress trigger fallback (emit only explicit `do`).
+   * Sets whether trigger fallback behavior should be suppressed.
    *
-   * @param suppress - Whether to suppress trigger fallback.
-   * @returns `this` for method chaining.
+   * Use when intercepting an event exclusively without allowing default key passthrough when conditions match.
+   *
+   * @param suppress - Whether to suppress fallback (defaults to `true`).
+   * @returns `this` for fluent method chaining.
    *
    * @example
    * ```ts
@@ -227,39 +260,39 @@ export class CaseBuilder implements Case {
 }
 
 /**
- * Creates a case for key press phase.
+ * Creates a {@link CaseBuilder} for actions executed on the key press (down) phase.
+ *
+ * Use when an action should fire immediately as soon as the key or mouse button is depressed.
  *
  * Recognized action builders:
- * - `key()` — key press action with optional modifiers and options (`repeat`, `halt`, `lazy`)
- * - `button()` — mouse button press action
- * - `app()` — launch or focus application
- * - `url()` — open URL in browser (supports background)
- * - `folder()` — open file directory
- * - `cmd()` — run registered command spec
- * - `shell()` — run shell command
- * - `python()` — execute python script with virtual environment support
- * - `osascript()` — run AppleScript/JOSA script
- * - `setVar()` — set or toggle Karabiner variable
- * - `cut()` / `copy()` / `paste()` — clipboard shortcut actions
- * - `sequence()` — run multiple action specs sequentially
- * - `map()` — trigger mapped combo spec
- * - `noop()` — no-op (swallows trigger without emitting output)
- * - `actHere()` — in-place context action spec
- * - `appHistory()` — navigate app history stack
+ * - {@link key} — key press action with optional modifiers and options (`repeat`, `halt`, `lazy`)
+ * - {@link consumerKey} — media, volume, and brightness consumer keys
+ * - {@link button} — mouse button press action
+ * - {@link app} — launch or focus application
+ * - {@link url} — open URL in browser (supports background)
+ * - {@link folder} — open file directory
+ * - {@link cmd} — run registered command spec
+ * - {@link shell} — run shell command
+ * - {@link python} — execute python script with virtual environment support
+ * - {@link osascript} — run AppleScript/JOSA script
+ * - {@link setVar} — set or toggle Karabiner variable
+ * - {@link cut} / {@link copy} / {@link paste} — clipboard shortcut actions
+ * - {@link sequence} — run multiple action specs sequentially
+ * - {@link map} — trigger mapped combo spec
+ * - {@link noop} — no-op (swallows trigger without emitting output)
+ * - {@link actHere} — in-place context action spec
+ * - {@link appHistory} — navigate app history stack
+ * - Bare registry primitives (`URLS.*`, `COMBOS.*`, `CMDS.*`, `APPS.*`) directly
  *
- * Registry primitives (`URLS.*`, `COMBOS.*`, `CMDS.*`, `APPS.*`) can be passed
- * directly too — `press(COMBOS.x)` is `press(map(COMBOS.x))`. `PathSpec`
- * (`PATHS.*`) is not inferred; use `folder()` explicitly.
- *
- * @param actions - Action, registry primitive, or list of either, to execute on press.
- * @param conditions - Optional condition or list of conditions.
- * @returns A `CaseBuilder` for chaining options.
+ * @param actions - {@link ActionInput} or array of actions to execute on press.
+ * @param conditions - Optional condition or array of conditions for this case.
+ * @returns A {@link CaseBuilder} initialized for the `"press"` phase.
  *
  * @example
  * ```ts
  * press(key("a"))
- * press([key("c", ["cmd"])], { app: "com.apple.finder" })
  * press(COMBOS.showPopclip)
+ * press([key("c", ["cmd"])], ifApp(APPS.finder))
  * ```
  */
 export function press(actions: ActionInput | ActionInput[], conditions?: Condition | Condition[]): CaseBuilder {
@@ -267,33 +300,19 @@ export function press(actions: ActionInput | ActionInput[], conditions?: Conditi
 }
 
 /**
- * Creates a case for key release phase.
+ * Creates a {@link CaseBuilder} for actions executed on the key release (up) phase.
+ *
+ * Use when an action should fire upon releasing the key after a brief tap without holding.
  *
  * Recognized action builders:
- * - `key()` — key press action with optional modifiers and options (`repeat`, `halt`, `lazy`)
- * - `button()` — mouse button press action
- * - `app()` — launch or focus application
- * - `url()` — open URL in browser (supports background)
- * - `folder()` — open file directory
- * - `cmd()` — run registered command spec
- * - `shell()` — run shell command
- * - `python()` — execute python script with virtual environment support
- * - `osascript()` — run AppleScript/JOSA script
- * - `setVar()` — set or toggle Karabiner variable
- * - `cut()` / `copy()` / `paste()` — clipboard shortcut actions
- * - `sequence()` — run multiple action specs sequentially
- * - `map()` — trigger mapped combo spec
- * - `noop()` — no-op (swallows trigger without emitting output)
- * - `actHere()` — in-place context action spec
- * - `appHistory()` — navigate app history stack
+ * - {@link key}, {@link consumerKey}, {@link button}, {@link app}, {@link url}, {@link folder},
+ *   {@link cmd}, {@link shell}, {@link python}, {@link osascript}, {@link setVar}, {@link cut},
+ *   {@link copy}, {@link paste}, {@link sequence}, {@link map}, {@link noop}, {@link actHere}, {@link appHistory}
+ * - Bare registry primitives (`URLS.*`, `COMBOS.*`, `CMDS.*`, `APPS.*`) directly
  *
- * Registry primitives (`URLS.*`, `COMBOS.*`, `CMDS.*`, `APPS.*`) can be passed
- * directly too — `release(COMBOS.x)` is `release(map(COMBOS.x))`. `PathSpec`
- * (`PATHS.*`) is not inferred; use `folder()` explicitly.
- *
- * @param actions - Action, registry primitive, or list of either, to execute on release.
- * @param conditions - Optional condition or list of conditions.
- * @returns A `CaseBuilder` for chaining options.
+ * @param actions - {@link ActionInput} or array of actions to execute on release.
+ * @param conditions - Optional condition or array of conditions for this case.
+ * @returns A {@link CaseBuilder} initialized for the `"release"` phase.
  *
  * @example
  * ```ts
@@ -306,22 +325,17 @@ export function release(actions: ActionInput | ActionInput[], conditions?: Condi
 }
 
 /**
- * Alias for `release()`. Creates a case for key tap (release).
+ * Alias for {@link release}. Creates a {@link CaseBuilder} for actions executed on key tap (release phase).
  *
- * Recognized action builders:
- * - `key()`, `button()`, `app()`, `url()`, `folder()`, `cmd()`, `shell()`,
- *   `python()`, `osascript()`, `setVar()`, `cut()`, `copy()`, `paste()`, `sequence()`,
- *   `map()`, `noop()`, `actHere()`, `appHistory()`
- * - Registry primitives (`URLS.*`, `COMBOS.*`, `CMDS.*`, `APPS.*`) directly —
- *   promoted the same way as in `press()`/`release()`.
+ * Use when specifying tap actions in dual-role tap/hold keys or modal buttons.
  *
- * @param actions - Action, registry primitive, or list of either, to execute on tap.
- * @param conditions - Optional condition or list of conditions.
- * @returns A `CaseBuilder` for chaining options.
+ * @param actions - {@link ActionInput} or array of actions to execute on tap.
+ * @param conditions - Optional condition or array of conditions.
+ * @returns A {@link CaseBuilder} initialized for the `"release"` phase.
  *
  * @example
  * ```ts
- * tap(key("space"))
+ * tap(key("spacebar"))
  * ```
  */
 export function tap(actions: ActionInput | ActionInput[], conditions?: Condition | Condition[]): CaseBuilder {
@@ -329,33 +343,19 @@ export function tap(actions: ActionInput | ActionInput[], conditions?: Condition
 }
 
 /**
- * Creates a case for key hold phase.
+ * Creates a {@link CaseBuilder} for actions executed on the key hold phase (held past the hold threshold).
+ *
+ * Use when defining the held action for dual-role modifier keys, layer activation, or repeat triggers.
  *
  * Recognized action builders:
- * - `key()` — key press action with optional modifiers and options (`repeat`, `halt`, `lazy`)
- * - `button()` — mouse button press action
- * - `app()` — launch or focus application
- * - `url()` — open URL in browser (supports background)
- * - `folder()` — open file directory
- * - `cmd()` — run registered command spec
- * - `shell()` — run shell command
- * - `python()` — execute python script with virtual environment support
- * - `osascript()` — run AppleScript/JOSA script
- * - `setVar()` — set or toggle Karabiner variable
- * - `cut()` / `copy()` / `paste()` — clipboard shortcut actions
- * - `sequence()` — run multiple action specs sequentially
- * - `map()` — trigger mapped combo spec
- * - `noop()` — no-op (swallows trigger without emitting output)
- * - `actHere()` — in-place context action spec
- * - `appHistory()` — navigate app history stack
+ * - {@link key}, {@link consumerKey}, {@link button}, {@link app}, {@link url}, {@link folder},
+ *   {@link cmd}, {@link shell}, {@link python}, {@link osascript}, {@link setVar}, {@link cut},
+ *   {@link copy}, {@link paste}, {@link sequence}, {@link map}, {@link noop}, {@link actHere}, {@link appHistory}
+ * - Bare registry primitives (`URLS.*`, `COMBOS.*`, `CMDS.*`, `APPS.*`) directly
  *
- * Registry primitives (`URLS.*`, `COMBOS.*`, `CMDS.*`, `APPS.*`) can be passed
- * directly too — `hold(COMBOS.x)` is `hold(map(COMBOS.x))`. `PathSpec`
- * (`PATHS.*`) is not inferred; use `folder()` explicitly.
- *
- * @param actions - Action, registry primitive, or list of either, to execute when held down.
- * @param conditions - Optional condition or list of conditions.
- * @returns A `CaseBuilder` for chaining options.
+ * @param actions - {@link ActionInput} or array of actions to execute when held down.
+ * @param conditions - Optional condition or array of conditions for this case.
+ * @returns A {@link CaseBuilder} initialized for the `"hold"` phase.
  *
  * @example
  * ```ts
@@ -368,22 +368,17 @@ export function hold(actions: ActionInput | ActionInput[], conditions?: Conditio
 }
 
 /**
- * Creates a double-tap press case.
+ * Creates a {@link CaseBuilder} for actions requiring a rapid double-tap to execute.
  *
- * Recognized action builders:
- * - `key()`, `button()`, `app()`, `url()`, `folder()`, `cmd()`, `shell()`,
- *   `python()`, `osascript()`, `setVar()`, `cut()`, `copy()`, `paste()`, `sequence()`,
- *   `map()`, `noop()`, `actHere()`, `appHistory()`
- * - Registry primitives (`URLS.*`, `COMBOS.*`, `CMDS.*`, `APPS.*`) directly —
- *   promoted the same way as in `press()`/`release()`.
+ * Use when assigning secondary shortcut actions triggered by pressing a key twice within the multi-tap threshold window.
  *
- * @param actions - Action, registry primitive, or list of either, to execute on double tap.
- * @param conditions - Optional condition or list of conditions.
- * @returns A `CaseBuilder` initialized with tap count 2.
+ * @param actions - {@link ActionInput} or array of actions to execute on double tap.
+ * @param conditions - Optional condition or array of conditions.
+ * @returns A {@link CaseBuilder} initialized with tap count 2.
  *
  * @example
  * ```ts
- * doubleTap(app("Terminal"))
+ * doubleTap(app(APPS.terminal))
  * ```
  */
 export function doubleTap(actions: ActionInput | ActionInput[], conditions?: Condition | Condition[]): CaseBuilder {
@@ -391,38 +386,19 @@ export function doubleTap(actions: ActionInput | ActionInput[], conditions?: Con
 }
 
 /**
- * Shorthand for the tap/hold pair that runs through this codebase's bindings
- * far more often than any other shape: a `release()` case for the plain tap
- * and a `hold()` case for the held key, both under the same optional
- * conditions.
+ * Creates a paired 2-tuple containing a tap case (release phase) and a hold case (hold phase) under identical optional conditions.
  *
- * Named `tapAndHold` rather than `tapHold` to avoid colliding with the
- * lower-level manipulator builder of that name in
- * `engine/resolve-trigger/tap-hold.ts` (a different API: it builds a raw
- * tap-hold manipulator from `{key, alone, hold, ...}`, not a `Case[]`).
+ * Use as a concise shorthand for standard tap/hold dual-role keys (equivalent to `[release(tapAction), hold(holdAction)]`).
  *
- * `to(tapAndHold(a, b))` is exactly `to(release(a), hold(b))` — nothing new
- * is modeled, this only collapses the two-call boilerplate. For a case that
- * needs its own distinct conditions instead of sharing one set with its
- * counterpart, use `release(...).when(...)` / `hold(...).when(...)` directly.
- *
- * @param tapAction - Action, registry primitive, or list of either, to execute on tap (release phase).
- * @param holdAction - Action, registry primitive, or list of either, to execute when held.
- * @param conditions - Optional condition or list of conditions, applied to both cases.
- * @returns A 2-tuple `[release(tapAction), hold(holdAction)]`.
+ * @param tapAction - {@link ActionInput} or array of actions to execute on tap (release phase).
+ * @param holdAction - {@link ActionInput} or array of actions to execute when held (hold phase).
+ * @param conditions - Optional condition or array of conditions applied to both cases.
+ * @returns A 2-tuple `[CaseBuilder, CaseBuilder]` representing `[release(tapAction), hold(holdAction)]`.
  *
  * @example
  * ```ts
- * // Before:
- * bind(from("leftBack"), to(release(shell(URLS.hsWinToggleFill)), hold(url(URLS.rectDisplayNext))))
- * // After:
- * bind(from("leftBack"), to(tapAndHold(URLS.hsWinToggleFill, URLS.rectDisplayNext)))
- * // Note: a bare CommandSpec auto-infers to cmd() (ActionSpec type
- * // "command"), not shell() (type "shell") — a different variant. For a
- * // CommandSpec (not a raw string), both handlers resolve to the same
- * // to_shell_command, so this is safe either way; the only observable
- * // difference is the compiled description ("Run command 'X'" vs
- * // "Run 'X'"). Prefer bare unless that description text matters to you.
+ * to(tapAndHold(URLS.hsWinToggleFill, URLS.rectDisplayNext))
+ * to(tapAndHold(key("spacebar"), key("left_shift")))
  * ```
  */
 export function tapAndHold(
@@ -434,18 +410,13 @@ export function tapAndHold(
 }
 
 /**
- * Creates a double-tap hold case.
+ * Creates a {@link CaseBuilder} for actions requiring a double-tap followed by holding the key down.
  *
- * Recognized action builders:
- * - `key()`, `button()`, `app()`, `url()`, `folder()`, `cmd()`, `shell()`,
- *   `python()`, `osascript()`, `setVar()`, `cut()`, `copy()`, `paste()`, `sequence()`,
- *   `map()`, `noop()`, `actHere()`, `appHistory()`
- * - Registry primitives (`URLS.*`, `COMBOS.*`, `CMDS.*`, `APPS.*`) directly —
- *   promoted the same way as in `press()`/`release()`.
+ * Use when assigning tertiary actions activated by double-tapping and holding a key (e.g. momentary modal sublayers).
  *
- * @param actions - Action, registry primitive, or list of either, to execute on double tap and hold.
- * @param conditions - Optional condition or list of conditions.
- * @returns A `CaseBuilder` initialized with hold phase and tap count 2.
+ * @param actions - {@link ActionInput} or array of actions to execute on double tap and hold.
+ * @param conditions - Optional condition or array of conditions.
+ * @returns A {@link CaseBuilder} initialized with the hold phase and tap count 2.
  *
  * @example
  * ```ts
@@ -457,18 +428,13 @@ export function doubleTapHold(actions: ActionInput | ActionInput[], conditions?:
 }
 
 /**
- * Creates a delayed single tap case (useful in multi-tap configurations).
+ * Creates a {@link CaseBuilder} for single-tap actions delayed until the multi-tap expiration window completes.
  *
- * Recognized action builders:
- * - `key()`, `button()`, `app()`, `url()`, `folder()`, `cmd()`, `shell()`,
- *   `python()`, `osascript()`, `setVar()`, `cut()`, `copy()`, `paste()`, `sequence()`,
- *   `map()`, `noop()`, `actHere()`, `appHistory()`
- * - Registry primitives (`URLS.*`, `COMBOS.*`, `CMDS.*`, `APPS.*`) directly —
- *   promoted the same way as in `press()`/`release()`.
+ * Use on keys that have both single-tap and double-tap actions so the single-tap action does not fire prematurely during a double-tap sequence.
  *
- * @param actions - Action, registry primitive, or list of either, to execute on delayed single tap.
- * @param conditions - Optional condition or list of conditions.
- * @returns A `CaseBuilder` initialized with release phase and delayed true.
+ * @param actions - {@link ActionInput} or array of actions to execute on delayed single tap.
+ * @param conditions - Optional condition or array of conditions.
+ * @returns A {@link CaseBuilder} initialized with the release phase and `delayed: true`.
  *
  * @example
  * ```ts
@@ -495,21 +461,18 @@ function isConditionLike(val: unknown): boolean {
 }
 
 /**
- * Creates a guarded press case requiring double-tap confirmation.
- * If actions are omitted, automatically defaults to emitting the trigger event.
+ * Creates a guarded {@link CaseBuilder} requiring double-tap confirmation to execute.
  *
- * Recognized action builders:
- * - `key()`, `button()`, `app()`, `url()`, `folder()`, `cmd()`, `shell()`,
- *   `python()`, `osascript()`, `setVar()`, `cut()`, `copy()`, `paste()`, `sequence()`,
- *   `map()`, `noop()`, `actHere()`, `appHistory()`
+ * Use when guarding destructive or high-impact actions (e.g. killing system services, closing entire workspaces) against accidental key presses.
+ * If actions are omitted, automatically defaults to passing through the trigger event on confirmation.
  *
  * @param actionsOrConditions - Optional action(s) to execute under guard protection, or condition(s) if actions are omitted.
- * @param conditions - Optional condition or list of conditions.
- * @returns A `CaseBuilder` with double-tap guard protection enabled.
+ * @param conditions - Optional condition or array of conditions.
+ * @returns A {@link CaseBuilder} with double-tap guard protection enabled.
  *
  * @example
  * ```ts
- * guard() // Emits the trigger event on confirmation
+ * guard() // Emits the trigger event only on confirmation
  * guard(shell("killall Finder")) // Emits shell command on confirmation
  * guard(ifApp("com.apple.finder")) // Guarded trigger with condition
  * ```
@@ -525,7 +488,7 @@ export function guard(
 }
 
 /**
- * Container wrapping one or more `Case` objects created by {@link to}.
+ * Container wrapping one or more {@link Case} objects created by {@link to}.
  */
 export type ToWrapper = {
   kind: "to";
@@ -533,43 +496,28 @@ export type ToWrapper = {
 };
 
 /**
- * Wraps one or more cases or case arrays into a `ToWrapper` container.
+ * Wraps one or more action cases or case arrays into a {@link ToWrapper} container for {@link bind}.
+ *
+ * Use as the primary destination action builder when constructing bindings with {@link bind}, combining press, release, hold, tap, double-tap, and guard cases.
  *
  * Recognized case wrappers:
- * - `press(actions)` — executes on key press phase
- * - `release(actions)` / `tap(actions)` — executes on key release phase
- * - `hold(actions)` — executes on key hold phase
- * - `doubleTap(actions)` — requires double tap to trigger
- * - `doubleTapHold(actions)` — requires double tap and hold to trigger
- * - `delayedSingleTap(actions)` — delayed single tap execution for multi-tap
- * - `guard(actions)` — guarded execution requiring double-tap confirmation
+ * - {@link press} — executes on key press phase
+ * - {@link release} / {@link tap} — executes on key release phase
+ * - {@link hold} — executes on key hold phase
+ * - {@link doubleTap} — requires double tap to trigger
+ * - {@link doubleTapHold} — requires double tap and hold to trigger
+ * - {@link delayedSingleTap} — delayed single tap execution for multi-tap
+ * - {@link guard} — guarded execution requiring double-tap confirmation
+ * - {@link tapAndHold} — combined tap (release) and hold pair
  *
- * Recognized action builders (passed into case wrappers):
- * - `key()` — key press action with optional modifiers and options (`repeat`, `halt`, `lazy`)
- * - `button()` — mouse button press action
- * - `app()` — launch or focus application
- * - `url()` — open URL in browser (supports background)
- * - `folder()` — open file directory
- * - `cmd()` — run registered command spec
- * - `shell()` — run shell command
- * - `python()` — execute python script with virtual environment support
- * - `osascript()` — run AppleScript/JOSA script
- * - `setVar()` — set or toggle Karabiner variable
- * - `cut()` / `copy()` / `paste()` — clipboard shortcut actions
- * - `sequence()` — run multiple action specs sequentially
- * - `map()` — trigger mapped combo spec
- * - `noop()` — no-op (swallows trigger without emitting output)
- * - `actHere()` — in-place context action spec
- * - `appHistory()` — navigate app history stack
- *
- * @param cases - Cases, case arrays, or `CaseBuilder` instances to include.
- * @returns A `ToWrapper` container holding all flattened cases.
+ * @param cases - Cases, case arrays, or {@link CaseBuilder} instances to include.
+ * @returns A {@link ToWrapper} container holding all flattened cases.
  *
  * @example
  * ```ts
  * to(press(key("a", ["cmd"])))
- * to(press(app("com.apple.finder")), release(key("b")))
- * to(press(noop()))
+ * to(release(key("spacebar")), hold(key("left_shift")))
+ * to(tapAndHold(APPS.finder, APPS.terminal))
  * ```
  */
 export function to(...cases: (Case | Case[])[]): ToWrapper {
@@ -580,12 +528,14 @@ export function to(...cases: (Case | Case[])[]): ToWrapper {
 }
 
 /**
- * Creates an action spec to open or switch to an application.
+ * Creates an action spec to open or switch focus to an application.
  *
- * @param ref - Target application spec, bundle identifier, or name.
- * @param mode - Optional launch mode ("open" using macOS `open` or "shell" execution).
- * @param actionDesc - Optional human-readable description for the action.
- * @returns An `ActionSpec` of type "app".
+ * Use when binding hotkeys to launch apps, bring running apps to the foreground, or toggle app visibility.
+ *
+ * @param ref - Target {@link AppSpec} (e.g. `APPS.finder`), bundle identifier string, or application name.
+ * @param mode - Optional launch mode (`"open"` using macOS `open` or `"shell"` execution).
+ * @param actionDesc - Optional human-readable description for documentation and logs.
+ * @returns An {@link ActionSpec} of type `"app"`.
  *
  * @example
  * ```ts
@@ -603,31 +553,26 @@ export function app(ref: AppTarget, mode?: "open" | "shell", actionDesc?: string
 }
 
 /**
- * Creates an action spec to open a URL in the browser.
+ * Creates an action spec to open a URL in the default browser or target scheme handler.
  *
- * `background` resolves via 3-tier precedence, highest first:
- * 1. This call's own `background` argument, when explicitly passed.
- * 2. `ref.background`, when `ref` is a `UrlSpec` that sets it (see registry
- *    factories in `data/registries/urls.ts` — non-Hammerspoon categories pin
- *    `false` there to preserve foreground `open -u` behavior).
- * 3. `true` (background, `open -g`) — the safe default when neither the call
- *    site nor the registry entry specifies a preference.
+ * Use when opening web links, deep links, or application custom schemes (e.g. `raycast://`, `rectangle://`).
+ * Supports background execution without stealing focus.
  *
- * The resolved value is always written onto the returned `ActionSpec`
- * (never conditionally omitted), so `action-handlers.ts`'s `url` handler
- * never needs to apply its own fallback.
+ * Precedence for `background`:
+ * 1. Explicit `background` parameter.
+ * 2. `ref.background` (when `ref` is a {@link UrlSpec}).
+ * 3. Default fallback: `true` (opens in background via `open -g`).
  *
- * @param ref - URL string or `UrlSpec` reference.
- * @param background - Whether to open URL in background without bringing application to focus.
- * @param actionDesc - Optional human-readable description for the action.
- * @returns An `ActionSpec` of type "url".
+ * @param ref - Target {@link UrlSpec} (e.g. `URLS.rectDisplayNext`) or URL string.
+ * @param background - Whether to open in the background without focusing the browser (defaults to `true` unless pinned by registry).
+ * @param actionDesc - Optional human-readable description for documentation and logs.
+ * @returns An {@link ActionSpec} of type `"url"`.
  *
  * @example
  * ```ts
- * url("https://github.com")               // background: true (default fallback)
- * url(URLS.rectDisplayNext)                // background: false (registry pins foreground)
- * url(URLS.rectDisplayNext, false)         // explicit override, same result here
- * url(URL_ID.docs, true, "Open documentation in background")
+ * url("https://github.com") // background: true (default fallback)
+ * url(URLS.rectDisplayNext) // background: false (registry pins foreground)
+ * url(URLS.rectDisplayNext, false) // explicit override
  * ```
  */
 export function url(ref: UrlSpec | string, background?: boolean, actionDesc?: string): ActionSpec {
@@ -642,21 +587,14 @@ export function url(ref: UrlSpec | string, background?: boolean, actionDesc?: st
 }
 
 /**
- * Configuration options for key and mouse press actions.
- *
- * Re-exported from the action vocabulary so the wrapper layer and the spec it
- * produces cannot drift apart.
- */
-/**
  * Configuration options for key, consumer key, and mouse button output events.
- *
  * Re-exported from {@link ActionEventOptions}.
  *
  * ### Available Options:
- * - `repeat` (`boolean`): Whether the key repeats while held down. (Default `false` in Snaplink; Karabiner native default is `true`). Set `false` on the last event of a sequence to prevent stuck repeating keys.
+ * - `repeat` (`boolean`): Whether the key repeats while held down (defaults to `false` in Snaplink to prevent stuck keys).
  * - `halt` (`boolean`): In `to_if_alone` or `to_if_held_down`, cancels subsequent `to_after_key_up` and `to_delayed_action` channels when this action fires.
- * - `lazy` (`boolean`): Suppresses the modifier key's events until another non-modifier key is pressed with it.
- * - `hold_down_milliseconds` (`number`): Gap in ms between key_down and key_up when sent together. `caps_lock` tap events need ~200ms to register.
+ * - `lazy` (`boolean`): Suppresses modifier key events until another non-modifier key is pressed with it.
+ * - `hold_down_milliseconds` (`number`): Gap in ms between key_down and key_up when sent together.
  *
  * @example
  * ```ts
@@ -668,15 +606,15 @@ export function url(ref: UrlSpec | string, background?: boolean, actionDesc?: st
 export type KeyOptions = ActionEventOptions;
 
 /**
- * Creates an action spec for a consumer-control key press event — media,
- * volume, and brightness keys (`to.consumer_key_code`), a namespace distinct
- * from `to.key_code` and not covered by {@link key}'s alias table.
+ * Creates an action spec for a consumer-control key press event (media playback, volume, and display brightness keys).
  *
- * @param keyName - Consumer key code name (e.g. `"volume_increment"`, `"mute"`, `"play_or_pause"`) or a raw usage integer.
- * @param modifiersOrOptions - Optional array of modifier keys (`["cmd"]`, `["shift", "opt"]`, `VM.COCS`) OR a {@link KeyOptions} configuration object (`{ repeat?: boolean, halt?: boolean, lazy?: boolean, hold_down_milliseconds?: number }`).
- * @param options - Additional {@link KeyOptions} configuration (`{ repeat?, halt?, lazy?, hold_down_milliseconds? }`) when modifiers are provided as 2nd parameter.
- * @param actionDesc - Optional human-readable description for documentation/logs.
- * @returns An {@link ActionSpec} of type "consumerKey".
+ * Use when mapping triggers to media controls (`"volume_increment"`, `"play_or_pause"`, `"display_brightness_increment"`) in Karabiner's `to.consumer_key_code` namespace.
+ *
+ * @param keyName - Consumer key code name (e.g. `"volume_increment"`, `"mute"`, `"play_or_pause"`) or raw usage integer.
+ * @param modifiersOrOptions - Optional array of modifier keys (`["cmd"]`, `["shift"]`, `VM.COCS`) OR a {@link KeyOptions} configuration object.
+ * @param options - Additional {@link KeyOptions} configuration when modifiers are provided as 2nd parameter.
+ * @param actionDesc - Optional human-readable description for documentation and logs.
+ * @returns An {@link ActionSpec} of type `"consumerKey"`.
  *
  * @example
  * ```ts
@@ -711,13 +649,15 @@ export function consumerKey(
 }
 
 /**
- * Creates an action spec for a key press event.
+ * Creates an action spec for a keyboard key press event.
+ *
+ * Use when emitting standard keyboard key strokes with optional modifiers and event configuration flags.
  *
  * @param keyName - Target key code or alias (e.g. `"a"`, `"spacebar"`, `"left_command"`, `"escape"`, `"f12"`).
- * @param modifiersOrOptions - Optional array of modifier keys (`["cmd"]`, `["shift", "opt"]`, `VM.COCS`) OR a {@link KeyOptions} configuration object (`{ repeat?: boolean, halt?: boolean, lazy?: boolean, hold_down_milliseconds?: number }`).
- * @param options - Additional {@link KeyOptions} configuration (`{ repeat?, halt?, lazy?, hold_down_milliseconds? }`) when modifiers are provided as 2nd parameter.
- * @param actionDesc - Optional human-readable description for documentation/logs.
- * @returns An {@link ActionSpec} of type "key".
+ * @param modifiersOrOptions - Optional array of modifier keys (`["cmd"]`, `["shift", "opt"]`, `VM.COCS`) OR a {@link KeyOptions} configuration object.
+ * @param options - Additional {@link KeyOptions} configuration when modifiers are provided as 2nd parameter.
+ * @param actionDesc - Optional human-readable description for documentation and logs.
+ * @returns An {@link ActionSpec} of type `"key"`.
  *
  * @example
  * ```ts
@@ -758,14 +698,13 @@ export function key(
 }
 
 /**
- * Move the pointer while the key is held, in directions rather than signs.
+ * Creates an action spec to move the mouse pointer in cardinal directions while a key is held.
  *
- * Values are Karabiner mouse-key units, not pixels, and the actual speed also
- * depends on System Settings > Mouse (gotcha 6.10).
+ * Use when building keyboard-driven mouse navigation (e.g. Vim-style HJKL cursor movement).
  *
- * @param opts - Movement distances in Karabiner units (`left`, `right`, `up`, `down`, `speedMultiplier`).
+ * @param opts - Movement distance options in Karabiner mouse-key units (`left`, `right`, `up`, `down`, `speedMultiplier`).
  * @param actionDesc - Optional human-readable description for the action.
- * @returns An {@link ActionSpec} of type "mouseKey".
+ * @returns An {@link ActionSpec} of type `"mouseKey"`.
  *
  * @example
  * ```ts
@@ -791,16 +730,14 @@ export function mouseMove(
 }
 
 /**
- * Scroll while the key is held, in directions rather than signs.
+ * Creates an action spec to scroll the wheel in cardinal directions while a key is held.
  *
- * The sign conventions are the trap this wrapper exists to remove:
- * `vertical_wheel > 0` scrolls **down** but `horizontal_wheel > 0` scrolls
- * **left** — the horizontal axis is inverted relative to the vertical one
- * (gotcha 6.10). Scroll direction also follows System Settings > Mouse.
+ * Use when building keyboard-driven scrolling (e.g. mapping modifier+arrow keys to mouse wheel scroll events).
+ * Corrects Karabiner's inverted horizontal scroll axis automatically.
  *
- * @param opts - Scroll distances (`up`, `down`, `left`, `right`, `speedMultiplier`).
+ * @param opts - Scroll distance options (`up`, `down`, `left`, `right`, `speedMultiplier`).
  * @param actionDesc - Optional human-readable description for the action.
- * @returns An {@link ActionSpec} of type "mouseKey".
+ * @returns An {@link ActionSpec} of type `"mouseKey"`.
  *
  * @example
  * ```ts
@@ -826,7 +763,20 @@ export function mouseScroll(
   return { type: "mouseKey", mouseKey, ...(actionDesc ? { actionDesc } : {}) };
 }
 
-/** Raw `to.mouse_key`. Prefer {@link mouseMove} / {@link mouseScroll}. */
+/**
+ * Creates a raw Karabiner `to.mouse_key` action spec.
+ *
+ * Use when raw low-level mouse manipulation is required. For higher-level cardinal direction movement/scrolling, prefer {@link mouseMove} or {@link mouseScroll}.
+ *
+ * @param spec - Raw {@link ToMouseKey} parameters (`x`, `y`, `vertical_wheel`, `horizontal_wheel`, `speed_multiplier`).
+ * @param actionDesc - Optional human-readable description for the action.
+ * @returns An {@link ActionSpec} of type `"mouseKey"`.
+ *
+ * @example
+ * ```ts
+ * mouseKey({ x: 100, speed_multiplier: 1.5 })
+ * ```
+ */
 export function mouseKey(spec: ToMouseKey, actionDesc?: string): ActionSpec {
   return { type: "mouseKey", mouseKey: spec, ...(actionDesc ? { actionDesc } : {}) };
 }
@@ -834,11 +784,13 @@ export function mouseKey(spec: ToMouseKey, actionDesc?: string): ActionSpec {
 /**
  * Creates an action spec for a mouse button press event.
  *
+ * Use when emitting mouse clicks (e.g. left click `"button1"`, right click `"button2"`, middle click `"button3"`, back/forward `"button4"`/`"button5"`).
+ *
  * @param buttonName - Target mouse button name or alias (e.g. `"button1"`, `"button2"`, `"button4"`, `"left"`, `"right"`).
  * @param modifiersOrOptions - Optional array of modifier keys (`["cmd"]`, `["shift"]`) OR a {@link KeyOptions} configuration object.
- * @param options - Additional {@link KeyOptions} (`repeat`, `halt`, `lazy`, `hold_down_milliseconds`) when modifiers are provided as 2nd parameter.
+ * @param options - Additional {@link KeyOptions} configuration (`repeat`, `halt`, `lazy`, `hold_down_milliseconds`) when modifiers are provided as 2nd parameter.
  * @param actionDesc - Optional human-readable description for the action.
- * @returns An {@link ActionSpec} of type "button".
+ * @returns An {@link ActionSpec} of type `"button"`.
  *
  * @example
  * ```ts
@@ -879,12 +831,14 @@ export function button(
 }
 
 /**
- * Creates an action spec for a map reference.
+ * Creates an action spec referencing a pre-registered mapped key combination (from `COMBOS.*`).
  *
- * @param ref - `MapSpec` target reference (e.g. `COMBOS.focusWinRight`, `COMBOS.showPopclip`).
- * @param options - Optional {@link KeyOptions} (`repeat`, `halt`, `lazy`, `hold_down_milliseconds`).
+ * Use when triggering centralized shortcut definitions from {@link MapSpec} registries.
+ *
+ * @param ref - Target {@link MapSpec} reference (e.g. `COMBOS.focusWinRight`, `COMBOS.showPopclip`).
+ * @param options - Optional {@link KeyOptions} configuration (`repeat`, `halt`, `lazy`, `hold_down_milliseconds`).
  * @param actionDesc - Optional human-readable description for the action.
- * @returns An {@link ActionSpec} of type "map".
+ * @returns An {@link ActionSpec} of type `"map"`.
  *
  * @example
  * ```ts
@@ -905,10 +859,12 @@ export function map(ref: MapSpec, options?: KeyOptions, actionDesc?: string): Ac
 }
 
 /**
- * Creates an in-place context action spec.
+ * Creates an in-place context action spec for active window operations.
+ *
+ * Use when invoking context-sensitive actions handled by external integrations.
  *
  * @param action - Action identifier string (e.g. `"kitty"`, `"qspace"`, `"copy"`).
- * @returns An {@link ActionSpec} of type "actHere".
+ * @returns An {@link ActionSpec} of type `"actHere"`.
  *
  * @example
  * ```ts
@@ -921,17 +877,18 @@ export function actHere(action: string): ActionSpec {
 }
 
 /**
- * Creates an action spec to navigate application history.
+ * Creates an action spec to navigate through recently focused application history.
  *
- * @param index - Delta index in the app history stack (1 = previous app, 2 = 2nd previous app).
- * @param exclude - Optional {@link AppHistoryExclude} or {@link AppHistoryOptions} specifying bundle IDs or file paths to exclude.
+ * Use when implementing MRU (Most Recently Used) application switching shortcuts.
+ *
+ * @param index - Delta index in the app history stack (`1` for previously active app, `2` for 2nd previous app).
+ * @param exclude - Optional {@link AppHistoryExclude} or {@link AppHistoryOptions} specifying bundle IDs or file paths to ignore.
  * @param actionDesc - Optional human-readable description for the action.
- * @returns An {@link ActionSpec} of type "appHistory".
+ * @returns An {@link ActionSpec} of type `"appHistory"`.
  *
  * @example
  * ```ts
  * appHistory(1)
- * appHistory(1, ["^com\\.apple\\.Safari$", "^com\\.apple\\.Preview$"])
  * appHistory(1, [APPS.safari, APPS.preview])
  * ```
  */
@@ -980,11 +937,13 @@ export function appHistory(
 }
 
 /**
- * Creates an action spec to open a folder path in Finder or replacement file manager.
+ * Creates an action spec to open a folder path in Finder or configured file manager.
  *
- * @param ref - {@link PathSpec} (e.g. `PATHS.downloads`) or directory path string.
+ * Use when mapping shortcuts to open specific project or system directories.
+ *
+ * @param ref - Target {@link PathSpec} (e.g. `PATHS.downloads`) or directory path string.
  * @param actionDesc - Optional human-readable description for the action.
- * @returns An {@link ActionSpec} of type "folder".
+ * @returns An {@link ActionSpec} of type `"folder"`.
  *
  * @example
  * ```ts
@@ -1001,11 +960,13 @@ export function folder(ref: PathSpec, actionDesc?: string): ActionSpec {
 }
 
 /**
- * Creates an action spec from a registered command reference.
+ * Creates an action spec from a registered command reference (from `CMDS.*`).
  *
- * @param ref - {@link CommandSpec} reference (e.g. `CMDS.neruHints`, `CMDS.wordPrint`).
+ * Use when executing pre-registered commands with automatic environment, quoting, and path resolution.
+ *
+ * @param ref - Target {@link CommandSpec} reference (e.g. `CMDS.neruHints`, `CMDS.wordPrint`).
  * @param actionDesc - Optional human-readable description for the action.
- * @returns An {@link ActionSpec} of type "command".
+ * @returns An {@link ActionSpec} of type `"command"`.
  *
  * @example
  * ```ts
@@ -1022,11 +983,13 @@ export function cmd(ref: CommandSpec, actionDesc?: string): ActionSpec {
 }
 
 /**
- * Creates an action spec to run a shell command.
+ * Creates an action spec to execute a raw shell command.
+ *
+ * Use when running command-line scripts, CLI tools, or macOS system commands (`to.shell_command`).
  *
  * @param command - Shell command string or {@link CommandSpec}.
- * @param actionDesc - Optional human-readable description for the action.
- * @returns An {@link ActionSpec} of type "shell".
+ * @param actionDesc - Optional human-readable description for documentation and logs.
+ * @returns An {@link ActionSpec} of type `"shell"`.
  *
  * @example
  * ```ts
@@ -1044,12 +1007,14 @@ export function shell(command: string | CommandSpec, actionDesc?: string): Actio
 }
 
 /**
- * Creates an action spec to execute a Python script.
+ * Creates an action spec to execute a Python script with optional virtual environment support.
  *
- * @param scriptPath - File path to the Python script.
- * @param options - Argument array (`["--verbose"]`) or configuration object containing `venv` (virtualenv path), `args` (cli arguments), or `actionDesc`.
+ * Use when running Python automation scripts with specific virtual environments (`venv`) and CLI arguments.
+ *
+ * @param scriptPath - File path to the target Python script.
+ * @param options - Argument array (`["--verbose"]`) or configuration object containing `venv`, `args`, or `actionDesc`.
  * @param actionDesc - Optional human-readable description when `options` is passed as an argument array.
- * @returns An {@link ActionSpec} of type "python".
+ * @returns An {@link ActionSpec} of type `"python"`.
  *
  * @example
  * ```ts
@@ -1078,12 +1043,14 @@ export function python(
 }
 
 /**
- * Creates an action spec to execute an AppleScript or JOSA script (`osascript`).
+ * Creates an action spec to execute an AppleScript or JavaScript for Automation (JOSA) script (`osascript`).
  *
- * @param scriptPath - Path to the script file.
- * @param args - Optional positional command line arguments.
+ * Use when driving macOS system automation or application scripting dictionaries via AppleScript files.
+ *
+ * @param scriptPath - Path to the AppleScript/JOSA script file.
+ * @param args - Optional positional command line arguments passed to the script.
  * @param actionDesc - Optional human-readable description for the action.
- * @returns An {@link ActionSpec} of type "osascript".
+ * @returns An {@link ActionSpec} of type `"osascript"`.
  *
  * @example
  * ```ts
@@ -1100,13 +1067,15 @@ export function osascript(scriptPath: string, args?: string[], actionDesc?: stri
 }
 
 /**
- * Creates a no-op (no operation) action spec. Swallows the trigger without emitting output.
+ * Creates a no-op (no-operation) action spec that swallows the trigger event without emitting output.
  *
- * @returns An {@link ActionSpec} of type "noop".
+ * Use when disabling default key behaviors, muting unwanted hardware buttons, or consuming keys inside a sublayer.
+ *
+ * @returns An {@link ActionSpec} of type `"noop"`.
  *
  * @example
  * ```ts
- * noop()
+ * press(noop())
  * ```
  */
 export function noop(): ActionSpec {
@@ -1114,15 +1083,14 @@ export function noop(): ActionSpec {
 }
 
 /**
- * Creates an action spec that toggles a modifier key sticky — it stays "held"
- * until pressed again or cleared, rather than releasing with the key event
- * (`to.sticky_modifier`). Karabiner does not accept booleans here (6.9); use
- * `"on"` / `"off"` / `"toggle"`.
+ * Creates an action spec to toggle a modifier key into a sticky state (`to.sticky_modifier`).
  *
- * @param flag - Which modifier goes sticky (e.g. `"left_shift"`, `"left_command"`, `"fn"`).
- * @param toggle - `"on"`, `"off"`, or `"toggle"` (default).
+ * Use when implementing sticky modifiers that stay active until pressed again or cleared (e.g. one-handed modifier access).
+ *
+ * @param flag - Sticky modifier name (e.g. `"left_shift"`, `"left_command"`, `"fn"`).
+ * @param toggle - Sticky action state (`"on"`, `"off"`, or `"toggle"`, defaults to `"toggle"`).
  * @param actionDesc - Optional human-readable description for the action.
- * @returns An {@link ActionSpec} of type "sticky".
+ * @returns An {@link ActionSpec} of type `"sticky"`.
  *
  * @example
  * ```ts
@@ -1144,12 +1112,13 @@ export function sticky(
 }
 
 /**
- * Creates an action spec that puts the Mac to sleep
- * (`software_function.iokit_power_management_sleep_system`).
+ * Creates an action spec to put macOS immediately to sleep (`software_function.iokit_power_management_sleep_system`).
  *
- * @param delayMilliseconds - Delay before sleeping. Karabiner defaults to 500ms.
+ * Use when creating a dedicated instant system sleep hotkey.
+ *
+ * @param delayMilliseconds - Optional delay in ms before sleeping (Karabiner native default is 500ms).
  * @param actionDesc - Optional human-readable description for the action.
- * @returns An {@link ActionSpec} of type "sleepSystem".
+ * @returns An {@link ActionSpec} of type `"sleepSystem"`.
  *
  * @example
  * ```ts
@@ -1166,12 +1135,14 @@ export function sleepSystem(delayMilliseconds?: number, actionDesc?: string): Ac
 }
 
 /**
- * Creates an action spec to set or toggle a Karabiner variable.
+ * Creates an action spec to set or toggle a Karabiner internal state variable.
  *
- * @param varSpec - Variable specification target (e.g. `VARS.rButtonDown`, `VARS.myMode`).
- * @param value - Value to set for the variable (defaults to 1). Strict types (`1 != true`).
- * @param toggle - If true, toggles variable between 0 and 1.
- * @returns An {@link ActionSpec} of type "setVar".
+ * Use when toggling modal layers, activating submodes, or tracking multi-tap state flags in Karabiner's variable registry.
+ *
+ * @param varSpec - Target {@link VarSpec} variable (e.g. `VARS.rButtonDown`, `VARS.myMode`).
+ * @param value - Value to assign (`number`, `string`, or `boolean`, defaults to `1`).
+ * @param toggle - If true, toggles the variable between `0` and `1`.
+ * @returns An {@link ActionSpec} of type `"setVar"`.
  *
  * @example
  * ```ts
@@ -1191,7 +1162,9 @@ export function setVar(varSpec: VarSpec, value: number | string | boolean = 1, t
 /**
  * Creates a clipboard cut action spec (⌘+X).
  *
- * @returns An {@link ActionSpec} of type "cut".
+ * Use as a shorthand action for cutting selected text to the macOS clipboard.
+ *
+ * @returns An {@link ActionSpec} of type `"cut"`.
  *
  * @example
  * ```ts
@@ -1203,19 +1176,20 @@ export function cut(): ActionSpec {
 }
 
 /**
- * Creates an action spec that moves the mouse cursor to an absolute or
- * screen-relative position (`software_function.set_mouse_cursor_position`).
+ * Creates an action spec to move the mouse cursor to an absolute or window-relative screen position (`software_function.set_mouse_cursor_position`).
  *
- * @param x - Points (`100`) or percent (`"50%"`).
- * @param y - Points (`100`) or percent (`"50%"`).
- * @param opts - Screen index and relative-positioning options (`screen`, `relativeTo`, `fallbackTo`).
+ * Use when positioning the mouse cursor at specific coordinates or centering it within the active window.
+ *
+ * @param x - Horizontal coordinate points (`100`) or percentage string (`"50%"`).
+ * @param y - Vertical coordinate points (`100`) or percentage string (`"50%"`).
+ * @param opts - Optional screen index and relative positioning settings (`screen`, `relativeTo`, `fallbackTo`).
  * @param actionDesc - Optional human-readable description for the action.
- * @returns An {@link ActionSpec} of type "cursorTo".
+ * @returns An {@link ActionSpec} of type `"cursorTo"`.
  *
  * @example
  * ```ts
  * cursorTo(100, 100)
- * cursorTo("50%", "50%", { screen: 1 })
+ * cursorTo("50%", "50%", { relativeTo: "focused_window" })
  * ```
  */
 export function cursorTo(
@@ -1238,15 +1212,13 @@ export function cursorTo(
 }
 
 /**
- * Creates an action spec that simulates a mouse double-click via the OS event
- * system (`software_function.cg_event_double_click`) rather than two hardware
- * clicks. Laggier than `sequence([button(...), button(...)])` and needs
- * Accessibility permission for `karabiner_console_user_server` — prefer two
- * real clicks unless this is specifically required.
+ * Creates an action spec that simulates an OS-level mouse double-click (`software_function.cg_event_double_click`).
  *
- * @param button - CGMouseButton: 0 left (default), 1 right, 2 middle, 3+ other.
+ * Use when triggering double-clicks directly via CoreGraphics events. Note: For fast responsive clicks, prefer `sequence(button("button1"), button("button1"))`.
+ *
+ * @param button - CGMouseButton index: `0` left (default), `1` right, `2` middle.
  * @param actionDesc - Optional human-readable description for the action.
- * @returns An {@link ActionSpec} of type "doubleClick".
+ * @returns An {@link ActionSpec} of type `"doubleClick"`.
  *
  * @example
  * ```ts
@@ -1265,7 +1237,9 @@ export function doubleClick(button = 0, actionDesc?: string): ActionSpec {
 /**
  * Creates a clipboard copy action spec (⌘+C).
  *
- * @returns An {@link ActionSpec} of type "copy".
+ * Use as a shorthand action for copying selected text to the macOS clipboard.
+ *
+ * @returns An {@link ActionSpec} of type `"copy"`.
  *
  * @example
  * ```ts
@@ -1279,7 +1253,9 @@ export function copy(): ActionSpec {
 /**
  * Creates a clipboard paste action spec (⌘+V).
  *
- * @returns An {@link ActionSpec} of type "paste".
+ * Use as a shorthand action for pasting clipboard content.
+ *
+ * @returns An {@link ActionSpec} of type `"paste"`.
  *
  * @example
  * ```ts
@@ -1291,14 +1267,16 @@ export function paste(): ActionSpec {
 }
 
 /**
- * Creates an action spec that executes multiple action specs in sequential order.
+ * Creates an action spec that executes multiple action specs sequentially in exact order.
  *
- * @param actions - Sequence of action specs to run.
- * @returns An `ActionSpec` of type "sequence".
+ * Use when composing compound macros (e.g. copying text, switching apps, and pasting).
+ *
+ * @param actions - Sequence of {@link ActionSpec} objects to execute.
+ * @returns An {@link ActionSpec} of type `"sequence"`.
  *
  * @example
  * ```ts
- * sequence(copy(), app("Notes"), paste())
+ * sequence(copy(), app(APPS.notes), paste())
  * ```
  */
 export function sequence(...actions: ActionSpec[]): ActionSpec {

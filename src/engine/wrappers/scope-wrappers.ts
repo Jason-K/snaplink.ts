@@ -72,12 +72,16 @@ import {
   type WhenWrapper,
 } from "./condition-wrappers";
 
+// Type-only imports to enable IDE IntelliSense {@link ...} symbol resolution in JSDoc comments.
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import type { APPS, DEVICES, VARS } from "../../data";
+import type { bind, bindTable, holdLayer, options, timing } from "./binding-wrappers";
+/* eslint-enable @typescript-eslint/no-unused-vars */
+
 /**
- * A block of bindings, however it is spelled at the call site.
+ * A block of bindings accepted by scope combinators (e.g. single {@link Binding}, an array of {@link Binding}s, or variadic bindings).
  *
- * Both `forApp(A, [b1, b2])` and `forApp(A, b1, ...bindTable(...))` are valid;
- * arrays are flattened one level, which is all `bindTable()` / `holdLayer()`
- * spreads ever produce.
+ * Supports flat bindings or nested arrays from {@link bindTable}, {@link holdLayer}, or other scope wrappers.
  */
 export type BindingBlock = Binding | readonly Binding[];
 
@@ -98,20 +102,21 @@ function addConditions(b: Binding, conditions: readonly Condition[]): Binding {
 }
 
 /**
- * Apply an arbitrary condition set to every binding in a block.
+ * Applies an arbitrary set of conditions to every {@link Binding} in a block.
  *
- * The general form the named combinators below are built on. Accepts anything
- * {@link when} accepts — built `Condition`s, bare registry specs, `[target,
- * value]` tuples — so a scope can be expressed however the surrounding code
- * expresses conditions.
+ * Use as the foundational scope combinator to hoist shared conditions across multiple bindings at once without repeating `.when(...)` on every case.
+ * Accepts pre-built {@link Condition}s, {@link WhenWrapper} containers, bare registry specs (`APPS.*`, `DEVICES.*`, `VARS.*`), or `[target, value]` tuples.
  *
- * @param conditions - A `when(...)` wrapper, a `Condition`, or any bare state spec.
- * @param blocks - The bindings to scope.
- * @returns New bindings carrying the scope conditions ahead of their own.
+ * @param conditions - A {@link when} wrapper, a {@link Condition}, or any bare {@link StateItem}.
+ * @param blocks - One or more {@link BindingBlock} entries (single bindings, arrays, or table results).
+ * @returns An array of new {@link Binding} objects carrying the scope conditions ahead of their own.
  *
  * @example
  * ```ts
- * ...scoped(when(APPS.word, VARS.rCmdDown), [ bind(...), bind(...) ])
+ * ...scoped(when(APPS.word, VARS.rCmdDown), [
+ *   bind(from("j"), to(press(key("down_arrow")))),
+ *   bind(from("k"), to(press(key("up_arrow")))),
+ * ])
  * ```
  */
 export function scoped(
@@ -129,11 +134,13 @@ export function scoped(
 }
 
 /**
- * Scope a block to one or more frontmost applications.
+ * Scopes a block of bindings to only activate while one or more specified applications are frontmost.
  *
- * @param app - {@link AppSpec}, {@link PathSpec}, bundle ID string, or array of any of those.
- * @param blocks - The bindings to scope.
- * @returns New bindings that only fire while one of `app` is frontmost.
+ * Use when defining a collection of app-specific hotkeys and overrides (e.g. custom shortcuts for Excel, Xcode, or Finder).
+ *
+ * @param app - {@link AppSpec} (e.g. `APPS.excel`), {@link PathSpec}, bundle ID string, or array of apps.
+ * @param blocks - One or more {@link BindingBlock} entries to scope.
+ * @returns An array of new {@link Binding} objects gated by the application condition.
  *
  * @example
  * ```ts
@@ -151,21 +158,19 @@ export function forApp(
 }
 
 /**
- * Scope a block to *everywhere except* one or more applications.
+ * Scopes a block of bindings to activate everywhere *except* when one or more specified applications are frontmost.
  *
- * The complement of {@link forApp}, and worth using in pairs: a `forApp(X, …)`
- * block and an `exceptInApp(X, …)` block over the same trigger are provably
- * complementary, which is the relation `resolve-cases.ts` needs to drop an
- * unreachable fallback and `analyze-conflicts.ts` needs to *not* report the two
- * as conflicting.
+ * Use when defining global hotkeys that should be suppressed in specific applications (e.g. games, terminal emulators, or IDEs).
  *
- * @param app - {@link AppSpec}, {@link PathSpec}, bundle ID string, or array of any of those.
- * @param blocks - The bindings to scope.
- * @returns New bindings that only fire while none of `app` is frontmost.
+ * @param app - {@link AppSpec} (e.g. `APPS.excel`), {@link PathSpec}, bundle ID string, or array of apps.
+ * @param blocks - One or more {@link BindingBlock} entries to scope.
+ * @returns An array of new {@link Binding} objects with the negated application condition.
  *
  * @example
  * ```ts
- * ...exceptInApp(APPS.excel, [ bind(from("return_or_enter"), to(hold(URLS.hsFormatSubstring))) ])
+ * ...exceptInApp(APPS.excel, [
+ *   bind(from("return_or_enter"), to(hold(URLS.hsFormatSubstring))),
+ * ])
  * ```
  */
 export function exceptInApp(
@@ -176,19 +181,20 @@ export function exceptInApp(
 }
 
 /**
- * Gate a block on a Karabiner variable holding a value — the layer idiom.
+ * Gates a block of bindings on a Karabiner state variable equaling `1` (the layer idiom).
  *
- * `holdLayer()` does this internally for the chord table it is given; this is
- * the same gate for bindings that live outside a layer builder but still belong
- * to the layer.
+ * Use when defining a family of shortcuts that belong to a hold layer or mode toggle without using {@link holdLayer}.
  *
- * @param variable - The variable to test.
- * @param blocks - The bindings to scope.
- * @returns New bindings that only fire while `variable` is `1`.
+ * @param variable - The {@link VarSpec} variable to test.
+ * @param blocks - One or more {@link BindingBlock} entries to scope.
+ * @returns An array of new {@link Binding} objects that only fire while `variable` is `1`.
  *
  * @example
  * ```ts
- * ...whileVar(VARS.rCmdDown, [ bind(from("a"), to(press(APPS.antinote))) ])
+ * ...whileVar(VARS.rCmdDown, [
+ *   bind(from("a"), to(press(APPS.antinote))),
+ *   bind(from("b"), to(press(APPS.brave))),
+ * ])
  * ```
  */
 export function whileVar(variable: VarSpec, ...blocks: BindingBlock[]): Binding[] {
@@ -196,17 +202,20 @@ export function whileVar(variable: VarSpec, ...blocks: BindingBlock[]): Binding[
 }
 
 /**
- * {@link whileVar} for a variable that carries a value other than `1` — a mode
- * index, a named state.
+ * Gates a block of bindings on a Karabiner state variable equaling a specific numeric, string, or boolean value.
  *
- * @param variable - The variable to test.
- * @param value - Value required for a match.
- * @param blocks - The bindings to scope.
- * @returns New bindings that only fire while `variable` equals `value`.
+ * Use when scoping bindings to a multi-state mode index or named state variable (e.g. window management mode, leader key mode).
+ *
+ * @param variable - The {@link VarSpec} variable to test.
+ * @param value - Expected value required for a match (`string`, `number`, or `boolean`).
+ * @param blocks - One or more {@link BindingBlock} entries to scope.
+ * @returns An array of new {@link Binding} objects that only fire while `variable` equals `value`.
  *
  * @example
  * ```ts
- * ...whileVarIs(VARS.mode, "window", [ bind(from("h"), to(press(URLS.hsWinLeftTop))) ])
+ * ...whileVarIs(VARS.mode, "window", [
+ *   bind(from("h"), to(press(URLS.hsWinLeftTop))),
+ * ])
  * ```
  */
 export function whileVarIs(
@@ -218,20 +227,17 @@ export function whileVarIs(
 }
 
 /**
- * Gate a block on a Karabiner variable *not* holding a value.
+ * Gates a block of bindings on a Karabiner state variable *not* holding `1` (variable suppression).
  *
- * The suppression half of layering: every rule family outside a layer that
- * stays active after its trigger is released needs `variable_unless` on the
- * layer's variables, or it fires while the layer is up. See
- * {@link modalLayer}, which returns the guard conditions to hand here.
+ * Use when suppressing global bindings or default keys while a temporary hold layer or modal layer is active.
  *
- * @param variable - The variable to test.
- * @param blocks - The bindings to scope.
- * @returns New bindings that only fire while `variable` is not `1`.
+ * @param variable - The {@link VarSpec} variable to test.
+ * @param blocks - One or more {@link BindingBlock} entries to scope.
+ * @returns An array of new {@link Binding} objects that only fire while `variable` is not `1`.
  *
  * @example
  * ```ts
- * ...unlessVar(capsVars.pressed, tapHoldBindings)
+ * ...unlessVar(VARS.capsLockDown, tapHoldBindings)
  * ```
  */
 export function unlessVar(variable: VarSpec, ...blocks: BindingBlock[]): Binding[] {
@@ -239,12 +245,19 @@ export function unlessVar(variable: VarSpec, ...blocks: BindingBlock[]): Binding
 }
 
 /**
- * {@link unlessVar} for a variable that carries a value other than `1`.
+ * Gates a block of bindings on a Karabiner state variable *not* equaling a specific value.
  *
- * @param variable - The variable to test.
- * @param value - Value that blocks a match.
- * @param blocks - The bindings to scope.
- * @returns New bindings that only fire while `variable` does not equal `value`.
+ * Use when suppressing bindings while a specific named mode or sublayer state is active.
+ *
+ * @param variable - The {@link VarSpec} variable to test.
+ * @param value - Value that blocks a match (`string`, `number`, or `boolean`).
+ * @param blocks - One or more {@link BindingBlock} entries to scope.
+ * @returns An array of new {@link Binding} objects that only fire while `variable` does not equal `value`.
+ *
+ * @example
+ * ```ts
+ * ...unlessVarIs(VARS.mode, "gaming", standardShortcuts)
+ * ```
  */
 export function unlessVarIs(
   variable: VarSpec,
@@ -255,11 +268,13 @@ export function unlessVarIs(
 }
 
 /**
- * Scope a block to events originating from one physical device.
+ * Scopes a block of bindings to events originating from a specific physical hardware device.
  *
- * @param device - The {@link DeviceSpec} the event must come from.
- * @param blocks - The bindings to scope.
- * @returns New bindings that only fire for events from `device`.
+ * Use when customizing behavior exclusively for a particular external keyboard, mouse, or trackball.
+ *
+ * @param device - Target {@link DeviceSpec} the event must come from (e.g. `DEVICES.g502X`).
+ * @param blocks - One or more {@link BindingBlock} entries to scope.
+ * @returns An array of new {@link Binding} objects that only fire for events from `device`.
  *
  * @example
  * ```ts
@@ -271,19 +286,17 @@ export function onDevice(device: DeviceSpec, ...blocks: BindingBlock[]): Binding
 }
 
 /**
- * Supply option defaults to a whole block.
+ * Supplies default binding options across an entire block of bindings.
  *
- * A field the binding already set wins — the binding is the more specific
- * statement — with one refinement: `timing` and `conditions` merge rather than
- * replace, since both are sets of independent facts rather than single values.
+ * Use when applying shared metadata, processing flags, or event hooks across a collection of bindings without overriding individual specific settings.
  *
- * @param opts - Options wrapper (`options({...})`) or a plain options object.
- * @param blocks - The bindings to scope.
- * @returns New bindings carrying the defaults for every field they did not set.
+ * @param opts - Options wrapper (from {@link options}) or a {@link BindingOptionsSpec} object.
+ * @param blocks - One or more {@link BindingBlock} entries to configure.
+ * @returns An array of new {@link Binding} objects carrying the merged default options.
  *
  * @example
  * ```ts
- * ...withOptions({ suppressCancelFallback: true }, holdLayerBindings)
+ * ...withOptions({ suppressCancelFallback: true, halt: true }, holdLayerBindings)
  * ```
  */
 export function withOptions(
@@ -308,19 +321,13 @@ export function withOptions(
 }
 
 /**
- * Give a whole block one timing profile.
+ * Applies a shared timing preset profile or explicit timing thresholds to an entire block of bindings.
  *
- * Shorthand for `withOptions({ timing: … }, …)` that also accepts a
- * {@link TimingProfileName}, so a family of keys can be given one *feel* in a
- * single place instead of repeating four thresholds per binding — the case
- * `bindTable()` covers for actions but had no equivalent for timing.
+ * Use when establishing a consistent timing feel (`"snappy"`, `"instant"`, `"balanced"`, `"relaxed"`, `"deliberate"`) across a family of tap/hold keys.
  *
- * Per-binding timing still wins field-by-field, so one key in the block can
- * differ on one threshold without restating the rest.
- *
- * @param profileOrTiming - A profile name (`"snappy"`, `"deliberate"`, …) or an explicit timing object.
- * @param blocks - The bindings to scope.
- * @returns New bindings carrying the timing for every field they did not set.
+ * @param profileOrTiming - Named {@link TimingProfileName} (`"snappy"`, `"deliberate"`, etc.) or explicit timing threshold object.
+ * @param blocks - One or more {@link BindingBlock} entries to configure.
+ * @returns An array of new {@link Binding} objects carrying the configured timing parameters.
  *
  * @example
  * ```ts
@@ -338,19 +345,17 @@ export function withTiming(
 }
 
 /**
- * Merge a block into one named rule in the Karabiner Settings GUI.
+ * Merges a block of bindings into a single shared rule entry in the Karabiner Settings GUI.
  *
- * Bindings that resolve to the same trigger are merged automatically; this is
- * for the case where several *distinct* triggers are one feature and deserve
- * one row rather than a screenful of near-identical ones.
+ * Use when grouping multiple distinct triggers that belong to the same logical feature into one clean, labeled row in Karabiner's UI.
  *
- * @param groupOrDescription - A {@link BindingRuleGroup}, or a description string from which the id is derived.
- * @param blocks - The bindings to group.
- * @returns New bindings sharing one `ruleGroup`.
+ * @param groupOrDescription - A {@link BindingRuleGroup} object or human-readable description string (from which the group ID is automatically derived).
+ * @param blocks - One or more {@link BindingBlock} entries to group.
+ * @returns An array of new {@link Binding} objects sharing the specified `ruleGroup`.
  *
  * @example
  * ```ts
- * ...group("Window management", bindTable("release", { … }, VM.COCS))
+ * ...group("Window management", bindTable("release", { e: COMBOS.focusWinRight, q: COMBOS.focusWinLeft }, VM.COCS))
  * ```
  */
 export function group(

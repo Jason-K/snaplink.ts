@@ -9,10 +9,26 @@ import {
 import { isPointerButton, resolveKeyAlias } from "../utils";
 import type { SimultaneousOptions } from "../../types/karabiner";
 
+// Type-only imports to enable IDE IntelliSense {@link ...} symbol resolution in JSDoc comments.
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import type { bind, bindKeys, bindPointer, bindSimultaneous } from "./binding-wrappers";
+/* eslint-enable @typescript-eslint/no-unused-vars */
+
 export type { TriggerKey };
 
 /**
- * Normalizes user-facing simultaneous options or order specs into Karabiner `SimOrder`.
+ * Normalizes user-facing simultaneous options, order aliases, or order specifiers into Karabiner's canonical {@link SimOrder}.
+ *
+ * Use when converting simple order strings (`"insensitive"`, `"strict"`, `"strict_inverse"`) or {@link SimultaneousOptions} objects into a validated {@link SimOrder}.
+ *
+ * @param order - Order alias string, {@link SimultaneousOptions} object, or pre-built {@link SimOrder}.
+ * @returns A normalized {@link SimOrder} object, or `undefined` if no order constraints were provided.
+ *
+ * @example
+ * ```ts
+ * normalizeSimOrder("strict") // { down: "strict" }
+ * normalizeSimOrder({ key_down_order: "strict", detect_key_down_uninterruptedly: true })
+ * ```
  */
 export function normalizeSimOrder(
   order?:
@@ -39,17 +55,26 @@ export function normalizeSimOrder(
 }
 
 /**
- * Unified trigger builder for both key codes and pointer buttons.
+ * Unified trigger builder constructing a normalized {@link Trigger} for keyboard keys or mouse pointer buttons.
+ *
+ * Use when creating a trigger definition that dynamically accepts either physical key codes (e.g. `"a"`, `["j", "k"]`)
+ * or mouse buttons (e.g. `"button4"`, `"right"`).
  *
  * @param input - Single key code, array of key codes for simultaneous triggers, or pointer button alias.
- * @param modifiers - Optional mandatory/optional modifier requirements.
- * @param order - Optional simultaneous key press order constraint ("insensitive" or "strict").
- * @returns A normalized `Trigger` object.
+ * @param modifiers - Optional mandatory / optional modifier requirements (e.g. `["cmd"]`, `VM.COCS`, `{ mandatory: ["cmd"], optional: ["any"] }`).
+ * @param order - Optional simultaneous key press order constraint (`"insensitive"`, `"strict"`, `"strict_inverse"`, or {@link SimOrder}).
+ * @returns A normalized {@link Trigger} object.
  *
  * @example
  * ```ts
+ * // 1. Key trigger:
  * trigger("a", ["cmd"])
- * trigger(["j", "k"], { mandatory: ["ctrl"] }, "insensitive")
+ *
+ * // 2. Mouse button trigger:
+ * trigger("button4", ["opt"])
+ *
+ * // 3. Simultaneous chord trigger:
+ * trigger(["j", "k"], { mandatory: ["ctrl"] }, "strict")
  * ```
  */
 export function trigger(
@@ -75,16 +100,22 @@ export function trigger(
 }
 
 /**
- * Construct a key-based trigger object.
+ * Constructs a keyboard key-based {@link Trigger} object.
  *
- * @param keys - Key code or array of key codes.
- * @param modifiers - Optional trigger modifiers.
- * @param order - Optional simultaneous key ordering rule.
- * @returns A `Trigger` specification for keys.
+ * Use when building a trigger specification for a single physical key press or a simultaneous multi-key chord.
+ *
+ * @param keys - Key code or array of key codes acting as the trigger (e.g. `"spacebar"`, `["j", "k"]`).
+ * @param modifiers - Optional trigger modifier requirements (e.g. `["cmd", "shift"]`, `VM.COCS`).
+ * @param order - Optional simultaneous key ordering constraint (`"insensitive"`, `"strict"`, `"strict_inverse"`, or {@link SimOrder}).
+ * @returns A {@link Trigger} specification for keyboard keys.
  *
  * @example
  * ```ts
- * triggerKeys("space", ["cmd", "shift"])
+ * // 1. Single key with modifiers:
+ * triggerKeys("spacebar", ["cmd", "shift"])
+ *
+ * // 2. Simultaneous key chord:
+ * triggerKeys(["j", "k"], undefined, "strict")
  * ```
  */
 export function triggerKeys(
@@ -104,15 +135,18 @@ export function triggerKeys(
 }
 
 /**
- * Construct a pointer button-based trigger object.
+ * Constructs a mouse pointer button-based {@link Trigger} object.
  *
- * @param pointer - Pointer button alias (e.g. `"button1"`, `"left"`, `"right"`).
- * @param modifiers - Optional trigger modifiers.
- * @returns A `Trigger` specification for pointer buttons.
+ * Use when building a trigger specification for mouse button events (e.g. `"button4"`, `"button5"`, `"right"`, `"left"`).
+ *
+ * @param pointer - Pointer button alias (e.g. `"button1"`, `"button4"`, `"left"`, `"right"`).
+ * @param modifiers - Optional trigger modifier requirements (e.g. `["cmd"]`, `VM.COCS`).
+ * @returns A {@link Trigger} specification for pointer buttons.
  *
  * @example
  * ```ts
  * triggerPointer("button4", ["cmd"])
+ * triggerPointer("right")
  * ```
  */
 export function triggerPointer(
@@ -126,7 +160,8 @@ export function triggerPointer(
 }
 
 /**
- * Options object for defining a simultaneous key chord trigger.
+ * Configuration options object for defining a simultaneous multi-key chord trigger.
+ * Accepted by {@link simultaneous}, {@link chord}, and {@link from}.
  */
 export type SimultaneousTriggerOptions = {
   /**
@@ -207,24 +242,32 @@ function isOrderArg(val: unknown): val is SimOrder | "insensitive" | "strict" | 
 }
 
 /**
- * Construct a simultaneous key chord trigger.
+ * Constructs a simultaneous multi-key chord {@link Trigger}.
  *
- * Supports:
- * - Variadic keys: `simultaneous("left_option", "right_option")`
+ * Use when defining key chords where two or more keys must be pressed at the same time (within the simultaneous threshold window)
+ * to trigger actions.
+ *
+ * Supports multiple call styles:
+ * - Variadic key strings: `simultaneous("left_option", "right_option")`
  * - Array of keys: `simultaneous(["j", "k"])`
  * - Array of keys + modifiers: `simultaneous(["j", "k"], ["shift"])`
- * - Array of keys + modifiers + order: `simultaneous(["j", "k"], ["shift"], { down: "strict" })`
- * - Configuration object: `simultaneous({ keys: ["j", "k"], modifiers: { optional: ["any"] } })`
+ * - Array of keys + modifiers + order: `simultaneous(["j", "k"], ["shift"], "strict")`
+ * - Configuration object: `simultaneous({ keys: ["j", "k"], modifiers: ["cmd"], order: "strict" })`
  *
  * @param first - First key code, array of key codes, or a {@link SimultaneousTriggerOptions} configuration object.
  * @param rest - Remaining key codes, modifier array/object, or order constraint.
- * @returns A normalized `Trigger` specification representing the simultaneous chord.
+ * @returns A normalized {@link Trigger} specification representing the simultaneous chord.
  *
  * @example
  * ```ts
+ * // 1. Dual-modifier simultaneous chord:
  * simultaneous("left_option", "right_option")
+ *
+ * // 2. Letter key chord with order:
  * simultaneous(["j", "k"], ["shift"], "strict")
- * simultaneous({ simultaneous: ["j", "k"], simultaneous_options: { key_down_order: "strict" } })
+ *
+ * // 3. Configuration object:
+ * simultaneous({ keys: ["d", "f"], modifiers: { optional: ["any"] } })
  * ```
  */
 export function simultaneous(
@@ -305,23 +348,25 @@ export function simultaneous(
 }
 
 /**
- * Alias for {@link simultaneous}.
+ * Alias for {@link simultaneous}. Constructs a simultaneous multi-key chord {@link Trigger}.
  */
 export const chord = simultaneous;
 
 /**
- * Matches any input event of a given kind — maps to Karabiner's `from.any`.
+ * Matches any input event of a given kind (maps to Karabiner's `from.any` wildcard).
  *
- * Claims the event before any later rule sees it, so pair it with a condition
- * and let {@link compareTriggerSortKeys} put it last in its rule.
+ * Use when intercepting all events of a specific type (e.g. catching all key presses or pointer button clicks in a modal sublayer).
  *
- * @param kind - Input kind ("key_code", "consumer_key_code", or "pointing_button"). Defaults to "key_code".
+ * @param kind - Input kind (`"key_code"`, `"consumer_key_code"`, or `"pointing_button"`). Defaults to `"key_code"`.
  * @param modifiers - Optional modifier requirements. Defaults to `{ optional: ["any"] }`.
- * @returns A wild-card `Trigger` specification matching any event of the specified kind.
+ * @returns A wildcard {@link Trigger} specification matching any event of the specified kind.
  *
  * @example
  * ```ts
+ * // 1. Match any key press:
  * anyInput("key_code")
+ *
+ * // 2. Match any mouse button with Fn held:
  * anyInput("pointing_button", { mandatory: ["fn"] })
  * ```
  */
@@ -333,7 +378,7 @@ export function anyInput(
 }
 
 /**
- * Flexible input type accepted by {@link from} to create trigger specifications.
+ * Flexible input types accepted by {@link from} to construct {@link Trigger} specifications.
  *
  * Accepts:
  * - A pre-built {@link Trigger} object
@@ -358,12 +403,15 @@ export type FromInput =
   | { pointer: PointerButtonAlias; modifiers?: TriggerModifiers };
 
 /**
- * Coerces a flexible {@link FromInput} into a standardized `Trigger` object.
+ * Coerces a flexible {@link FromInput} specification into a standardized {@link Trigger} object for {@link bind}.
  *
- * @param input - Key code, pointer button, trigger object, input array, or configuration object.
+ * Use as the primary trigger builder when constructing bindings with {@link bind}, supporting single keys,
+ * pointer buttons, simultaneous chords, and detailed configuration objects.
+ *
+ * @param input - Key code, pointer button, trigger object, input array, or configuration object matching {@link FromInput}.
  * @param modifiers - Optional trigger modifiers (e.g. `["cmd", "opt"]`, `VM.COCS`, `{ mandatory: ["cmd"], optional: ["any"] }`).
- * @param order - Optional simultaneous key press order constraint ("insensitive", "strict", "strict_inverse", or {@link SimOrder}).
- * @returns A resolved `Trigger` object.
+ * @param order - Optional simultaneous key press order constraint (`"insensitive"`, `"strict"`, `"strict_inverse"`, or {@link SimOrder}).
+ * @returns A standardized {@link Trigger} object.
  *
  * @example
  * ```ts

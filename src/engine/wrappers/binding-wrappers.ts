@@ -19,26 +19,95 @@ import { when, type StateItem, type WhenWrapper } from "./condition-wrappers";
 import { conditionKind } from "../resolve-conditions";
 import { isPointerButton } from "../utils";
 import { from, type FromInput, triggerKeys, triggerPointer } from "./from-action-wrappers";
-import {
-  button,
-  CaseBuilder,
-  hold,
-  key,
-  release,
-  to,
-  type ActionInput,
-  type ToWrapper,
+import { button, CaseBuilder, hold, key, release, to, type ActionInput, type ToWrapper } from "./to-action-wrappers";
+
+// Type-only imports to enable IDE IntelliSense {@link ...} symbol resolution in JSDoc comments.
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import type {
+  Action,
+  BindingEventOptions,
+  BindingMultiTap,
+  BindingOtherKeyPressedEntry,
+  BindingRuleGroup,
+  BindingTiming,
+} from "../../data";
+import type {
+  condApp,
+  condDevice,
+  condDeviceExists,
+  condEventChanged,
+  condInputSource,
+  condKeyboardType,
+  condNotApp,
+  condNotVar,
+  condState,
+  condUnless,
+  ifApp,
+  ifDevice,
+  ifDeviceExists,
+  ifEventChanged,
+  ifInputSource,
+  ifKeyboardType,
+  ifKeVar,
+  ifState,
+  ifUserVar,
+  ifVar,
+  state,
+  unless,
+  unlessApp,
+  unlessKeVar,
+  unlessUserVar,
+} from "./condition-wrappers";
+import type {
+  anyInput,
+  chord,
+  simultaneous,
+  trigger,
+} from "./from-action-wrappers";
+import type {
+  actHere,
+  app,
+  appHistory,
+  cmd,
+  consumerKey,
+  copy,
+  cursorTo,
+  cut,
+  delayedSingleTap,
+  doubleClick,
+  doubleTap,
+  doubleTapHold,
+  folder,
+  guard,
+  map,
+  mouseMove,
+  mouseScroll,
+  noop,
+  osascript,
+  paste,
+  press,
+  python,
+  sequence,
+  setVar,
+  shell,
+  sleepSystem,
+  sticky,
+  tap,
+  tapAndHold,
+  url,
 } from "./to-action-wrappers";
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
 /**
  * Configuration options for a Karabiner `Binding` (excluding trigger and cases).
  *
- * All properties are optional and can be passed to `bind()`, `options()`, or via `BindingOptions`.
+ * Use when specifying rule descriptions, timing thresholds, condition gates, processing flags, or event hooks for a binding.
+ * All properties are optional and can be passed to {@link bind}, {@link options}, or via {@link BindingOptions}.
  *
  * ### Available Options:
  * - `description` (`string`): Human-readable rule label in Karabiner Settings GUI and output JSON.
- * - `timing` ({@link BindingTiming}): Millisecond thresholds (`aloneMs`, `holdMs`, `heldThresholdMs`, `delayedMs`, `simultaneousMs`).
- * - `conditions` ({@link Condition}[]): Hoisted conditions applied across all manipulators in this binding.
+ * - `timing` ({@link BindingTiming}): Millisecond thresholds (`aloneMs`, `holdMs`, `heldThresholdMs`, `delayedMs`, `simultaneousMs`). Configured via {@link timing}.
+ * - `conditions` ({@link Condition}[]): Hoisted conditions applied across all manipulators in this binding (from {@link when}, {@link condApp}, {@link ifApp}, {@link ifDevice}, etc.).
  * - `eventOptions` ({@link BindingEventOptions}): Processing flags (`halt: true`, `repeat: true`).
  * - `multiTap` ({@link BindingMultiTap}): Multi-tap configuration (`allowPassThrough`, `mods`, `firstTapPendingVar`).
  * - `afterKeyUp` ({@link Action}[]): Actions executed after key release (`to_after_key_up`).
@@ -66,6 +135,7 @@ export type BindingOptionsSpec = Partial<Omit<Binding, "trigger" | "cases">>;
 
 /**
  * Container wrapping binding options to be merged into a `Binding`.
+ * Created via {@link options} or {@link timing}.
  */
 export type OptionsWrapper = {
   kind: "options";
@@ -73,23 +143,13 @@ export type OptionsWrapper = {
 };
 
 /**
- * Wraps binding options into an `OptionsWrapper` for consumption by `bind()`.
+ * Wraps binding options into an {@link OptionsWrapper} container for consumption by {@link bind}.
  *
- * @param opts - Partial binding options object. Supports:
- * - `description`: Rule label in Karabiner Settings GUI.
- * - `timing`: Timing parameters (`aloneMs`, `holdMs`, `heldThresholdMs`, `delayedMs`, `simultaneousMs`).
- * - `conditions`: Hoisted conditions applied across all manipulators in this binding.
- * - `eventOptions`: Processing flags (`halt`, `repeat`).
- * - `multiTap`: Multi-tap configuration (`allowPassThrough`, `mods`, `firstTapPendingVar`).
- * - `afterKeyUp`: Actions executed on key release (`to_after_key_up`).
- * - `otherKeyPressed`: Key rewrites while held (`to_if_other_key_pressed`).
- * - `whileHoldVar`: Variable set to 1 while held and 0 on release.
- * - `suppress`: Suppress trigger fallback across binding.
- * - `suppressCancelFallback`: Clear `to_if_canceled` fallback channel.
- * - `modWhileDown`: Assert modifier while key is held down without hold threshold delay.
- * - `guardVar` / `guardMs`: Double-tap guard variable and timeout (ms).
- * - `ruleGroup`: Group ID and description to merge distinct triggers into one rule.
- * @returns An `OptionsWrapper` object.
+ * Use when passing metadata (`description`), timing thresholds, processing flags (`halt`, `repeat`),
+ * multi-tap configurations, or lifecycle hooks to a {@link bind} call.
+ *
+ * @param opts - Partial binding options object matching {@link BindingOptionsSpec}.
+ * @returns An {@link OptionsWrapper} object.
  *
  * @example
  * ```ts
@@ -104,35 +164,27 @@ export function options(opts: BindingOptionsSpec): OptionsWrapper {
 }
 
 /**
- * Creates an `OptionsWrapper` specifying timing parameters for a binding.
+ * Creates an {@link OptionsWrapper} specifying timing parameters for a binding.
  *
- * Two ways to call it, and the first is the one to reach for:
+ * Use when customizing tap/hold thresholds, multi-tap delays, or chord detection windows using a named
+ * {@link TimingProfileName} (`"instant"`, `"snappy"`, `"balanced"`, `"relaxed"`, `"deliberate"`) or explicit millisecond thresholds.
  *
- * **By profile** — `timing("snappy")` names a *feel* and expands to a
- * complete, internally coherent {@link TIMING_PROFILES} entry. Every profile
- * sets `aloneMs === holdMs`, which is the only relation with neither of the two
- * silent failure modes: a **dead zone** (`holdMs > aloneMs` — a release between
- * the thresholds emits nothing, because `to_if_alone` has already timed out and
- * `to_if_held_down` has not fired yet) or a **double-fire zone**
- * (`holdMs < aloneMs` — a release between them can run both). Picking a profile
- * makes both unrepresentable.
+ * Two ways to call it:
  *
- * A second argument overrides individual fields on top of the profile, for the
- * case where one threshold genuinely differs — `timing("snappy", { delayedMs: 400 })`.
- * Overrides are *not* re-balanced, so overriding `holdMs` or `aloneMs` alone
- * can reintroduce a gap; `lintBindings()` reports it if it does.
+ * **1. By profile** — `timing("snappy")` names a *feel* and expands to a complete, internally coherent {@link TIMING_PROFILES} entry.
+ * Every profile sets `aloneMs === holdMs`, which eliminates dead zones and double-fire zones.
+ * Overrides can be passed as a 2nd argument — `timing("snappy", { delayedMs: 400 })`.
  *
- * **By explicit thresholds** — the original form, still available for the cases
- * no profile fits:
- * - `aloneMs`: `basic.to_if_alone_timeout_milliseconds` (default 1000ms). Max duration key can be held and still trigger `to_if_alone` upon release.
+ * **2. By explicit thresholds** — for custom cases where no profile fits:
+ * - `aloneMs`: Max duration key can be held and still trigger `to_if_alone` upon release (`basic.to_if_alone_timeout_milliseconds`, default 1000ms).
  * - `holdMs`: Hold duration threshold in milliseconds.
- * - `heldThresholdMs`: `basic.to_if_held_down_threshold_milliseconds` (default 500ms). Duration key must remain pressed before `to_if_held_down` fires.
- * - `delayedMs`: `basic.to_delayed_action_delay_milliseconds` (default 500ms). Delay before `to_delayed_action` triggers (for double-tap / multi-tap).
- * - `simultaneousMs`: `basic.simultaneous_threshold_milliseconds` (default 50ms). Time window for simultaneous chords.
+ * - `heldThresholdMs`: Duration key must remain pressed before `to_if_held_down` fires (`basic.to_if_held_down_threshold_milliseconds`, default 500ms).
+ * - `delayedMs`: Delay before `to_delayed_action` triggers (`basic.to_delayed_action_delay_milliseconds`, default 500ms).
+ * - `simultaneousMs`: Time window for simultaneous chords (`basic.simultaneous_threshold_milliseconds`, default 50ms).
  *
  * @param optsOrProfile - A {@link TimingProfileName} (`"instant"`, `"snappy"`, `"balanced"`, `"relaxed"`, `"deliberate"`) or an explicit timing object.
  * @param overrides - Field overrides applied on top of a named profile. Ignored when the first argument is already an object.
- * @returns An `OptionsWrapper` containing the timing configuration.
+ * @returns An {@link OptionsWrapper} containing the timing configuration.
  *
  * @example
  * ```ts
@@ -154,17 +206,17 @@ export function timing(
 /**
  * Complete binding options specification, combining {@link BindingOptionsSpec} with optional trigger modifiers.
  *
- * Can be passed as the 3rd argument (`modifiersOrOptions`) or 4th argument (`options`) to:
- * - `bindKeys(keys, cases, modifiersOrOptions?, options?)`
- * - `bindPointer(pointer, cases, modifiersOrOptions?, options?)`
- * - `bindSimultaneous(keys, cases, modifiersOrOptions?, options?)` / `bindChord(...)`
- * - `bindTable(phase, table, modifiersOrOptions?, options?)`
+ * Use when passing options and/or modifiers as the trailing argument to helper functions:
+ * - {@link bindKeys}(keys, cases, modifiersOrOptions?, options?)
+ * - {@link bindPointer}(pointer, cases, modifiersOrOptions?, options?)
+ * - {@link bindSimultaneous}(keys, cases, modifiersOrOptions?, options?) / {@link bindChord}(...)
+ * - {@link bindTable}(phase, table, modifiersOrOptions?, options?)
  *
  * ### Accepted Properties:
  * - `modifiers` ({@link TriggerModifiers}): Trigger modifier keys (`["cmd", "opt"]`, `VM.COCS`, `{ mandatory: ["cmd"], optional: ["any"] }`).
  * - `description` (`string`): Rule label in Karabiner Settings GUI and output JSON.
- * - `timing` ({@link BindingTiming}): Millisecond thresholds (`aloneMs`, `holdMs`, `heldThresholdMs`, `delayedMs`, `simultaneousMs`).
- * - `conditions` ({@link Condition}[]): Hoisted conditions applied across all manipulators in this binding.
+ * - `timing` ({@link BindingTiming}): Millisecond thresholds (`aloneMs`, `holdMs`, `heldThresholdMs`, `delayedMs`, `simultaneousMs`). Configured via {@link timing}.
+ * - `conditions` ({@link Condition}[]): Hoisted conditions applied across all manipulators in this binding (from {@link when}, {@link condApp}, {@link ifApp}, etc.).
  * - `eventOptions` ({@link BindingEventOptions}): Processing flags (`halt: true`, `repeat: true`).
  * - `multiTap` ({@link BindingMultiTap}): Multi-tap options (`allowPassThrough`, `mods`, `firstTapPendingVar`).
  * - `afterKeyUp` ({@link Action}[]): Actions executed on key release (`to_after_key_up`).
@@ -240,11 +292,7 @@ const BINDING_OPTION_KEYS = {
 } satisfies Record<keyof BindingOptionsSpec, true>;
 
 function isCase(val: unknown): val is Case {
-  return (
-    typeof val === "object" &&
-    val !== null &&
-    ("do" in val || "phase" in val || val instanceof CaseBuilder)
-  );
+  return typeof val === "object" && val !== null && ("do" in val || "phase" in val || val instanceof CaseBuilder);
 }
 
 /** `true` for a single `Case`/`CaseBuilder`, or a non-empty array of them. */
@@ -258,9 +306,7 @@ function isCaseOrCaseArray(val: unknown): val is Case | Case[] {
  * system cannot check. Throws naming the offending key.
  */
 function assertKnownOptions(value: object): BindingOptionsSpec {
-  const unknown = Object.keys(value).filter(
-    (k) => !(k in BINDING_OPTION_KEYS),
-  );
+  const unknown = Object.keys(value).filter((k) => !(k in BINDING_OPTION_KEYS));
   if (unknown.length) {
     throw new Error(
       `bind(): unknown option${unknown.length > 1 ? "s" : ""} ${unknown
@@ -282,24 +328,19 @@ function isCondition(val: unknown): val is Condition {
 }
 
 function isTriggerModifiers(val: unknown): val is TriggerModifiers {
-  return (
-    Array.isArray(val) ||
-    (typeof val === "object" &&
-      val !== null &&
-      ("mandatory" in val || "optional" in val))
-  );
+  return Array.isArray(val) || (typeof val === "object" && val !== null && ("mandatory" in val || "optional" in val));
 }
 
 /**
  * Flexible argument types accepted by {@link bind}.
  *
  * Supports:
- * - Action wrappers: `to(...)` containing cases
- * - Condition wrappers: `when(...)` containing conditions / state items
- * - Option wrappers: `options(...)` and `timing(...)`
- * - Individual `Case` or `Case[]` items (from `press()`, `release()`, `hold()`, `tapAndHold()`, etc.)
- * - Individual `Condition` or `Condition[]` items (from `ifApp()`, `ifDevice()`, `ifVar()`, etc.)
- * - Inline `BindingOptionsSpec` configuration objects
+ * - Action wrappers: {@link to}(...) containing action cases
+ * - Condition wrappers: {@link when}(...) containing conditions or state items
+ * - Option wrappers: {@link options}(...) and {@link timing}(...)
+ * - Individual {@link Case} or `Case[]` items (from {@link press}, {@link release}, {@link tap}, {@link hold}, {@link tapAndHold}, {@link doubleTap}, etc.)
+ * - Individual {@link Condition} or `Condition[]` items (from {@link ifApp}, {@link ifDevice}, {@link ifUserVar}, {@link state}, {@link unless}, etc.)
+ * - Inline {@link BindingOptionsSpec} configuration objects
  */
 export type BindArg =
   | ToWrapper
@@ -315,10 +356,72 @@ export type BindArg =
  * Constructs a Karabiner `Binding` from a trigger and a flexible list of cases, conditions, and options.
  *
  * Recognized wrappers & primitives accepted by `bind()`:
- * - Trigger builders: `from("a")`, `from("a", ["cmd"])`, `from({ keys: ["j", "k"], order: "strict" })`
- * - Action wrappers: `to(...)` containing case wrappers (`press()`, `release()`, `tap()`, `hold()`, `doubleTap()`, `doubleTapHold()`, `delayedSingleTap()`, `guard()`) and action builders (`key()`, `button()`, `app()`, `url()`, `folder()`, `cmd()`, `shell()`, `python()`, `osascript()`, `setVar()`, `cut()`, `copy()`, `paste()`, `sequence()`, `map()`, `noop()`, `actHere()`, `appHistory()`)
- * - Condition wrappers: `when(...)` containing condition builders (`state()`, `unless()`, `ifApp()`, `condApp()`, `unlessApp()`, `ifDevice()`, `ifUserVar()`, `unlessUserVar()`, etc.)
- * - Option wrappers: `options(...)` and `timing(...)` (or inline object literal options matching {@link BindingOptionsSpec})
+ * - Trigger builders - {@link from}(...), taking the following shapes:
+ *    - Single key trigger: {@link from}(key, modifiers?) — Use when triggering on a single physical key press with optional modifier requirements.
+ *    - Pointer button trigger: {@link from}(pointer, modifiers?) — Use when triggering on a mouse button press with optional modifiers.
+ *    - Simultaneous key trigger: {@link from}(keys, modifiers?, order?) or {@link from}({ keys, order, modifiers }) — Use when triggering on simultaneous multi-key chords.
+ *    - Chords & wildcards: {@link simultaneous}(first, ...rest) / {@link chord}(...) / {@link anyInput}(kind?, modifiers?) — Use when defining explicit key chords or intercepting wildcard input events.
+ * - Action wrappers - 1+ case wrapper ({@link to}(...) or direct case builders), containing a combination of:
+ *    (1) Phase
+ *      - {@link press}(actions, conditions?) — Use when you want actions to execute immediately upon pressing the key down.
+ *      - {@link release}(actions, conditions?) — Use when you want actions to execute upon key release.
+ *      - {@link tap}(actions, conditions?) — Use as an alias for {@link release} when defining tap-triggered actions.
+ *      - {@link hold}(actions, conditions?) — Use when you want actions to execute when the key is held down past the hold threshold.
+ *      - {@link tapAndHold}(tapAction, holdAction, conditions?) — Use when defining both tap (on release) and hold behaviors sharing identical conditions in a single concise call.
+ *      - {@link doubleTap}(actions, conditions?) — Use when mapping secondary actions to rapid double taps on the same key.
+ *      - {@link doubleTapHold}(actions, conditions?) — Use when defining actions that trigger when a key is tapped once and then held down on the second press.
+ *      - {@link delayedSingleTap}(actions, conditions?) — Use when defining single-tap actions that must wait for the multi-tap detection window to expire to prevent conflicts with double taps.
+ *      - {@link guard}(actions?, conditions?) — Use when protecting destructive or critical actions with a double-tap confirmation requirement.
+ *    (2) Actions
+ *      - Remaps:
+ *          - {@link key}(keyName, modifiersOrOptions?, options?, actionDesc?) — Use when remapping the trigger to emit a keyboard key event with optional modifiers and flags.
+ *          - {@link consumerKey}(keyName, modifiersOrOptions?, options?, actionDesc?) — Use when emitting consumer-control key events like media playback, volume, or display brightness.
+ *          - {@link map}(ref, options?, actionDesc?) — Use when triggering a pre-registered combo/mapping reference from the combos registry (`COMBOS.*`).
+ *          - {@link button}(buttonName, modifiersOrOptions?, options?, actionDesc?) — Use when remapping the trigger to emit a mouse button click with optional modifiers.
+ *          - {@link noop}() — Use when you want to silence or swallow a key event without emitting any output action.
+ *      - Open:
+ *          - {@link app}(ref, mode?, actionDesc?) — Use when mapping a hotkey to launch, switch to, or focus a specific application (`APPS.*`, bundle ID, or name).
+ *          - {@link url}(ref, background?, actionDesc?) — Use when opening a URL in the browser either in the foreground or silently in the background (`URLS.*` or URL string).
+ *          - {@link folder}(ref, actionDesc?) — Use when opening a directory path in Finder or the default file manager (`PATHS.*` or directory path string).
+ *      - Call scripts:
+ *          - {@link shell}(command, actionDesc?) — Use when executing a shell command string or registered command spec (`CMDS.*`).
+ *          - {@link python}(scriptPath, options?, actionDesc?) — Use when executing a Python script with optional arguments and virtual environment settings.
+ *          - {@link osascript}(scriptPath, args?, actionDesc?) — Use when executing an AppleScript or JOSA script file with optional arguments.
+ *      - Clipboard:
+ *          - {@link cut}() — Use when creating a dedicated shortcut that emits a clipboard cut event (⌘+X).
+ *          - {@link copy}() — Use when creating a dedicated shortcut that emits a clipboard copy event (⌘+C).
+ *          - {@link paste}() — Use when creating a dedicated shortcut that emits a clipboard paste event (⌘+V).
+ *      - Internal / System:
+ *          - {@link setVar}(varSpec, value?, toggle?) — Use when setting, clearing, or toggling a Karabiner state variable (`VARS.*`) during key events.
+ *          - {@link cmd}(ref, actionDesc?) — Use when executing a pre-registered command spec from the commands registry (`CMDS.*`).
+ *          - {@link appHistory}(index, exclude?, actionDesc?) — Use when navigating through recent application history (e.g., switching to the previous app).
+ *          - {@link actHere}(action) — Use when triggering context-sensitive actions bound to the current window or cursor context.
+ *          - {@link sticky}(flag, toggle?, actionDesc?) — Use when making a modifier key sticky ("on", "off", or "toggle") so it remains held after release.
+ *          - {@link mouseMove}(opts, actionDesc?) — Use when building keyboard-driven mouse cursor navigation (mouse keys) in cardinal directions.
+ *          - {@link mouseScroll}(opts, actionDesc?) — Use when building keyboard-driven mouse wheel scrolling in cardinal directions.
+ *          - {@link cursorTo}(x, y, opts?, actionDesc?) — Use when warping the mouse cursor to absolute screen positions or focused window coordinates.
+ *          - {@link doubleClick}(button?, actionDesc?) — Use when simulating an OS-level mouse double-click at the current pointer position.
+ *          - {@link sleepSystem}(delayMilliseconds?, actionDesc?) — Use when binding a shortcut to put the macOS system to sleep with an optional delay.
+ *      - Meta-actions:
+ *          - {@link sequence}(...actions) — Use when executing multiple action specs in sequential order on a single trigger event.
+ * - Condition wrappers (optional) - `when(...)` containing 1+ conditions:
+ *      - {@link when}(...items) — Use when grouping multiple conditions or state items into a hoisted condition wrapper for `bind()`.
+ *      - {@link state}(item, value?) / {@link state}(tuple) / {@link state}(...items) — Use when gating bindings to activate only when specified variables, apps, devices, or state tuples are active.
+ *      - {@link unless}(item) / {@link unless}(...items) — Use when gating bindings to activate only when specified variables, apps, or states are inactive/false.
+ *      - {@link condApp}(app, isForemost?) / {@link ifApp}(app) — Use when restricting a binding to activate only when specified applications (`APPS.*`, bundle ID, or path) are frontmost.
+ *      - {@link unlessApp}(app) / {@link condNotApp}(app) — Use when excluding a binding from activating when specified applications are frontmost.
+ *      - {@link ifDevice}(device, unlessOrOpts?) / {@link condDevice}(device) — Use when restricting a binding to events originating from a specific hardware device (`DEVICES.*`).
+ *      - {@link ifDeviceExists}(deviceExists, unlessOrOpts?) / {@link condDeviceExists}(...) — Use when activating a binding only while a specific hardware device is currently connected to the system.
+ *      - {@link ifUserVar}(varOrValueSpec, equalsOrUnless?, unlessOrOpts?) / {@link ifVar}(...) — Use when gating a binding on a specific Karabiner variable value (`VARS.*`, `STATES.*`).
+ *      - {@link unlessUserVar}(varOrValueSpec, equals?) / {@link condNotVar}(...) — Use when gating a binding to activate only when a Karabiner variable does NOT equal a specific value.
+ *      - {@link ifKeyboardType}(keyboardType, unlessOrOpts?) / {@link condKeyboardType}(...) — Use when restricting a binding to a specific virtual keyboard layout type (`"ansi"`, `"iso"`, `"jis"`).
+ *      - {@link ifInputSource}(inputSource, unlessOrOpts?) / {@link condInputSource}(...) — Use when restricting a binding to specific active keyboard input source languages or layout IDs.
+ *      - {@link ifEventChanged}(eventChanged, unlessOrOpts?) / {@link condEventChanged}(...) — Use when filtering bindings based on whether the event was already rewritten by Simple Modifications.
+ * - Option wrappers (optional):
+ *      - {@link to}(...cases) — Use when explicitly wrapping multiple action cases into a case container.
+ *      - {@link options}(opts) — Use when configuring binding metadata (`description`), rule grouping (`ruleGroup`), processing flags (`halt`, `repeat`), and lifecycle hooks (`afterKeyUp`).
+ *      - {@link timing}(profileOrOpts, overrides?) — Use when setting timing thresholds via preset profile (`"snappy"`, `"instant"`, `"balanced"`, `"relaxed"`, `"deliberate"`) or explicit millisecond thresholds.
+ *      - or inline object literal options matching {@link BindingOptionsSpec} — Use when passing configuration options directly as an inline object without a wrapper function.
  *
  * @param trigger - The input trigger specification (key code, pointer button, trigger object, or array of inputs).
  * @param args - Combination of action cases (`to()`, `press()`), conditions (`when()`, `ifApp()`), and options (`options()`, `timing()`, or object literal options).
@@ -347,10 +450,7 @@ export type BindArg =
  * )
  * ```
  */
-export function bind(
-  trigger: FromInput,
-  ...args: BindArg[]
-): Binding {
+export function bind(trigger: FromInput, ...args: BindArg[]): Binding {
   const trg = from(trigger);
   const cases: Case[] = [];
   const hoistedConditions: Condition[] = [];
@@ -383,7 +483,7 @@ export function bind(
       if (conditions.length + caseItems.length !== arg.length) {
         throw new Error(
           `bind(): array argument contains ${arg.length - conditions.length - caseItems.length} ` +
-          "entr(y|ies) that are neither a case nor a condition.",
+            "entr(y|ies) that are neither a case nor a condition.",
         );
       }
       hoistedConditions.push(...conditions);
@@ -404,10 +504,7 @@ export function bind(
     mergedOptions = { ...mergedOptions, ...assertKnownOptions(arg) };
   }
 
-  const finalConditions = [
-    ...(hoistedConditions.length ? hoistedConditions : []),
-    ...(mergedOptions.conditions ?? []),
-  ];
+  const finalConditions = [...(hoistedConditions.length ? hoistedConditions : []), ...(mergedOptions.conditions ?? [])];
 
   return {
     trigger: trg,
@@ -420,11 +517,14 @@ export function bind(
 /**
  * Creates a key-triggered Karabiner `Binding`.
  *
+ * Use when creating a binding triggered by a physical keyboard key or key array (with optional modifiers)
+ * and dispatching to one or more action phases (tap, hold, press, etc.).
+ *
  * @param keys - Key code or array of key codes acting as the trigger (e.g. `"j"`, `["j", "k"]`).
- * @param cases - Action case or array of cases to execute when triggered (e.g. `press(...)`, `hold(...)`, `tapAndHold(...)`).
- * @param modifiersOrOptions - Optional trigger modifiers (e.g. `["cmd", "opt"]`, `VM.COCS`, `{ mandatory: ["cmd"], optional: ["any"] }`) OR a full `BindingOptions` configuration object (with `description`, `timing`, `conditions`, `eventOptions`, `multiTap`, `suppress`, `ruleGroup`, etc.).
- * @param options - Additional `BindingOptions` if a modifier array/object was passed as the 3rd argument (`modifiersOrOptions`).
- * @returns A fully constructed `Binding` object for key triggers.
+ * @param cases - Action case or array of cases to execute when triggered (from {@link press}, {@link release}, {@link tap}, {@link hold}, {@link tapAndHold}, {@link doubleTap}, etc.).
+ * @param modifiersOrOptions - Optional trigger modifiers (e.g. `["cmd", "opt"]`, `VM.COCS`) OR a full {@link BindingOptions} configuration object.
+ * @param options - Additional {@link BindingOptions} or {@link OptionsWrapper} if a modifier array/object was passed as the 3rd argument (`modifiersOrOptions`).
+ * @returns A fully constructed {@link Binding} object for key triggers.
  *
  * @example
  * ```ts
@@ -456,9 +556,7 @@ export function bindKeys(
   let modifiers: TriggerModifiers | undefined;
   let opts: BindingOptions | undefined;
 
-  const normalizeOpts = (
-    o: BindingOptions | OptionsWrapper | undefined,
-  ): BindingOptions | undefined => {
+  const normalizeOpts = (o: BindingOptions | OptionsWrapper | undefined): BindingOptions | undefined => {
     if (!o) return undefined;
     if (typeof o === "object" && "kind" in o && (o as OptionsWrapper).kind === "options") {
       return (o as OptionsWrapper).opts as BindingOptions;
@@ -481,11 +579,14 @@ export function bindKeys(
 /**
  * Creates a pointer button-triggered Karabiner `Binding`.
  *
+ * Use when creating a binding triggered by a mouse button click or hold (e.g. `"button4"`, `"button5"`, `"right"`)
+ * and mapping to keystrokes, shortcuts, apps, or scripts.
+ *
  * @param pointer - Pointer button alias (e.g. `"button1"`, `"button4"`, `"right"`, `"left"`).
- * @param cases - Action case or array of cases to execute when triggered (e.g. `press(...)`, `hold(...)`, `tapAndHold(...)`).
- * @param modifiersOrOptions - Optional trigger modifiers (e.g. `["cmd", "opt"]`, `VM.COCS`, `{ mandatory: ["cmd"], optional: ["any"] }`) OR a full `BindingOptions` configuration object (with `description`, `timing`, `conditions`, `eventOptions`, `multiTap`, `suppress`, `ruleGroup`, etc.).
- * @param options - Additional `BindingOptions` if a modifier array/object was passed as the 3rd argument (`modifiersOrOptions`).
- * @returns A fully constructed `Binding` object for pointer button triggers.
+ * @param cases - Action case or array of cases to execute when triggered (from {@link press}, {@link release}, {@link tap}, {@link hold}, {@link tapAndHold}, etc.).
+ * @param modifiersOrOptions - Optional trigger modifiers (e.g. `["cmd", "opt"]`, `VM.COCS`) OR a full {@link BindingOptions} configuration object.
+ * @param options - Additional {@link BindingOptions} or {@link OptionsWrapper} if a modifier array/object was passed as the 3rd argument (`modifiersOrOptions`).
+ * @returns A fully constructed {@link Binding} object for pointer button triggers.
  *
  * @example
  * ```ts
@@ -510,9 +611,7 @@ export function bindPointer(
   let modifiers: TriggerModifiers | undefined;
   let opts: BindingOptions | undefined;
 
-  const normalizeOpts = (
-    o: BindingOptions | OptionsWrapper | undefined,
-  ): BindingOptions | undefined => {
+  const normalizeOpts = (o: BindingOptions | OptionsWrapper | undefined): BindingOptions | undefined => {
     if (!o) return undefined;
     if (typeof o === "object" && "kind" in o && (o as OptionsWrapper).kind === "options") {
       return (o as OptionsWrapper).opts as BindingOptions;
@@ -535,11 +634,14 @@ export function bindPointer(
 /**
  * Creates a simultaneous key chord-triggered Karabiner `Binding`.
  *
+ * Use when defining a binding that triggers when two or more keys are pressed at the same time
+ * within the simultaneous threshold window.
+ *
  * @param keys - Key code, pointer button, or array of keys acting as the simultaneous chord (e.g. `["j", "k"]`, `["left_option", "right_option"]`).
- * @param cases - Action case or array of cases to execute when chord is pressed (e.g. `press(...)`, `hold(...)`, `tapAndHold(...)`).
- * @param modifiersOrOptions - Optional trigger modifiers (e.g. `["shift"]`, `VM.COCS`, `{ mandatory: ["cmd"], optional: ["any"] }`) OR a full `BindingOptions` configuration object (with `description`, `timing`, `conditions`, `eventOptions`, `multiTap`, `suppress`, `ruleGroup`, etc.).
- * @param options - Additional `BindingOptions` if modifiers were supplied as the 3rd argument.
- * @returns A fully constructed `Binding` object for simultaneous triggers.
+ * @param cases - Action case or array of cases to execute when chord is pressed (from {@link press}, {@link hold}, {@link tapAndHold}, etc.).
+ * @param modifiersOrOptions - Optional trigger modifiers (e.g. `["shift"]`, `VM.COCS`) OR a full {@link BindingOptions} configuration object.
+ * @param options - Additional {@link BindingOptions} if modifiers were supplied as the 3rd argument.
+ * @returns A fully constructed {@link Binding} object for simultaneous triggers.
  *
  * @example
  * ```ts
@@ -576,26 +678,26 @@ export function bindSimultaneous(
 }
 
 /**
- * Alias for {@link bindSimultaneous}.
+ * Alias for {@link bindSimultaneous}. Creates a simultaneous key chord-triggered Karabiner `Binding`.
  */
 export const bindChord = bindSimultaneous;
 
 /**
- * Creates one `Binding` per table entry, all sharing the same trigger phase,
- * modifiers, and options — the case where a whole family of keys wraps one
- * action the same way (`focusWinRight`/`focusWinLeft`/`focusWinTop`/...).
+ * Creates an array of Karabiner `Binding`s from a key-value mapping table sharing a common phase, modifiers, and options.
+ *
+ * Use when defining a cohesive family of single-key bindings (such as window management hotkeys, app launchers, or keypad remaps)
+ * that all share the same modifier requirements and execution phase.
  *
  * A table value is either:
- * - A bare action or registry primitive (`URLS.*`, `COMBOS.*`, `CMDS.*`, `APPS.*`) — auto-normalized and wrapped in `phase`.
+ * - A bare action or registry primitive (e.g. `URLS.*`, `COMBOS.*`, `CMDS.*`, `APPS.*`) — auto-normalized and wrapped in `phase`.
  * - An action array `[action1, action2]`.
- * - A pre-built `Case` / `Case[]` (from `press()`, `hold()`, `.when(...)`, `tapAndHold()`, etc.) used as-is.
- *   This escape hatch allows individual entries to carry custom conditions or different phases.
+ * - A pre-built {@link Case} / `Case[]` (from {@link press}, {@link hold}, {@link tapAndHold}, or with `.when(...)` overrides) used as-is.
  *
  * @param phase - Trigger phase (`"press"`, `"release"`, `"hold"`) applied to bare action entries.
  * @param table - Map of key codes to actions or pre-built cases: `Partial<Record<KeyCode, ActionInput | ActionInput[] | Case | Case[]>>`.
- * @param modifiersOrOptions - Optional trigger modifiers shared by every entry (e.g. `["cmd", "opt"]`, `VM.COCS`, `{ mandatory: ["cmd"], optional: ["any"] }`) OR a full `BindingOptions` configuration object.
- * @param options - Additional `BindingOptions` shared by every entry, if modifiers were supplied as the 3rd argument.
- * @returns An array of `Binding` objects, one per table entry.
+ * @param modifiersOrOptions - Optional trigger modifiers shared by every entry (e.g. `["cmd", "opt"]`, `VM.COCS`) OR a full {@link BindingOptions} configuration object.
+ * @param options - Additional {@link BindingOptions} shared by every entry if modifiers were supplied as the 3rd argument.
+ * @returns An array of {@link Binding} objects, one per table entry.
  *
  * @example
  * ```ts
@@ -633,19 +735,17 @@ export function bindTable(
 ): Binding[] {
   return (Object.keys(table) as KeyCode[]).map((keyCode) => {
     const value = table[keyCode] as ActionInput | ActionInput[] | Case | Case[];
-    const cases = isCaseOrCaseArray(value)
-      ? value
-      : new CaseBuilder(phase, value as ActionInput | ActionInput[]);
+    const cases = isCaseOrCaseArray(value) ? value : new CaseBuilder(phase, value as ActionInput | ActionInput[]);
     return bindKeys(keyCode, cases, modifiersOrOptions, options);
   });
 }
 
 /**
- * Options accepted by {@link motionToScroll} in the Snaplink DSL.
+ * Configuration options for {@link motionToScroll} pointer tweaks.
  */
 export type MotionToScrollOptions = {
   /**
-   * Human-readable label for this rule in Karabiner Settings and logs.
+   * Human-readable label for this rule in Karabiner Settings GUI and logs.
    *
    * @example "Hold right button to scroll"
    */
@@ -672,16 +772,16 @@ export type MotionToScrollOptions = {
   /**
    * Conditions or {@link WhenWrapper} gating scroll mode (e.g. apps, devices, variable states).
    *
-   * @example when: VARS.rButtonDown
-   * @example when: [VARS.rButtonDown, DEVICES.g502X]
-   * @example when: when(VARS.rButtonDown)
+   * @example VARS.rButtonDown
+   * @example [VARS.rButtonDown, DEVICES.g502X]
+   * @example when(VARS.rButtonDown)
    */
   when?: WhenWrapper | Condition | Condition[] | StateItem | readonly StateItem[] | unknown;
 
   /**
    * Explicit condition list gating scroll mode.
    *
-   * @example [condVar(VARS.rButtonDown)]
+   * @example [ifUserVar(VARS.rButtonDown)]
    */
   conditions?: (Condition | WhenWrapper)[];
 
@@ -707,10 +807,16 @@ export type MotionToScrollOptions = {
 };
 
 /**
- * Construct a `motionToScroll` pointer tweak with full intellisense and type validation.
+ * Constructs a `motionToScroll` pointer tweak that turns mouse movement into mouse wheel scrolling while a trigger is held.
  *
- * Supports both object-based options (with `when: VARS.rButtonDown`, `trigger: "button4"`, etc.)
- * and fluent variadic syntax (`motionToScroll("description", VARS.rButtonDown, ...)`).
+ * Use when creating trackball or mouse drag-to-scroll features (e.g. hold right click or button4 to scroll by moving the mouse).
+ *
+ * Supports both structured {@link MotionToScrollOptions} objects and fluent variadic syntax:
+ * - Structured object: `motionToScroll({ description, when, speedMultiplier, ... })`
+ * - Variadic syntax: `motionToScroll("description", VARS.rButtonDown, ...)`
+ *
+ * @param options - Full {@link MotionToScrollOptions} configuration object.
+ * @returns A validated {@link PointerMotionToScroll} tweak definition.
  *
  * @example
  * ```ts
@@ -818,7 +924,12 @@ export function motionToScroll(
     }
   }
   if (opts.when) {
-    if (typeof opts.when === "object" && opts.when !== null && "kind" in opts.when && (opts.when as { kind: string }).kind === "when") {
+    if (
+      typeof opts.when === "object" &&
+      opts.when !== null &&
+      "kind" in opts.when &&
+      (opts.when as { kind: string }).kind === "when"
+    ) {
       conditions.push(...(opts.when as WhenWrapper).conditions);
     } else {
       const resolved = when(opts.when as StateItem);
@@ -840,25 +951,59 @@ export function motionToScroll(
   } as PointerMotionToScroll;
 }
 
+/**
+ * Configuration options for {@link pointerTransform} pointer tweaks.
+ */
 export type PointerTransformOptions = {
+  /**
+   * Human-readable label for this rule in Karabiner Settings GUI and logs.
+   *
+   * @example "Invert vertical scroll"
+   */
   description: string;
+
+  /**
+   * Axes to flip / invert direction (e.g. `["vertical_wheel"]`, `["x", "y"]`).
+   */
   flip?: PointerTransform["flip"];
+
+  /**
+   * Axes to swap (e.g. swap horizontal and vertical axes).
+   */
   swap?: PointerTransform["swap"];
+
+  /**
+   * Conditions gating the pointer transform (e.g. specific apps or devices).
+   */
   conditions?: Condition[];
+
+  /**
+   * Axes whose movement events are discarded / suppressed.
+   */
   discard?: [PointerAxis, ...PointerAxis[]];
 };
 
 /**
- * Construct a `transform` pointer tweak to flip, swap, or discard pointer axes.
+ * Constructs a `transform` pointer tweak to flip, swap, or discard pointer movement and scroll axes.
  *
- * @param options - Pointer transform configuration (flip, swap, discard, conditions).
+ * Use when inverting scroll directions on specific devices, swapping mouse axes, or disabling specific wheel axes.
+ *
+ * @param options - Configuration object matching {@link PointerTransformOptions} or pre-built {@link PointerTransform}.
  * @returns A validated {@link PointerTransform} tweak definition.
  *
  * @example
  * ```ts
+ * // 1. Invert vertical scroll wheel:
  * pointerTransform({
  *   description: "Invert vertical scroll",
  *   flip: ["vertical_wheel"],
+ * })
+ *
+ * // 2. Discard horizontal scroll on external mouse:
+ * pointerTransform({
+ *   description: "Disable horizontal scroll on trackball",
+ *   discard: ["horizontal_wheel"],
+ *   conditions: [ifDevice(DEVICES.trackball)],
  * })
  * ```
  */
@@ -881,7 +1026,7 @@ export type HoldLayerOptions = {
   /**
    * State variable tracking whether the trigger is held down.
    * If provided, this variable is set to 1 while held and reset to 0 on release (`to_after_key_up`).
-   * If omitted, a variable is synthesized from the trigger identifier.
+   * If omitted, a variable name is synthesized from the trigger identifier.
    */
   variable?: VarSpec | string;
 
@@ -902,7 +1047,7 @@ export type HoldLayerOptions = {
   };
 
   /**
-   * Optional condition or conditions gating the entire layer (e.g., specific device or app).
+   * Optional condition or conditions gating the entire layer (e.g. specific device or frontmost app).
    */
   when?: WhenWrapper | Condition | Condition[] | StateItem | readonly StateItem[] | unknown;
 
@@ -913,26 +1058,33 @@ export type HoldLayerOptions = {
 
   /**
    * Quick-launch / chord bindings table mapped while the trigger is held down.
-   * Values can be action inputs (which default to "press" phase) or explicit `Case` items.
+   * Values can be action inputs (which default to {@link press} phase) or explicit {@link Case} items.
    */
   bindings: Partial<Record<KeyCode, ActionInput | ActionInput[] | Case | Case[]>>;
 };
 
 /**
- * Constructs a momentary hold layer (dual-role modifier/hold layer) that:
- * 1. Tracks its active state via a Karabiner variable (`whileHoldVar`), setting it to 1 while held and 0 on release.
- * 2. Emits a tap-alone action (or base key) on release if tapped alone, with `suppressCancelFallback: true` to prevent modifier leakage when chords are pressed.
+ * Constructs a momentary dual-role hold layer (space-cadet / hyper layer) from a trigger key and a table of chords.
+ *
+ * Use when creating a custom modifier or layer key (e.g. Caps Lock, Right Command, or a mouse button) that acts as a modifier
+ * while held to activate a sub-layer of quick shortcuts, while emitting a clean single tap when tapped alone.
+ *
+ * The constructed layer automatically:
+ * 1. Tracks hold state via a Karabiner variable (`whileHoldVar`), setting it to 1 on press and 0 on release.
+ * 2. Emits {@link HoldLayerOptions.tapAlone} on release if tapped alone, with `suppressCancelFallback: true` to prevent key leakage when chords are pressed.
  * 3. Maps the chord bindings table with phase `"press"` gated by the layer's variable condition.
  *
- * @param config - Hold layer configuration options.
- * @returns An array of {@link Binding} objects containing the trigger binding and all gated chord bindings.
+ * @param config - Hold layer configuration options matching {@link HoldLayerOptions}.
+ * @returns An array of {@link Binding} objects containing the base trigger binding and all gated chord bindings.
  *
  * @example
  * ```ts
+ * // 1. Right Command hold layer for app launchers:
  * holdLayer({
  *   trigger: "R.cmd",
  *   variable: VARS.rCmdDown,
  *   tapAlone: key("R.cmd", { repeat: false }),
+ *   description: "Right Command Layer",
  *   bindings: {
  *     a: APPS.antinote,
  *     b: APPS.brave,
@@ -965,7 +1117,9 @@ export function holdLayer(config: HoldLayerOptions): Binding[] {
 
   const tapActionInput = config.tapAlone !== undefined ? config.tapAlone : defaultTapAction;
   const triggerCases: Case[] = isCaseOrCaseArray(tapActionInput)
-    ? (Array.isArray(tapActionInput) ? tapActionInput : [tapActionInput])
+    ? Array.isArray(tapActionInput)
+      ? tapActionInput
+      : [tapActionInput]
     : [release(tapActionInput as ActionInput | ActionInput[]), hold([])];
 
   const triggerArgs: BindArg[] = [
@@ -979,7 +1133,12 @@ export function holdLayer(config: HoldLayerOptions): Binding[] {
   ];
 
   if (config.when !== undefined) {
-    if (typeof config.when === "object" && config.when !== null && "kind" in config.when && (config.when as { kind: string }).kind === "when") {
+    if (
+      typeof config.when === "object" &&
+      config.when !== null &&
+      "kind" in config.when &&
+      (config.when as { kind: string }).kind === "when"
+    ) {
       triggerArgs.push(config.when as WhenWrapper);
     } else {
       triggerArgs.push(when(config.when as StateItem));
@@ -990,7 +1149,12 @@ export function holdLayer(config: HoldLayerOptions): Binding[] {
 
   const chordConditions: (WhenWrapper | Condition)[] = [when(varSpec)];
   if (config.when !== undefined) {
-    if (typeof config.when === "object" && config.when !== null && "kind" in config.when && (config.when as { kind: string }).kind === "when") {
+    if (
+      typeof config.when === "object" &&
+      config.when !== null &&
+      "kind" in config.when &&
+      (config.when as { kind: string }).kind === "when"
+    ) {
       chordConditions.push(config.when as WhenWrapper);
     } else {
       chordConditions.push(when(config.when as StateItem));
@@ -999,9 +1163,7 @@ export function holdLayer(config: HoldLayerOptions): Binding[] {
 
   const chordBindings = (Object.keys(config.bindings) as KeyCode[]).map((keyCode) => {
     const value = config.bindings[keyCode] as ActionInput | ActionInput[] | Case | Case[];
-    const cases = isCaseOrCaseArray(value)
-      ? value
-      : new CaseBuilder("press", value as ActionInput | ActionInput[]);
+    const cases = isCaseOrCaseArray(value) ? value : new CaseBuilder("press", value as ActionInput | ActionInput[]);
     return bind(from(keyCode), to(cases), ...chordConditions);
   });
 

@@ -16,7 +16,7 @@
     "codegen:check": "tsx scripts/gen-key-types.ts --check",
     "typecheck": "tsc -p tsconfig.json",
     "test": "tsx --test 'src/**/*.test.ts'",
-    "lint": "eslint src --max-warnings=81",
+    "lint": "eslint src --max-warnings=50",
     "validate": "make -C schema validate-output",
     "verify": "npm run generate && npm run validate",
     "check": "npm run codegen:check && npm run typecheck && npm run lint && npm run test && npm run verify"
