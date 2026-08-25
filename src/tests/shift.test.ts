@@ -1,10 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { singleKeyTapHoldBindings } from "../definitions/single-key";
+import { singleKeyTapHoldBindings } from "../definitions/complex-modifications";
 import { defineBindings } from "../engine";
 
-const RAYCAST_CLIPBOARD_HISTORY_URL =
-  "raycast-x://extensions/raycast/clipboard-history/clipboard-history";
+const RAYCAST_CLIPBOARD_HISTORY_URL = "raycast-x://extensions/raycast/clipboard-history/clipboard-history";
 const DOUBLE_TAP_THRESHOLD_MS = 300;
 
 function toRule(input: any): any {
@@ -13,7 +12,9 @@ function toRule(input: any): any {
 
 function builtRules(): any[] {
   const leftShift = singleKeyTapHoldBindings.find((b) => "keys" in b.trigger && b.trigger.keys.includes("left_shift"));
-  const rightShift = singleKeyTapHoldBindings.find((b) => "keys" in b.trigger && b.trigger.keys.includes("right_shift"));
+  const rightShift = singleKeyTapHoldBindings.find(
+    (b) => "keys" in b.trigger && b.trigger.keys.includes("right_shift"),
+  );
   return defineBindings([leftShift!, rightShift!]).map(toRule);
 }
 
@@ -23,9 +24,7 @@ function manipulators(rule: any): any[] {
 
 // The second-tap manipulator carries an `expression_if` condition checking `== 1`.
 function secondTapManip(rule: any): any {
-  return manipulators(rule).find((m: any) =>
-    m.conditions?.some((c: any) => c.type === "variable_if" && c.value === 1),
-  );
+  return manipulators(rule).find((m: any) => m.conditions?.some((c: any) => c.type === "variable_if" && c.value === 1));
 }
 
 // The first-tap (pass-through) manipulator has no expression_if condition checking `== 1`.
@@ -91,12 +90,8 @@ test("single-tap of either shift key passes the key through (normal Shift preser
 
 test("left and right shift use distinct multi-tap state variables", () => {
   const [left, right] = builtRules();
-  const leftVar = secondTapManip(left).conditions.find(
-    (c: any) => c.type === "variable_if",
-  ).name;
-  const rightVar = secondTapManip(right).conditions.find(
-    (c: any) => c.type === "variable_if",
-  ).name;
+  const leftVar = secondTapManip(left).conditions.find((c: any) => c.type === "variable_if").name;
+  const rightVar = secondTapManip(right).conditions.find((c: any) => c.type === "variable_if").name;
   assert.equal(leftVar, "multi_tap_left_shift");
   assert.equal(rightVar, "multi_tap_right_shift");
   assert.notEqual(leftVar, rightVar);
@@ -105,9 +100,7 @@ test("left and right shift use distinct multi-tap state variables", () => {
 test("double-tap threshold is 300 ms", () => {
   for (const rule of builtRules()) {
     assert.equal(
-      secondTapManip(rule).parameters[
-      "basic.to_if_held_down_threshold_milliseconds"
-      ],
+      secondTapManip(rule).parameters["basic.to_if_held_down_threshold_milliseconds"],
       DOUBLE_TAP_THRESHOLD_MS,
     );
   }

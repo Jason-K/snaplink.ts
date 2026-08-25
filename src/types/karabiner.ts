@@ -564,12 +564,6 @@ export type KarabinerParameters = {
   "mouse_motion_to_scroll.speed"?: number;
 };
 
-/** @deprecated Use {@link KarabinerParameters}. */
-export type BasicParameters = KarabinerParameters;
-
-/** @deprecated Use {@link KarabinerParameters}. */
-export type ComplexModificationsParameters = KarabinerParameters;
-
 // ============================================================================
 // MANIPULATORS
 // ============================================================================
@@ -653,9 +647,6 @@ export type MouseMotionToScrollManipulator = {
   };
   description?: string;
 } & AtLeastOne<{ from?: { modifiers?: FromModifiers }; conditions?: Condition[] }>;
-
-/** @deprecated Renamed for symmetry with the other manipulator types. */
-export type MouseMotionManipulator = MouseMotionToScrollManipulator;
 
 /**
  * Manipulators are evaluated top to bottom; the **first** matching one applies

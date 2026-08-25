@@ -22,10 +22,3 @@ export type ModKey = Modifier | ModAlias;
  * own tables via `npm run codegen`.
  */
 export type { KeyCode } from "../../types/karabiner";
-
-/**
- * @deprecated Alias of {@link KeyCode}, kept for existing `satisfies` call
- * sites. The distinction it used to draw — a curated subset, widened by
- * `(string & {})` — no longer exists.
- */
-export type { KeyCode as StandardKeyCode } from "../../types/karabiner";

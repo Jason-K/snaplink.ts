@@ -1,7 +1,7 @@
 import type { Modifier } from "../../types/karabiner";
 
 export type { ModAlias, ModKey } from "../primitives/keys";
-export type { KeyCode, StandardKeyCode } from "../primitives/keys";
+export type { KeyCode } from "../primitives/keys";
 
 // Expansion map for ActionSpec key modifiers — consumed by action-resolver.ts
 // Virtual modifiers use fixed slots in COCS order:

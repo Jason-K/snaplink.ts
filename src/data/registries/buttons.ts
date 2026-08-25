@@ -69,9 +69,6 @@ export type ButtonAlias = keyof typeof BUTTONS;
  */
 export type PointerButtonAlias = PointingButton | ButtonAlias;
 
-/** @deprecated Use {@link PointerButtonAlias}, or {@link ButtonAlias} for just our names. */
-export type KnownPointerButton = PointerButtonAlias;
-
 /**
  * Anything nameable as a trigger key.
  *

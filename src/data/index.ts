@@ -68,7 +68,6 @@ export {
   type KeyCode,
   type ModComboAlias,
   type ModKey,
-  type StandardKeyCode,
 } from "./constants/keys";
 export {
   ACCESSIBILITY_ROLES,
@@ -86,7 +85,6 @@ export {
   type ButtonSpec,
   type ButtonAlias,
   type DeviceName,
-  type KnownPointerButton,
   type PointerButtonAlias,
   type TriggerKey,
 } from "./registries/buttons";

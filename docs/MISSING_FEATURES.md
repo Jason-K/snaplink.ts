@@ -19,9 +19,9 @@ Parenthesised numbers cite [karabiner-gotchas.md](./karabiner_docs/karabiner-got
 
 Two independent columns, because they answer different questions:
 
-| | meaning |
-| --- | --- |
-| **wired** | the emitter can produce it — a wrapper or handler names it |
+|             | meaning                                                                         |
+| ----------- | ------------------------------------------------------------------------------- |
+| **wired**   | the emitter can produce it — a wrapper or handler names it                      |
 | **emitted** | the current configuration actually does — it appears in `karabiner-output.json` |
 
 `wired: no` is a missing capability, and is what this document tracks.
@@ -74,56 +74,132 @@ are unsupported: the value is read from the first button pressed, so Left+Middle
 No action until such a device is in use. The AST type exists; only DSL access is
 missing.
 
-### 5. Modal layers (leader keys)
+### 5. Layering Architecture: Momentary Hold Layers & Modal Leader Layers
 
-Not a schema feature — Karabiner has no notion of a layer. A leader layer is a
-*composition* of features the DSL already has (`set_variable`, `variable_if`,
-`from.any`, `to_if_held_down`), which is why it does not appear in the
-`npm run coverage` count.
+Not a schema feature — Karabiner has no native concept of a layer. A layer in Snaplink is a _composition_ of existing capabilities (`set_variable`, `variable_if`, `from.any`, `to_if_alone`, `to_after_key_up`, `whileHoldVar`), which is why it does not appear in the `npm run coverage` count.
 
-Wanted shape, roughly:
+Snaplink distinguishes between two primary layering paradigms:
+
+---
+
+#### A. Momentary Hold Layers (Dual-Role Modifier / Hold Layers)
+
+**Semantics**: Active strictly while a trigger key is held down; deactivates immediately upon release. If tapped and released alone, it emits an alternate action (or the base key).
+
+**In-Architecture Precedents**:
+
+- `src/engine/caps-layer.ts` (`caps_lock_pressed` / `caps_lock_used`)
+- `src/definitions/mouse.ts` (`VARS.rButtonDown` for G502X Right Button chords)
+- `src/definitions/complex-modifications.ts` (`VARS.rCmdDown` for Right Command quick-launch)
+
+**The Dual-Role Gotcha**:
+In Karabiner-Elements, `complex_modifications` rules run in a single pass on input events. When a rule intercepts `from: { key_code: "foo" }`, that key is **consumed** from the input event stream. Output events (`to`) do **not** re-enter `from.modifiers` matching.
+
+- ❌ **Broken approach**: Trying to match `from: { key_code: "t", modifiers: { mandatory: ["right_command"] } }` when `right_command` is already intercepted by another rule. Karabiner sees `t` with zero modifiers and emits an unmodified `t`.
+- ✅ **Correct approach (Variable Choreography)**:
+  1. The hold trigger uses `whileHoldVar: VARS.fooDown` (setting the variable on press and resetting it via `to_after_key_up` on release).
+  2. The hold trigger specifies `to_if_alone` to fire the standalone tap action (e.g. calling an external app like Sxitch).
+  3. The hold trigger specifies `suppressCancelFallback: true` so that when a chord key cancels `to_if_alone`, no stray fallback key is emitted from `to_delayed_action.to_if_canceled`.
+  4. Chord bindings are defined with phase `"press"` and conditioned on `when(VARS.fooDown)`.
+
+**Recommended DSL Wrapper (`holdLayer`)**:
 
 ```ts
-binding(from("space_bar"), to(layer(
-  layerKey("d", to(folder(FOLDERS.downloads))),
-  layerKey("w", to(app(APPS.slack))),
-)))
+/**
+ * Constructs a momentary hold layer that sets a variable while held,
+ * allows tap-alone pass-through/action on release, and binds chord targets.
+ */
+export function holdLayer(config: {
+  trigger: KeyCode | PointingButton;
+  variable: VarSpec;
+  tapAlone?: ActionInput | ActionInput[];
+  timing?: { aloneMs?: number; holdMs?: number };
+  bindings: Partial<Record<KeyCode, ActionInput | ActionInput[] | Case | Case[]>>;
+}): Binding[] {
+  const triggerBinding = bind(
+    from(config.trigger),
+    to(
+      tapAndHold(
+        config.tapAlone ? normalizeAction(config.tapAlone) : key(config.trigger as KeyCode, { repeat: false }),
+        [],
+      ),
+    ),
+    options({
+      whileHoldVar: config.variable,
+      suppressCancelFallback: true,
+      ...(config.timing ? { timing: config.timing } : {}),
+    }),
+  );
+
+  const chordBindings = bindTable("press", config.bindings, when(config.variable));
+  return [triggerBinding, ...chordBindings];
+}
 ```
 
-An earlier implementation lived under `engine/leader/` and was removed:
-384 lines, called by nothing, pre-dating the `Binding` surface — 11 `as any`
-casts, direct `map()`/`rule()` construction bypassing the resolve pipeline, a
-seven-way bespoke config union duplicating `ActionSpec`, and `{{ mustache }}`
-braces in exprtk expression fields that would have emitted invalid JSON had
-anything ever run it. Rebuilding against the current pipeline is less work than
-adapting it. `src/engine/caps-layer.ts` is the in-architecture precedent: it
-produces `Binding[]` and participates in conflict analysis.
+_Example Usage_:
 
-The variable choreography is the part worth keeping, and it is not obvious:
+```ts
+// Cleanly defines Right Command quick-launch without modifier leakage:
+...holdLayer({
+  trigger: "R.cmd",
+  variable: VARS.rCmdDown,
+  tapAlone: key("R.cmd", { repeat: false }), // Triggers Sxitch only on standalone tap
+  bindings: {
+    a: APPS.antinote,
+    b: APPS.brave,
+    o: APPS.outlook,
+    t: APPS.teams,
+  },
+})
+```
 
-| Step | Mechanism |
-| --- | --- |
-| Activate | `to_if_held_down` sets `<prefix>_mod = 1`. `to_if_alone` emits the leader key itself with `halt: true` and clears every layer variable, so a tap still types the key. |
+---
+
+#### B. Modal Leader Layers (Sequential / Sticky Layers)
+
+**Semantics**: Activated by tapping a leader key (e.g. Space), remains active after release, navigated via subkeys, and dismissed on timeout, Escape, or after executing a one-shot command.
+
+**Variable Choreography**:
+
+| Step                 | Mechanism                                                                                                                                                                                              |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Activate             | `to_if_held_down` sets `<prefix>_mod = 1`. `to_if_alone` emits the leader key itself with `halt: true` and clears every layer variable, so a tap still types the key.                                  |
 | Tap past the timeout | `to_delayed_action.to_if_canceled` repeats the emit-and-clear, covering a hold that never reached the threshold. Both `to_if_alone_timeout` and `to_if_held_down_threshold` are set to the same value. |
-| Enter a sublayer | The sublayer key, gated on `<prefix>_mod == 1`, sets `<prefix>_<key>_sublayer = 1` **and clears `<prefix>_mod` in the same `to` array** — a hand-off, so the two are never both live. |
-| Fire a mapping | Gated on the sublayer variable. One-shot layers clear it after the action; a sticky-modifier toggle deliberately does not. |
-| Leave | `to_after_key_up` clears every layer variable and turns all four sticky modifiers off. |
-| Escape | `escape`, gated on each layer variable, emits escape and performs the same full reset. |
-| Nesting | One more variable level: `<prefix>_<key>_<nested>_sublayer`. |
+| Enter a sublayer     | The sublayer key, gated on `<prefix>_mod == 1`, sets `<prefix>_<key>_sublayer = 1` **and clears `<prefix>_mod` in the same `to` array** — a hand-off, so the two are never both live.                  |
+| Fire a mapping       | Gated on the sublayer variable. One-shot layers clear it after the action; a sticky-modifier toggle deliberately does not.                                                                             |
+| Leave                | `to_after_key_up` clears every layer variable and turns all four sticky modifiers off.                                                                                                                 |
+| Escape               | `escape`, gated on each layer variable, emits escape and performs the same full reset.                                                                                                                 |
+| Nesting              | One more variable level: `<prefix>_<key>_<nested>_sublayer`.                                                                                                                                           |
 
-Two ordering constraints do the real work, both following from gotcha 2.1
-(first match wins) and 2.3 (a modified event is exempt from later rules):
+Two ordering constraints do the real work, both following from gotcha 2.1 (first match wins) and 2.3 (a modified event is exempt from later rules):
 
-1. **The unmapped-key guard must come last.** A `from.any: key_code` catch-all
-   with `optional: ["any"]`, conditioned on each layer variable and emitting
-   nothing, is what stops stray keys leaking into the frontmost app while a
-   layer is active. Placed anywhere but last, it eats the layer's own mappings.
-2. **Every other rule family needs suppression.** Rules outside the layer must
-   carry `variable_unless` on the leader variable and every sublayer variable,
-   or they fire while the layer is active. `src/config.ts` solves the equivalent
-   problem for the caps layer by *ordering* — emitting it first, conditioned on
-   `caps_lock_pressed`. A leader layer needs the suppression pass too, because
-   unlike caps it stays active after its key is released.
+1. **The unmapped-key guard must come last.** A `from.any: key_code` catch-all with `optional: ["any"]`, conditioned on each layer variable and emitting nothing, stops stray keys leaking into the frontmost app while a modal layer is active. Placed anywhere but last, it eats the layer's own mappings.
+2. **Every other rule family needs suppression.** Rules outside the layer must carry `variable_unless` on the leader variable and every sublayer variable, or they fire while the layer is active.
+
+**Recommended DSL Wrapper (`modalLayer`)**:
+
+```ts
+modalLayer({
+  leader: "spacebar",
+  tapAlone: key("spacebar"),
+  escapeKey: "escape",
+  layers: {
+    d: {
+      description: "Downloads",
+      mappings: {
+        f: folder(FOLDERS.downloads),
+      },
+    },
+    w: {
+      description: "Window management",
+      mappings: {
+        h: URLS.hsWinLeftTop,
+        l: URLS.hsWinRightBottom,
+      },
+    },
+  },
+});
+```
 
 ### Deliberately unwired
 
@@ -185,12 +261,12 @@ Start from `src/engine/caps-layer.ts` and the choreography table in item 5.
 
 ## Priority & Status
 
-| items | status / rationale |
-| --- | --- |
-| `set_notification_message` | Deferred: native replacement for Hammerspoon layer-indicator IPC chain when needed. |
-| `select_input_source` | Shape A; no current use case. |
-| alternate namespaces, `integer_value` | On demand. Wire when a specific key or device needs it. |
-| modal layers (Shape C) | Independent feature design. Size against `caps-layer.ts`. |
+| items                                 | status / rationale                                                                  |
+| ------------------------------------- | ----------------------------------------------------------------------------------- |
+| `set_notification_message`            | Deferred: native replacement for Hammerspoon layer-indicator IPC chain when needed. |
+| `select_input_source`                 | Shape A; no current use case.                                                       |
+| alternate namespaces, `integer_value` | On demand. Wire when a specific key or device needs it.                             |
+| modal layers (Shape C)                | Independent feature design. Size against `caps-layer.ts`.                           |
 
 ---
 

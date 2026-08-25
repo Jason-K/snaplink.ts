@@ -45,5 +45,5 @@ export type {
   PointerTransform,
   PointerTweak,
 } from "./pointer-tweaks";
-export type { ModAlias, ModKey, KeyCode, StandardKeyCode } from "./keys";
+export type { ModAlias, ModKey, KeyCode } from "./keys";
 export type { FolderOpener } from "./actions";

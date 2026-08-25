@@ -19609,11 +19609,14 @@
                 }
               },
               {
-                "software_function": {
-                  "open_application": {
-                    "bundle_identifier": "com.apple.ActivityMonitor"
-                  }
-                }
+                "repeat": true,
+                "key_code": "escape",
+                "modifiers": [
+                  "left_command",
+                  "left_option",
+                  "left_control",
+                  "left_shift"
+                ]
               }
             ]
           },
@@ -23561,34 +23564,6 @@
         ]
       },
       {
-        "description": "[⌘⌥⌃⇧]+[␛]:\n---\n\tOn Tap:\n\t\tAlways:\topen Activity Monitor",
-        "manipulators": [
-          {
-            "type": "basic",
-            "from": {
-              "key_code": "escape",
-              "modifiers": {
-                "mandatory": [
-                  "command",
-                  "option",
-                  "control",
-                  "shift"
-                ]
-              }
-            },
-            "to": [
-              {
-                "software_function": {
-                  "open_application": {
-                    "bundle_identifier": "com.apple.ActivityMonitor"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      },
-      {
         "description": "[⌘⌥⌃⇧]+[F]:\n---\n\tOn Tap:\n\t\tAlways:\tmap 'focus window to the bottom'",
         "manipulators": [
           {
@@ -24411,31 +24386,6 @@
         ]
       },
       {
-        "description": "[⌘>]+[A]:\n---\n\tOn Tap:\n\t\tAlways:\topen Antinote",
-        "manipulators": [
-          {
-            "type": "basic",
-            "from": {
-              "key_code": "a",
-              "modifiers": {
-                "mandatory": [
-                  "right_command"
-                ]
-              }
-            },
-            "to": [
-              {
-                "software_function": {
-                  "open_application": {
-                    "bundle_identifier": "com.chabomakers.Antinote"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      },
-      {
         "description": "[⌘]+[D]:\n---\n\tOn Tap:\n\t\tIn Antinote:\tEmit ⌘ + 'D'",
         "manipulators": [
           {
@@ -24625,31 +24575,6 @@
                 }
               ]
             }
-          }
-        ]
-      },
-      {
-        "description": "[⌘>]+[O]:\n---\n\tOn Tap:\n\t\tAlways:\topen Microsoft Outlook",
-        "manipulators": [
-          {
-            "type": "basic",
-            "from": {
-              "key_code": "o",
-              "modifiers": {
-                "mandatory": [
-                  "right_command"
-                ]
-              }
-            },
-            "to": [
-              {
-                "software_function": {
-                  "open_application": {
-                    "bundle_identifier": "com.microsoft.Outlook"
-                  }
-                }
-              }
-            ]
           }
         ]
       },
@@ -25064,7 +24989,7 @@
               "key_code": "escape",
               "modifiers": {
                 "mandatory": [
-                  "control"
+                  "left_control"
                 ]
               }
             },
@@ -25324,8 +25249,31 @@
         ]
       },
       {
-        "description": "[A]:\n---\n\tOn Hold:\n\t\tAlways:\tEmit ⌘⌥⌃⇧ + 'F18'",
+        "description": "[A]:\n---\n\tOn Tap:\n\t\tRight command held:\topen Antinote\n\tOn Hold:\n\t\tAlways:\tEmit ⌘⌥⌃⇧ + 'F18'",
         "manipulators": [
+          {
+            "type": "basic",
+            "from": {
+              "key_code": "a"
+            },
+            "description": "Right command held",
+            "conditions": [
+              {
+                "type": "variable_if",
+                "name": "right_command_pressed",
+                "value": 1
+              }
+            ],
+            "to": [
+              {
+                "software_function": {
+                  "open_application": {
+                    "bundle_identifier": "com.chabomakers.Antinote"
+                  }
+                }
+              }
+            ]
+          },
           {
             "type": "basic",
             "from": {
@@ -25359,6 +25307,34 @@
                 }
               ]
             }
+          }
+        ]
+      },
+      {
+        "description": "[B]:\n---\n\tOn Tap:\n\t\tRight command held:\topen Brave",
+        "manipulators": [
+          {
+            "type": "basic",
+            "from": {
+              "key_code": "b"
+            },
+            "description": "Right command held",
+            "conditions": [
+              {
+                "type": "variable_if",
+                "name": "right_command_pressed",
+                "value": 1
+              }
+            ],
+            "to": [
+              {
+                "software_function": {
+                  "open_application": {
+                    "bundle_identifier": "com.brave.Browser"
+                  }
+                }
+              }
+            ]
           }
         ]
       },
@@ -26913,8 +26889,31 @@
         ]
       },
       {
-        "description": "[O]:\n---\n\tOn Hold:\n\t\tAlways:\tcapture text without line breaks using CSX",
+        "description": "[O]:\n---\n\tOn Tap:\n\t\tRight command held:\topen Microsoft Outlook\n\tOn Hold:\n\t\tAlways:\tcapture text without line breaks using CSX",
         "manipulators": [
+          {
+            "type": "basic",
+            "from": {
+              "key_code": "o"
+            },
+            "description": "Right command held",
+            "conditions": [
+              {
+                "type": "variable_if",
+                "name": "right_command_pressed",
+                "value": 1
+              }
+            ],
+            "to": [
+              {
+                "software_function": {
+                  "open_application": {
+                    "bundle_identifier": "com.microsoft.Outlook"
+                  }
+                }
+              }
+            ]
+          },
           {
             "type": "basic",
             "from": {
@@ -27142,13 +27141,29 @@
         ]
       },
       {
-        "description": "[⌘]:\n---\n\tOn Tap:\n\t\tAlways:\tEmit '⌘'",
+        "description": "[⌘]:\n---\n\tOn Tap:\n\t\tAlways:\tEmit '⌘'\n\tOn Hold:\n\t\tAlways:\t",
         "manipulators": [
           {
             "type": "basic",
             "from": {
               "key_code": "right_command"
             },
+            "to": [
+              {
+                "set_variable": {
+                  "name": "right_command_pressed",
+                  "value": 1
+                }
+              }
+            ],
+            "to_after_key_up": [
+              {
+                "set_variable": {
+                  "name": "right_command_pressed",
+                  "value": 0
+                }
+              }
+            ],
             "to_if_alone": [
               {
                 "repeat": false,
@@ -27157,12 +27172,7 @@
             ],
             "to_delayed_action": {
               "to_if_invoked": [],
-              "to_if_canceled": [
-                {
-                  "repeat": false,
-                  "key_code": "right_command"
-                }
-              ]
+              "to_if_canceled": []
             }
           }
         ]
@@ -27383,8 +27393,31 @@
         ]
       },
       {
-        "description": "[T]:\n---\n\tOn Hold:\n\t\tAlways:\tmap 'show kitty quake terminal'",
+        "description": "[T]:\n---\n\tOn Tap:\n\t\tRight command held:\topen Microsoft Teams\n\tOn Hold:\n\t\tAlways:\tmap 'show kitty quake terminal'",
         "manipulators": [
+          {
+            "type": "basic",
+            "from": {
+              "key_code": "t"
+            },
+            "description": "Right command held",
+            "conditions": [
+              {
+                "type": "variable_if",
+                "name": "right_command_pressed",
+                "value": 1
+              }
+            ],
+            "to": [
+              {
+                "software_function": {
+                  "open_application": {
+                    "bundle_identifier": "com.microsoft.teams2"
+                  }
+                }
+              }
+            ]
+          },
           {
             "type": "basic",
             "from": {

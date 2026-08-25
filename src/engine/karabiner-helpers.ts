@@ -4,7 +4,6 @@
 
 import type {
   BasicManipulator,
-  BasicParameters,
   Condition,
   ConsumerKeyCode,
   DeviceIdentifier,
@@ -12,6 +11,7 @@ import type {
   FromKeyType,
   FromModifiers,
   InputSourceSpecifier,
+  KarabinerParameters,
   KeyCode,
   KeyboardType,
   Manipulator,
@@ -451,7 +451,7 @@ export class BasicManipulatorBuilder {
     return this;
   }
 
-  parameters(params: BasicParameters): this {
+  parameters(params: KarabinerParameters): this {
     this.manipulator.parameters = { ...this.manipulator.parameters, ...params };
     return this;
   }

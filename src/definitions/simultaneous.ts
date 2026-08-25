@@ -5,7 +5,6 @@ import {
   simultaneous,
   to,
   type Binding,
-  type SimultaneousConfig,
 } from "../engine";
 
 export const simultaneousBindings: Binding[] = [
@@ -17,6 +16,3 @@ export const simultaneousBindings: Binding[] = [
     to(press(key("slash", ["right_control"]))),
   ),
 ];
-
-/** @deprecated Use `simultaneousBindings` with `bind(simultaneous(...), ...)` instead. */
-export const simultaneousMappings: Record<string, SimultaneousConfig> = {};

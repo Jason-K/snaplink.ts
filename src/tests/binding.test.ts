@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { APPS, PATHS } from "../data";
+import { APPS, PATHS, VARS } from "../data";
 import { buildManipulators, defineBindings, normalizeModifier, resolveCondition, resolveModifiers, triggerToFrom } from "../engine/emit-manipulators/compile-binding";
+import { holdLayer, key } from "../engine";
 import type { Binding } from "../data";
 
 test("resolveCondition app if -> frontmost_application_if (AppRef)", () => {
@@ -686,4 +687,105 @@ test("manipulator generation resolves R.cmd and L.cmd to right_command and left_
   assert.equal(m.to[0].key_code, "c");
   assert.deepEqual(m.to[0].modifiers, ["left_command"]);
 });
+
+// ── holdLayer tests ─────────────────────────────────────────────────────────
+
+test("holdLayer constructs trigger binding with whileHoldVar and gated chord bindings", () => {
+  const bindings = holdLayer({
+    trigger: "R.cmd",
+    variable: VARS.rCmdDown,
+    tapAlone: key("R.cmd", { repeat: false }),
+    bindings: {
+      a: APPS.antinote,
+      t: APPS.teams,
+    },
+  });
+
+  assert.equal(bindings.length, 3);
+
+  // 1. Trigger binding
+  const trigger = bindings[0]!;
+  assert.deepEqual(trigger.trigger, { keys: ["right_command"] });
+  assert.equal(trigger.whileHoldVar, VARS.rCmdDown);
+  assert.equal(trigger.suppressCancelFallback, true);
+  assert.ok(trigger.cases?.some((c) => c.phase === "release"));
+
+  // 2. Chord bindings
+  const chordA = bindings[1]!;
+  assert.deepEqual(chordA.trigger, { keys: ["a"] });
+  assert.equal(chordA.conditions?.length, 1);
+  assert.deepEqual(chordA.conditions?.[0], { var: VARS.rCmdDown, equals: 1 });
+  assert.equal(chordA.cases?.[0]?.phase, "press");
+
+  const chordT = bindings[2]!;
+  assert.deepEqual(chordT.trigger, { keys: ["t"] });
+  assert.deepEqual(chordT.conditions?.[0], { var: VARS.rCmdDown, equals: 1 });
+  assert.equal(chordT.cases?.[0]?.phase, "press");
+});
+
+test("holdLayer compiles to manipulators with set_variable, to_after_key_up, and to_if_alone", () => {
+  const bindings = holdLayer({
+    trigger: "R.cmd",
+    variable: VARS.rCmdDown,
+    tapAlone: key("R.cmd", { repeat: false }),
+    bindings: {
+      t: APPS.teams,
+    },
+  });
+
+  const rules = defineBindings(bindings);
+  const triggerRule = rules.find((r: any) =>
+    r.manipulators?.some((m: any) => m.from?.key_code === "right_command"),
+  );
+  assert.ok(triggerRule, "trigger rule for right_command should be emitted");
+  const triggerManip = (triggerRule as any).manipulators[0];
+  assert.deepEqual(triggerManip.to, [{ set_variable: { name: "right_command_pressed", value: 1 } }]);
+  assert.deepEqual(triggerManip.to_after_key_up, [{ set_variable: { name: "right_command_pressed", value: 0 } }]);
+  assert.deepEqual(triggerManip.to_if_alone, [{ key_code: "right_command", repeat: false }]);
+  assert.deepEqual(triggerManip.to_delayed_action?.to_if_canceled, []);
+
+  const chordRule = rules.find((r: any) =>
+    r.manipulators?.some((m: any) => m.from?.key_code === "t"),
+  );
+  assert.ok(chordRule, "chord rule for t should be emitted");
+  const chordManip = (chordRule as any).manipulators.find((m: any) => m.from?.key_code === "t");
+  assert.deepEqual(chordManip.conditions, [{ type: "variable_if", name: "right_command_pressed", value: 1 }]);
+  assert.deepEqual(chordManip.to, [
+    { software_function: { open_application: { bundle_identifier: "com.microsoft.teams2" } } },
+  ]);
+});
+
+test("holdLayer synthesizes variable and default tap alone when omitted", () => {
+  const bindings = holdLayer({
+    trigger: "caps_lock",
+    bindings: {
+      a: APPS.antinote,
+    },
+  });
+
+  assert.equal(bindings.length, 2);
+  const trigger = bindings[0]!;
+  assert.equal(trigger.whileHoldVar?.name, "layer_caps_lock_pressed");
+  assert.equal(trigger.suppressCancelFallback, true);
+});
+
+test("holdLayer passes layer-level when conditions to both trigger and chord bindings", () => {
+  const bindings = holdLayer({
+    trigger: "R.cmd",
+    variable: VARS.rCmdDown,
+    when: APPS.excel,
+    bindings: {
+      t: APPS.teams,
+    },
+  });
+
+  const trigger = bindings[0]!;
+  assert.ok(trigger.conditions?.some((c) => "app" in c));
+
+  const chord = bindings[1]!;
+  assert.equal(chord.conditions?.length, 2);
+  assert.ok(chord.conditions?.some((c) => "var" in c));
+  assert.ok(chord.conditions?.some((c) => "app" in c));
+});
+
 

@@ -21,8 +21,8 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import type {
-  ComplexModificationsParameters,
   KarabinerConfig,
+  KarabinerParameters,
   Profile,
   Rule,
 } from "../types/karabiner";
@@ -74,7 +74,7 @@ export type ConfigUpdate = {
   /** Generated complex-modification rules. */
   rules: Rule[];
   /** Complex-modification parameter defaults. */
-  parameters?: ComplexModificationsParameters;
+  parameters?: KarabinerParameters;
   /** Profile-level simple modifications. */
   simpleModifications?: readonly SimpleModificationPair[];
   /** Device-scoped settings and simple modifications. */

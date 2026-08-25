@@ -207,3 +207,26 @@ test("no two emitted rules claim the same trigger", () => {
     }
   }
 });
+
+test("right command + t emits rule to open Microsoft Teams", () => {
+  const { rules } = buildRules();
+  const teamsRule = rules.find((r) =>
+    r.manipulators.some(
+      (m) =>
+        isBasic(m) &&
+        m.from.key_code === "t" &&
+        m.conditions?.some(
+          (c: any) =>
+            (c.type === "variable_if" && c.name === "right_command_pressed" && c.value === 1) ||
+            m.from.modifiers?.mandatory?.includes("right_command"),
+        ) &&
+        m.to?.some(
+          (toEvent: any) =>
+            toEvent.software_function?.open_application?.bundle_identifier === "com.microsoft.teams2",
+        ),
+    ),
+  );
+  assert.ok(teamsRule, "expected rule for right_command + t -> Microsoft Teams was not found");
+});
+
+

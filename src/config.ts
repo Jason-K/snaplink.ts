@@ -15,7 +15,6 @@ import {
   NUMPAD_REMAPS,
   // pointerTweaks,
   simultaneousBindings,
-  simultaneousMappings,
   tapHoldBindings,
 } from "./definitions";
 import type { Binding, PointerTweak } from "./data";
@@ -113,10 +112,7 @@ export function buildRules(): { rules: Rule[]; analysis: AnalysisReport } {
     // Chords stay ahead of everything: a single-key rule for one of a chord's
     // members can consume the chord's first key-down, and trigger order alone
     // cannot express that dependency.
-    ...generateSimultaneousRules(
-      simultaneousBindings.length ? simultaneousBindings : simultaneousMappings,
-      tapHoldBindings,
-    ),
+    ...generateSimultaneousRules(simultaneousBindings, tapHoldBindings),
     ...emitRules(plans),
     // Last: these claim pointer motion, which no key rule competes for, so
     // their position is free — and keeping them out of the key-rule block keeps

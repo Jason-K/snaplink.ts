@@ -90,6 +90,8 @@ export const VARS = {
 
   /** Right mouse button held down state variable. */
   rButtonDown: varId("right_button_pressed", "Right button held"),
+  /** Right command key held down state variable. */
+  rCmdDown: varId("right_command_pressed", "Right command held"),
   /** Scroll wheel held down state variable. */
   wheelDown: varId("wheel_down", "Wheel held down"),
   /** Left mouse button held down state variable. */

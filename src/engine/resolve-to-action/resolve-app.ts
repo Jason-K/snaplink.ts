@@ -81,22 +81,18 @@ export function resolveAppTarget(
       : { bundleIdentifier: ref };
   }
   if (ref.type === "path") {
-    const p = ref.path ?? (ref as any).name;
-    return { filePath: Array.isArray(p) ? p[0]! : p };
-  }
-  if (ref.path) {
     const p = Array.isArray(ref.path) ? ref.path[0]! : ref.path;
     return { filePath: p };
   }
-  if (ref.bundleId) {
-    const b = Array.isArray(ref.bundleId) ? ref.bundleId[0]! : ref.bundleId;
-    return { bundleIdentifier: b };
-  }
-  if ((ref as any).name) {
-    const n = Array.isArray((ref as any).name) ? (ref as any).name[0]! : (ref as any).name;
-    return n.startsWith("/") || n.endsWith(".app")
-      ? { filePath: n }
-      : { bundleIdentifier: n };
+  if (ref.type === "app") {
+    if (ref.path) {
+      const p = Array.isArray(ref.path) ? ref.path[0]! : ref.path;
+      return { filePath: p };
+    }
+    if (ref.bundleId) {
+      const b = Array.isArray(ref.bundleId) ? ref.bundleId[0]! : ref.bundleId;
+      return { bundleIdentifier: b };
+    }
   }
   throw new Error(`Invalid AppSpec: missing bundleId or path`);
 }
@@ -120,7 +116,7 @@ export function resolveAppExclusions(
         bundleIds.push(target);
       }
     } else if (target.type === "path") {
-      const p = target.path ?? (target as any).name;
+      const p = target.path;
       if (Array.isArray(p)) filePaths.push(...p);
       else if (p) filePaths.push(p);
     } else if (target.type === "app") {
@@ -134,18 +130,10 @@ export function resolveAppExclusions(
         if (Array.isArray(p)) filePaths.push(...p);
         else filePaths.push(p);
       }
-    } else if ((target as any).bundleId) {
-      const b = (target as any).bundleId;
-      if (Array.isArray(b)) bundleIds.push(...b);
-      else bundleIds.push(b);
-    } else if ((target as any).path) {
-      const p = (target as any).path;
-      if (Array.isArray(p)) filePaths.push(...p);
-      else filePaths.push(p);
     }
   };
 
-  const processItem = (item: any) => {
+  const processItem = (item: AppHistoryExclude) => {
     if (!item) return;
     if (Array.isArray(item)) {
       for (const sub of item) {
@@ -153,31 +141,28 @@ export function resolveAppExclusions(
       }
       return;
     }
-    if (
-      typeof item === "string" ||
-      (typeof item === "object" &&
-        (item.type === "app" ||
-          item.type === "path" ||
-          ("bundleId" in item && !("bundle_identifiers" in item || "exclusionBundleIdentifiers" in item)) ||
-          ("path" in item && !("file_paths" in item || "exclusionFilePaths" in item))))
-    ) {
+    if (typeof item === "string") {
       addTarget(item);
       return;
     }
     if (typeof item === "object") {
-      if (item.exclude) {
+      if ("type" in item && (item.type === "app" || item.type === "path")) {
+        addTarget(item as AppTarget);
+        return;
+      }
+      if ("exclude" in item && item.exclude) {
         processItem(item.exclude);
       }
-      if (item.bundle_identifiers) {
+      if ("bundle_identifiers" in item && item.bundle_identifiers) {
         bundleIds.push(...item.bundle_identifiers);
       }
-      if (item.exclusionBundleIdentifiers) {
-        bundleIds.push(...item.exclusionBundleIdentifiers);
-      }
-      if (item.file_paths) {
+      if ("file_paths" in item && item.file_paths) {
         filePaths.push(...item.file_paths);
       }
-      if (item.exclusionFilePaths) {
+      if ("exclusionBundleIdentifiers" in item && item.exclusionBundleIdentifiers) {
+        bundleIds.push(...item.exclusionBundleIdentifiers);
+      }
+      if ("exclusionFilePaths" in item && item.exclusionFilePaths) {
         filePaths.push(...item.exclusionFilePaths);
       }
     }
@@ -186,7 +171,7 @@ export function resolveAppExclusions(
   processItem(exclude);
 
   return {
-    ...(bundleIds.length > 0 ? { exclusionBundleIdentifiers: bundleIds } : {}),
-    ...(filePaths.length > 0 ? { exclusionFilePaths: filePaths } : {}),
+    ...(bundleIds.length ? { exclusionBundleIdentifiers: [...new Set(bundleIds)] } : {}),
+    ...(filePaths.length ? { exclusionFilePaths: [...new Set(filePaths)] } : {}),
   };
 }

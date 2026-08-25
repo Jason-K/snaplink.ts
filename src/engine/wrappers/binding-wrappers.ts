@@ -16,8 +16,18 @@ import type { AcceptUndefined } from "../../types/util";
 import type { PointerAxis } from "../../types/karabiner";
 import { when, type StateItem, type WhenWrapper } from "./condition-wrappers";
 import { conditionKind } from "../resolve-conditions";
+import { isPointerButton } from "../utils";
 import { from, type FromInput, triggerKeys, triggerPointer } from "./from-action-wrappers";
-import { CaseBuilder, type ActionInput, type ToWrapper } from "./to-action-wrappers";
+import {
+  button,
+  CaseBuilder,
+  hold,
+  key,
+  release,
+  to,
+  type ActionInput,
+  type ToWrapper,
+} from "./to-action-wrappers";
 
 /**
  * Configuration options for a Karabiner `Binding` (excluding trigger and cases).
@@ -412,17 +422,27 @@ export function bind(
 export function bindKeys(
   keys: KeyCode | KeyCode[],
   cases: Case | Case[],
-  modifiersOrOptions?: TriggerModifiers | BindingOptions,
-  options?: BindingOptions,
+  modifiersOrOptions?: TriggerModifiers | BindingOptions | OptionsWrapper,
+  options?: BindingOptions | OptionsWrapper,
 ): Binding {
   let modifiers: TriggerModifiers | undefined;
   let opts: BindingOptions | undefined;
 
+  const normalizeOpts = (
+    o: BindingOptions | OptionsWrapper | undefined,
+  ): BindingOptions | undefined => {
+    if (!o) return undefined;
+    if (typeof o === "object" && "kind" in o && (o as OptionsWrapper).kind === "options") {
+      return (o as OptionsWrapper).opts as BindingOptions;
+    }
+    return o as BindingOptions;
+  };
+
   if (isTriggerModifiers(modifiersOrOptions)) {
     modifiers = modifiersOrOptions;
-    opts = options;
+    opts = normalizeOpts(options);
   } else {
-    opts = modifiersOrOptions;
+    opts = normalizeOpts(modifiersOrOptions);
     modifiers = opts?.modifiers;
   }
 
@@ -456,17 +476,27 @@ export function bindKeys(
 export function bindPointer(
   pointer: PointerButtonAlias,
   cases: Case | Case[],
-  modifiersOrOptions?: TriggerModifiers | BindingOptions,
-  options?: BindingOptions,
+  modifiersOrOptions?: TriggerModifiers | BindingOptions | OptionsWrapper,
+  options?: BindingOptions | OptionsWrapper,
 ): Binding {
   let modifiers: TriggerModifiers | undefined;
   let opts: BindingOptions | undefined;
 
+  const normalizeOpts = (
+    o: BindingOptions | OptionsWrapper | undefined,
+  ): BindingOptions | undefined => {
+    if (!o) return undefined;
+    if (typeof o === "object" && "kind" in o && (o as OptionsWrapper).kind === "options") {
+      return (o as OptionsWrapper).opts as BindingOptions;
+    }
+    return o as BindingOptions;
+  };
+
   if (isTriggerModifiers(modifiersOrOptions)) {
     modifiers = modifiersOrOptions;
-    opts = options;
+    opts = normalizeOpts(options);
   } else {
-    opts = modifiersOrOptions;
+    opts = normalizeOpts(modifiersOrOptions);
     modifiers = opts?.modifiers;
   }
 
@@ -570,8 +600,8 @@ export const bindChord = bindSimultaneous;
 export function bindTable(
   phase: Phase,
   table: Partial<Record<KeyCode, ActionInput | ActionInput[] | Case | Case[]>>,
-  modifiersOrOptions?: TriggerModifiers | BindingOptions,
-  options?: BindingOptions,
+  modifiersOrOptions?: TriggerModifiers | BindingOptions | OptionsWrapper,
+  options?: BindingOptions | OptionsWrapper,
 ): Binding[] {
   return (Object.keys(table) as KeyCode[]).map((keyCode) => {
     const value = table[keyCode] as ActionInput | ActionInput[] | Case | Case[];
@@ -705,7 +735,7 @@ export function motionToScroll(
     for (const arg of args) {
       if (!arg) continue;
       if (typeof arg === "object" && arg !== null) {
-        if ("kind" in arg && (arg as any).kind === "when") {
+        if ("kind" in arg && (arg as { kind: string }).kind === "when") {
           rawConditions.push(...(arg as WhenWrapper).conditions);
           continue;
         }
@@ -731,7 +761,7 @@ export function motionToScroll(
         trigger = arg as PointerMotionTrigger;
         continue;
       }
-      const resolved = when(arg as any);
+      const resolved = when(arg as StateItem);
       rawConditions.push(...resolved.conditions);
     }
 
@@ -752,7 +782,7 @@ export function motionToScroll(
   const conditions: Condition[] = [];
   if (opts.conditions) {
     for (const c of opts.conditions) {
-      if ("kind" in c && (c as any).kind === "when") {
+      if ("kind" in c && (c as { kind: string }).kind === "when") {
         conditions.push(...(c as WhenWrapper).conditions);
       } else {
         conditions.push(c as Condition);
@@ -760,10 +790,10 @@ export function motionToScroll(
     }
   }
   if (opts.when) {
-    if (typeof opts.when === "object" && opts.when !== null && "kind" in opts.when && (opts.when as any).kind === "when") {
+    if (typeof opts.when === "object" && opts.when !== null && "kind" in opts.when && (opts.when as { kind: string }).kind === "when") {
       conditions.push(...(opts.when as WhenWrapper).conditions);
     } else {
-      const resolved = when(opts.when as any);
+      const resolved = when(opts.when as StateItem);
       conditions.push(...resolved.conditions);
     }
   }
@@ -811,5 +841,141 @@ export function pointerTransform(options: PointerTransformOptions | PointerTrans
   } as PointerTransform;
 }
 
+/**
+ * Configuration options for {@link holdLayer}.
+ */
+export type HoldLayerOptions = {
+  /**
+   * The trigger input that activates the layer while held down (e.g. `"R.cmd"`, `"caps_lock"`, `"button2"`).
+   */
+  trigger: FromInput;
 
+  /**
+   * State variable tracking whether the trigger is held down.
+   * If provided, this variable is set to 1 while held and reset to 0 on release (`to_after_key_up`).
+   * If omitted, a variable is synthesized from the trigger identifier.
+   */
+  variable?: VarSpec | string;
 
+  /**
+   * Action(s) or key emitted if the trigger is tapped and released alone (without pressing any chord key).
+   * If not specified, defaults to emitting the trigger key itself with `{ repeat: false }`.
+   */
+  tapAlone?: ActionInput | ActionInput[] | Case | Case[];
+
+  /**
+   * Optional timing parameters for the hold trigger (e.g. `aloneMs`, `holdMs`).
+   */
+  timing?: {
+    aloneMs?: number;
+    holdMs?: number;
+    heldThresholdMs?: number;
+    delayedMs?: number;
+  };
+
+  /**
+   * Optional condition or conditions gating the entire layer (e.g., specific device or app).
+   */
+  when?: WhenWrapper | Condition | Condition[] | StateItem | readonly StateItem[] | unknown;
+
+  /**
+   * Optional rule description for the layer in Karabiner Settings GUI.
+   */
+  description?: string;
+
+  /**
+   * Quick-launch / chord bindings table mapped while the trigger is held down.
+   * Values can be action inputs (which default to "press" phase) or explicit `Case` items.
+   */
+  bindings: Partial<Record<KeyCode, ActionInput | ActionInput[] | Case | Case[]>>;
+};
+
+/**
+ * Constructs a momentary hold layer (dual-role modifier/hold layer) that:
+ * 1. Tracks its active state via a Karabiner variable (`whileHoldVar`), setting it to 1 while held and 0 on release.
+ * 2. Emits a tap-alone action (or base key) on release if tapped alone, with `suppressCancelFallback: true` to prevent modifier leakage when chords are pressed.
+ * 3. Maps the chord bindings table with phase `"press"` gated by the layer's variable condition.
+ *
+ * @param config - Hold layer configuration options.
+ * @returns An array of {@link Binding} objects containing the trigger binding and all gated chord bindings.
+ *
+ * @example
+ * ```ts
+ * holdLayer({
+ *   trigger: "R.cmd",
+ *   variable: VARS.rCmdDown,
+ *   tapAlone: key("R.cmd", { repeat: false }),
+ *   bindings: {
+ *     a: APPS.antinote,
+ *     b: APPS.brave,
+ *     o: APPS.outlook,
+ *     t: APPS.teams,
+ *   },
+ * })
+ * ```
+ */
+export function holdLayer(config: HoldLayerOptions): Binding[] {
+  let varSpec: VarSpec;
+  if (typeof config.variable === "string") {
+    varSpec = { name: config.variable, varDesc: `${config.variable} held` };
+  } else if (config.variable && typeof config.variable === "object" && "name" in config.variable) {
+    varSpec = config.variable;
+  } else {
+    const rawTrigger = typeof config.trigger === "string" ? config.trigger : "layer";
+    const name = `layer_${String(rawTrigger).replace(/[^a-zA-Z0-9_]/g, "_")}_pressed`;
+    varSpec = { name, varDesc: `Layer ${String(rawTrigger)} held` };
+  }
+
+  let defaultTapAction: ActionInput | ActionInput[];
+  if (typeof config.trigger === "string" && isPointerButton(config.trigger)) {
+    defaultTapAction = button(config.trigger as PointerButtonAlias, { repeat: false });
+  } else if (typeof config.trigger === "string") {
+    defaultTapAction = key(config.trigger as KeyCode, { repeat: false });
+  } else {
+    defaultTapAction = [];
+  }
+
+  const tapActionInput = config.tapAlone !== undefined ? config.tapAlone : defaultTapAction;
+  const triggerCases: Case[] = isCaseOrCaseArray(tapActionInput)
+    ? (Array.isArray(tapActionInput) ? tapActionInput : [tapActionInput])
+    : [release(tapActionInput as ActionInput | ActionInput[]), hold([])];
+
+  const triggerArgs: BindArg[] = [
+    to(...triggerCases),
+    options({
+      whileHoldVar: varSpec,
+      suppressCancelFallback: true,
+      ...(config.timing ? { timing: config.timing } : {}),
+      ...(config.description ? { description: config.description } : {}),
+    }),
+  ];
+
+  if (config.when !== undefined) {
+    if (typeof config.when === "object" && config.when !== null && "kind" in config.when && (config.when as { kind: string }).kind === "when") {
+      triggerArgs.push(config.when as WhenWrapper);
+    } else {
+      triggerArgs.push(when(config.when as StateItem));
+    }
+  }
+
+  const triggerBinding = bind(config.trigger, ...triggerArgs);
+
+  const chordConditions: (WhenWrapper | Condition)[] = [when(varSpec)];
+  if (config.when !== undefined) {
+    if (typeof config.when === "object" && config.when !== null && "kind" in config.when && (config.when as { kind: string }).kind === "when") {
+      chordConditions.push(config.when as WhenWrapper);
+    } else {
+      chordConditions.push(when(config.when as StateItem));
+    }
+  }
+
+  const chordBindings = (Object.keys(config.bindings) as KeyCode[]).map((keyCode) => {
+    const value = config.bindings[keyCode] as ActionInput | ActionInput[] | Case | Case[];
+    const cases = isCaseOrCaseArray(value)
+      ? value
+      : new CaseBuilder("press", value as ActionInput | ActionInput[]);
+    return bind(from(keyCode), to(cases), ...chordConditions);
+  });
+
+  return [triggerBinding, ...chordBindings];
+}

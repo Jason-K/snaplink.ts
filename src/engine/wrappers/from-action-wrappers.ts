@@ -7,7 +7,7 @@ import {
   type TriggerModifiers,
 } from "../../data";
 import { isPointerButton, resolveKeyAlias } from "../utils";
-import type { SimultaneousOptions } from "../resolve-trigger/simultaneous-rules";
+import type { SimultaneousOptions } from "../../types/karabiner";
 
 export type { TriggerKey };
 

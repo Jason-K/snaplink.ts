@@ -23,9 +23,6 @@ export function ioSignature(t: Trigger): string {
   return `keys:${[...keys].sort().join(",")}|mods:${mods}|order:${order}`;
 }
 
-/** Legacy alias for ioSignature */
-export const triggerSignature = ioSignature;
-
 /** Resolve a pointer alias (or raw button id) → button + nameScope + label. */
 export function resolveButton(pointer: string): {
   button: PointingButton;

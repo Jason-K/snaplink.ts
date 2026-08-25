@@ -9,7 +9,6 @@ export {
   type KeyCode,
   type ModComboAlias,
   type ModKey,
-  type StandardKeyCode,
 } from "../constants/keys";
 export {
   BUTTONS,
@@ -17,7 +16,6 @@ export {
   type ButtonSpec,
   type ButtonAlias,
   type DeviceName,
-  type KnownPointerButton,
   type PointerButtonAlias,
   type TriggerKey,
 } from "./buttons";
