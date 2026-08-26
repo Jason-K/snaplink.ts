@@ -11,7 +11,13 @@ export {
   type ModKey,
 } from "./keys";
 export { DEFAULT_PROFILE, PREFERRED_PROFILE } from "./profiles";
-export { DEFAULT_TIMINGS, KB_TIMINGS, MOUSE_TIMINGS, TIMINGS } from "./timings";
+export {
+  KB_TIMINGS,
+  MOUSE_TIMINGS,
+  TIMING_PROFILES,
+  isTimingProfileName,
+  type TimingProfileName,
+} from "./timings";
 export {
   ACCESSIBILITY_ROLES,
   INPUT_SOURCES,

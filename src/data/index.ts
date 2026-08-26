@@ -57,12 +57,10 @@ export { SHELL_ENV, FINDER_REPLACEMENT, HOME, HOMEBREW_PREFIX, SHARED_VENV, TP_C
 export { DEFAULT_PROFILE, PREFERRED_PROFILE } from "./constants/profiles";
 export { DEFAULTS, KB_DEFAULTS, MOUSE_DEFAULTS } from "./constants/devices";
 export {
-  DEFAULT_TIMINGS,
   isTimingProfileName,
   KB_TIMINGS,
   MOUSE_TIMINGS,
   TIMING_PROFILES,
-  TIMINGS,
   type TimingProfileName,
 } from "./constants/timings";
 export {

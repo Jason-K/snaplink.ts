@@ -22,7 +22,6 @@
 import {
   KB_TIMINGS,
   MOUSE_TIMINGS,
-  TIMINGS,
   type Action,
   type Binding,
   type Case,
@@ -150,7 +149,7 @@ export function effectiveTapHoldTimings(b: Binding): { aloneMs: number; holdMs: 
  * in that expression — hence {@link multiTapIgnoresHoldMs}.
  */
 export function effectiveMultiTapThreshold(b: Binding): number {
-  return b.timing?.aloneMs ?? b.timing?.heldThresholdMs ?? TIMINGS.timeoutDoubleTapMs;
+  return b.timing?.aloneMs ?? b.timing?.heldThresholdMs ?? KB_TIMINGS.timeoutDoubleTapMs;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

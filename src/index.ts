@@ -20,7 +20,6 @@ import { join } from "node:path";
 import {
   GLOBAL_SETTINGS,
   DEFAULT_PROFILE,
-  DEFAULT_TIMINGS,
   PATHS,
   PREFERRED_PROFILE,
 } from "./data";
@@ -74,7 +73,6 @@ function main(): void {
     {
       profileName,
       rules,
-      parameters: DEFAULT_TIMINGS,
       simpleModifications: getProfileSpec(profileName).simpleModifications,
       devices: DEVICE_CONFIGS,
       globalSettings: GLOBAL_SETTINGS,

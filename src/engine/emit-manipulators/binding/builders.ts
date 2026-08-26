@@ -7,8 +7,8 @@ import type {
 } from "../../../types/karabiner";
 import { map, toKey, toPointingButton, toSetVar } from "../../karabiner-helpers";
 import {
+  KB_TIMINGS,
   MOUSE_TIMINGS,
-  TIMINGS,
   type ActionKeyModifier,
   type Binding,
   type Condition,
@@ -91,7 +91,7 @@ export function buildGuard(b: Binding, resolved: ResolvedCase[]): Manipulator[] 
   }
   const guardCase = guardCases[0]!;
   const varName = b.guardVar ?? deriveGuardVar(b.trigger);
-  const timeoutMs = b.guardMs ?? TIMINGS.timeoutDoubleTapMs;
+  const timeoutMs = b.guardMs ?? KB_TIMINGS.timeoutDoubleTapMs;
   const combo = guardCase.do.length > 0 ? guardCase.do : deriveTriggerToEvents(b.trigger);
   if (combo.length === 0) {
     throw new Error(

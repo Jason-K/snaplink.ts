@@ -12,12 +12,12 @@ import {
   toSetVar,
   type ConditionBuilder,
 } from "../karabiner-helpers";
-import { KB_TIMINGS, DEFAULT_TIMINGS, TIMINGS } from "../../data";
+import { KB_TIMINGS } from "../../data";
 import { isModifierKey } from "../utils";
 
 /**
  * Helper to compute manipulator-level parameters ONLY for values that differ
- * from profile-level baseline parameters (`DEFAULT_TIMINGS`).
+ * from profile-level baseline parameters (`KB_TIMINGS`).
  */
 function resolveDiffParams(
   aloneMs?: number,
@@ -27,19 +27,19 @@ function resolveDiffParams(
   const params: Record<string, number> = {};
   if (
     aloneMs !== undefined &&
-    aloneMs !== DEFAULT_TIMINGS["basic.to_if_alone_timeout_milliseconds"]
+    aloneMs !== KB_TIMINGS.aloneMs
   ) {
     params["basic.to_if_alone_timeout_milliseconds"] = aloneMs;
   }
   if (
     holdMs !== undefined &&
-    holdMs !== DEFAULT_TIMINGS["basic.to_if_held_down_threshold_milliseconds"]
+    holdMs !== KB_TIMINGS.holdMs
   ) {
     params["basic.to_if_held_down_threshold_milliseconds"] = holdMs;
   }
   if (
     delayedMs !== undefined &&
-    delayedMs !== DEFAULT_TIMINGS["basic.to_delayed_action_delay_milliseconds"]
+    delayedMs !== KB_TIMINGS.delayedMs
   ) {
     params["basic.to_delayed_action_delay_milliseconds"] = delayedMs;
   }
@@ -245,7 +245,7 @@ export function varTapTapHoldFrom({
   holdEvents,
   doubleTapEvents,
   doubleTapHoldEvents,
-  thresholdMs = TIMINGS.timeoutDoubleTapMs,
+  thresholdMs = KB_TIMINGS.timeoutDoubleTapMs,
   description,
   allowPassThrough,
   mods,
@@ -363,7 +363,7 @@ export function varTapTapHold({
   holdEvents,
   doubleTapEvents,
   doubleTapHoldEvents,
-  thresholdMs = TIMINGS.timeoutDoubleTapMs,
+  thresholdMs = KB_TIMINGS.timeoutDoubleTapMs,
   description,
   allowPassThrough,
   mods,

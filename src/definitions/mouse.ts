@@ -1,5 +1,5 @@
 import { toTrigger } from "../engine/resolve-to-action";
-import { APPS, CMDS, COMBOS, DEVICES, TIMINGS, URLS, VARS, VM } from "../data";
+import { APPS, CMDS, COMBOS, DEVICES, MOUSE_TIMINGS, URLS, VARS, VM } from "../data";
 import {
   bind,
   condApp,
@@ -49,8 +49,8 @@ export const mouseBindings: Binding[] = [
     from("wheelLeft"),
     to(hold(URLS.hsWinLeftTop), delayedSingleTap(key("left_arrow", VM.C_CS)).when([APPS.zen, VARS.rButtonDown])),
     timing({
-      aloneMs: TIMINGS.timeoutWheelChordMs,
-      holdMs: TIMINGS.timeoutWheelChordMs,
+      aloneMs: MOUSE_TIMINGS.timeoutWheelChordMs,
+      holdMs: MOUSE_TIMINGS.timeoutWheelChordMs,
     }),
   ),
   // -------------------------------------------------------------
@@ -60,8 +60,8 @@ export const mouseBindings: Binding[] = [
     from("wheelRight"),
     to(hold(URLS.hsWinRightBottom), delayedSingleTap(key("right_arrow", VM.C_CS)).when([APPS.zen, VARS.rButtonDown])),
     timing({
-      aloneMs: TIMINGS.timeoutWheelChordMs,
-      holdMs: TIMINGS.timeoutWheelChordMs,
+      aloneMs: MOUSE_TIMINGS.timeoutWheelChordMs,
+      holdMs: MOUSE_TIMINGS.timeoutWheelChordMs,
     }),
   ),
   // -------------------------------------------------------------

@@ -1071,7 +1071,7 @@ export type HoldLayerOptions = {
  *
  * The constructed layer automatically:
  * 1. Tracks hold state via a Karabiner variable (`whileHoldVar`), setting it to 1 on press and 0 on release.
- * 2. Emits {@link HoldLayerOptions.tapAlone} on release if tapped alone, with `suppressCancelFallback: true` to prevent key leakage when chords are pressed.
+ * 2. Emits `tapAlone` on release if tapped alone, with `suppressCancelFallback: true` to prevent key leakage when chords are pressed.
  * 3. Maps the chord bindings table with phase `"press"` gated by the layer's variable condition.
  *
  * @param config - Hold layer configuration options matching {@link HoldLayerOptions}.

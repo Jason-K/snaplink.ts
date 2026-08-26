@@ -26944,8 +26944,31 @@
         ]
       },
       {
-        "description": "[P]:\n---\n\tOn Hold:\n\t\tAlways:\tmap 'show showPopclip'",
+        "description": "[P]:\n---\n\tOn Tap:\n\t\tRight command held:\topen Proton Mail\n\tOn Hold:\n\t\tAlways:\tmap 'show showPopclip'",
         "manipulators": [
+          {
+            "type": "basic",
+            "from": {
+              "key_code": "p"
+            },
+            "description": "Right command held",
+            "conditions": [
+              {
+                "type": "variable_if",
+                "name": "right_command_pressed",
+                "value": 1
+              }
+            ],
+            "to": [
+              {
+                "software_function": {
+                  "open_application": {
+                    "bundle_identifier": "ch.protonmail.desktop"
+                  }
+                }
+              }
+            ]
+          },
           {
             "type": "basic",
             "from": {

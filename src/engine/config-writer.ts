@@ -32,6 +32,7 @@ import type { DeviceConfig } from "./resolve-trigger/device-config";
 import { expandDeviceConfigs, getDeviceKey } from "./resolve-trigger/device-config";
 import type { ProfileSpec } from "../data/primitives/profiles";
 import { PROFILES } from "../data/registries/profiles";
+import { KB_TIMINGS, MOUSE_TIMINGS } from "../data";
 
 /** Karabiner-Elements writes this file with 4-space indentation; match it so
  * hand edits and generated writes produce minimal diffs. */
@@ -42,6 +43,23 @@ const BACKUP_RETENTION = 10;
 
 const BACKUP_PREFIX = "karabiner.json.bak_";
 const BACKUP_NAME_PATTERN = /^karabiner\.json\.bak_\d{8}_\d{6}$/;
+
+/**
+ * Infers the profile-level complex modifications parameters dictionary
+ * from keyboard and mouse timing constants.
+ */
+export function inferProfileParameters(
+  kb: typeof KB_TIMINGS = KB_TIMINGS,
+  mouse: typeof MOUSE_TIMINGS = MOUSE_TIMINGS,
+): KarabinerParameters {
+  return {
+    "basic.simultaneous_threshold_milliseconds": kb.simultaneousMs,
+    "basic.to_if_alone_timeout_milliseconds": kb.aloneMs,
+    "basic.to_if_held_down_threshold_milliseconds": kb.holdMs,
+    "basic.to_delayed_action_delay_milliseconds": kb.delayedMs,
+    "mouse_motion_to_scroll.speed": mouse.scrollSpeed,
+  };
+}
 
 /**
  * Resolves a ProfileSpec by profile name, defaulting to the preferred profile (`jjkDefault`).
@@ -204,7 +222,7 @@ export function applyConfigUpdate(
     ...current,
     ...(isTargetSelected ? { selected: true } : {}),
     complex_modifications: {
-      ...(update.parameters ? { parameters: update.parameters } : {}),
+      parameters: update.parameters ?? inferProfileParameters(),
       rules: update.rules,
     },
     ...(update.simpleModifications

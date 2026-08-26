@@ -267,8 +267,11 @@ const modifierKeyBindings: Binding[] = [
     bindings: {
       a: APPS.antinote,
       b: APPS.brave,
+      c: APPS.claude,
       o: APPS.outlook,
+      p: APPS.protonMail,
       t: APPS.teams,
+      v: APPS.code,
     },
   }),
 
