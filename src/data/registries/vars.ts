@@ -39,6 +39,10 @@ export const VARS = {
   elementSubtype: axVar("subrole_string", "UI element subrole is"),
   /** Title / label of the focused UI element. */
   elementTitle: axVar("title_string", "UI element title is"),
+  /** Title of the window containing the focused UI element. */
+  windowTitle: axVar("window_title_string", "Window title is"),
+  /** Alias for windowTitle. Title of the window containing the focused UI element. */
+  winTitle: axVar("window_title_string", "Window title is"),
   /** X position of the focused element's window. */
   winPosX: axVar("window_position_x", "Window X position"),
   /** Y position of the focused element's window. */

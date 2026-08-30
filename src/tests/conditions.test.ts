@@ -110,3 +110,21 @@ test("unless builder enforces negation across all items", () => {
     { app: APPS.zen, unless: true },
   ]);
 });
+
+test("accessibility window_title_string variable condition", () => {
+  assert.equal(
+    VARS.windowTitle.name,
+    "accessibility.focused_ui_element.window_title_string",
+  );
+  assert.equal(
+    VARS.winTitle.name,
+    "accessibility.focused_ui_element.window_title_string",
+  );
+
+  const cond = state(VARS.windowTitle, "My Window");
+  assert.deepEqual(cond, {
+    var: VARS.windowTitle,
+    equals: "My Window",
+  });
+});
+

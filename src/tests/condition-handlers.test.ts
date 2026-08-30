@@ -121,6 +121,32 @@ test("var condition compiles to variable_if / variable_unless", () => {
   });
 });
 
+test("accessibility window_title_string compiles to variable_if and expression_if with wildcard", () => {
+  const windowTitleVar: VarSpec = {
+    name: "accessibility.focused_ui_element.window_title_string",
+    varDesc: "Window title is",
+  };
+  const exact = resolveCondition({ var: windowTitleVar, equals: "Terminal" });
+  assert.deepEqual(exact, {
+    type: "variable_if",
+    name: "accessibility.focused_ui_element.window_title_string",
+    value: "Terminal",
+  });
+
+  const negated = resolveCondition({ var: windowTitleVar, equals: "Terminal", unless: true });
+  assert.deepEqual(negated, {
+    type: "variable_unless",
+    name: "accessibility.focused_ui_element.window_title_string",
+    value: "Terminal",
+  });
+
+  const wildcard = resolveCondition({ var: windowTitleVar, equals: "Slack*" });
+  assert.deepEqual(wildcard, {
+    type: "expression_if",
+    expression: "accessibility.focused_ui_element.window_title_string ilike 'Slack*'",
+  });
+});
+
 test("device condition strips registry metadata from the emitted identifiers", () => {
   const resolved = resolveCondition({ device }) as {
     type: string;

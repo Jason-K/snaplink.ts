@@ -24760,7 +24760,7 @@
         ]
       },
       {
-        "description": "[⌘]+[/]:\n---\n\tOn Tap:\n\t\tIn Security Agent/System Settings/System Settings, security/System Settings, updates/Brew auto-updater/Taphouse and UI element role is and UI element subrole is:\tRun command 'fill password'\n\t\tIn Security Agent/System Settings/System Settings, security/System Settings, updates/Brew auto-updater/Taphouse and UI element role is and not UI element subrole is:\tRun command 'fill username and password'\n\t\tIn Word:\tRun command 'get file path in word'",
+        "description": "[⌘]+[/]:\n---\n\tOn Tap:\n\t\tIn Security Agent/System Settings/System Settings, security/System Settings, updates/Brew auto-updater/Taphouse/Mac Console and UI element role is and UI element subrole is:\tRun command 'fill password'\n\t\tIn Security Agent/System Settings/System Settings, security/System Settings, updates/Brew auto-updater/Taphouse/Mac Console and UI element role is and not UI element subrole is:\tRun command 'fill username and password'\n\t\tIn Word:\tRun command 'get file path in word'",
         "manipulators": [
           {
             "type": "basic",
@@ -24772,7 +24772,7 @@
                 ]
               }
             },
-            "description": "In Security Agent/System Settings/System Settings, security/System Settings, updates/Brew auto-updater/Taphouse and UI element role is and UI element subrole is",
+            "description": "In Security Agent/System Settings/System Settings, security/System Settings, updates/Brew auto-updater/Taphouse/Mac Console and UI element role is and UI element subrole is",
             "conditions": [
               {
                 "type": "frontmost_application_if",
@@ -24782,7 +24782,8 @@
                   "com.apple.settings.PrivacySecurity",
                   "com.apple.Software-Update-Settings.extension",
                   "org.gpgtools.pinentry-mac",
-                  "com.multimodalsolutions.taphouse"
+                  "com.multimodalsolutions.taphouse",
+                  "com.apple.Console"
                 ]
               },
               {
@@ -24811,7 +24812,7 @@
                 ]
               }
             },
-            "description": "In Security Agent/System Settings/System Settings, security/System Settings, updates/Brew auto-updater/Taphouse and UI element role is and not UI element subrole is",
+            "description": "In Security Agent/System Settings/System Settings, security/System Settings, updates/Brew auto-updater/Taphouse/Mac Console and UI element role is and not UI element subrole is",
             "conditions": [
               {
                 "type": "frontmost_application_if",
@@ -24821,7 +24822,8 @@
                   "com.apple.settings.PrivacySecurity",
                   "com.apple.Software-Update-Settings.extension",
                   "org.gpgtools.pinentry-mac",
-                  "com.multimodalsolutions.taphouse"
+                  "com.multimodalsolutions.taphouse",
+                  "com.apple.Console"
                 ]
               },
               {
@@ -25339,8 +25341,31 @@
         ]
       },
       {
-        "description": "[C]:\n---\n\tOn Hold:\n\t\tAlways:\topen-shell Claude",
+        "description": "[C]:\n---\n\tOn Tap:\n\t\tRight command held:\topen Claude\n\tOn Hold:\n\t\tAlways:\topen-shell Claude",
         "manipulators": [
+          {
+            "type": "basic",
+            "from": {
+              "key_code": "c"
+            },
+            "description": "Right command held",
+            "conditions": [
+              {
+                "type": "variable_if",
+                "name": "right_command_pressed",
+                "value": 1
+              }
+            ],
+            "to": [
+              {
+                "software_function": {
+                  "open_application": {
+                    "bundle_identifier": "com.anthropic.claudefordesktop"
+                  }
+                }
+              }
+            ]
+          },
           {
             "type": "basic",
             "from": {
@@ -27510,8 +27535,31 @@
         ]
       },
       {
-        "description": "[V]:\n---\n\tOn Hold:\n\t\tAlways:\tCall 'open Raycast clipboard manager'",
+        "description": "[V]:\n---\n\tOn Tap:\n\t\tRight command held:\topen Code\n\tOn Hold:\n\t\tAlways:\tCall 'open Raycast clipboard manager'",
         "manipulators": [
+          {
+            "type": "basic",
+            "from": {
+              "key_code": "v"
+            },
+            "description": "Right command held",
+            "conditions": [
+              {
+                "type": "variable_if",
+                "name": "right_command_pressed",
+                "value": 1
+              }
+            ],
+            "to": [
+              {
+                "software_function": {
+                  "open_application": {
+                    "bundle_identifier": "com.microsoft.VSCode"
+                  }
+                }
+              }
+            ]
+          },
           {
             "type": "basic",
             "from": {

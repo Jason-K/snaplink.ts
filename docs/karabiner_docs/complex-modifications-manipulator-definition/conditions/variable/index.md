@@ -138,8 +138,9 @@ You can use these variables to [modify behavior only unless an input field is fo
 | ----------------------------------------------------- | ------- | ----------------------------------------------- | --------------------------- |
 | `accessibility.focused_ui_element.role_string`        | string  | kAXRoleAttribute                                | Karabiner-Elements 15.90.22 |
 | `accessibility.focused_ui_element.subrole_string`     | string  | kAXSubroleAttribute                             | Karabiner-Elements 15.90.22 |
-| `accessibility.focused_ui_element.title_string`       | string  | kAXTitleAttribute                               | Karabiner-Elements 15.90.22 |
-| `accessibility.focused_ui_element.window_position_x`  | integer | kAXWindowAttribute or kAXFocusedWindowAttribute | Karabiner-Elements 15.90.17 |
+| `accessibility.focused_ui_element.title_string`        | string  | kAXTitleAttribute                               | Karabiner-Elements 15.90.22 |
+| `accessibility.focused_ui_element.window_title_string` | string  | kAXTitleAttribute of window                     | Karabiner-Elements 15.90.22 |
+| `accessibility.focused_ui_element.window_position_x`   | integer | kAXWindowAttribute or kAXFocusedWindowAttribute | Karabiner-Elements 15.90.17 |
 | `accessibility.focused_ui_element.window_position_y`  | integer | kAXWindowAttribute or kAXFocusedWindowAttribute | Karabiner-Elements 15.90.17 |
 | `accessibility.focused_ui_element.window_size_height` | integer | kAXWindowAttribute or kAXFocusedWindowAttribute | Karabiner-Elements 15.90.17 |
 | `accessibility.focused_ui_element.window_size_width`  | integer | kAXWindowAttribute or kAXFocusedWindowAttribute | Karabiner-Elements 15.90.17 |

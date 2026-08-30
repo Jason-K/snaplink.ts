@@ -33,6 +33,7 @@ export const APPS = {
   myFinder: app("com.jinghaoshe.qspace.pro", "QSpace"),
   helium: app("net.imput.helium", "Helium"),
   kitty: app("net.kovidgoyal.kitty", "Kitty"),
+  macConsole: app("com.apple.Console", "Mac Console"),
   messages: app("com.apple.MobileSMS", "Messages"),
   numi: app("com.nikolaeu.numi-setapp", "Numi"),
   onePiece: app("jp.fuji.1Piece", "1Piece"),
@@ -68,6 +69,7 @@ export const PW_IDS: AppSpec[] = [
   APPS.settingsUpdates,
   APPS.brewUpdater,
   APPS.taphouse,
+  APPS.macConsole,
 ];
 
 export const IGNORE_IDS: AppSpec[] = [APPS.rectPro];
