@@ -8,7 +8,7 @@
         <key>ProgramArguments</key>
         <array>
             <string>/bin/bash</string>
-            <string>__HOME__/Scripts/apps/karabiner/karabiner.ts/scripts/start-layer-indicator-user-command-server.sh</string>
+            <string>__HOME__/Scripts/apps/karabiner/snaplink.ts/scripts/start-layer-indicator-user-command-server.sh</string>
         </array>
 
         <key>RunAtLoad</key>

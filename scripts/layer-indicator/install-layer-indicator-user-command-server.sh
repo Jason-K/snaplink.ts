@@ -126,24 +126,46 @@ write_rotate_plist() {
 PLIST
 }
 
+if [[ "$(id -u)" -eq 0 ]]; then
+  echo "Error: Do not run this script with sudo or as root. LaunchAgents must run in your per-user GUI session domain." >&2
+  exit 1
+fi
+
+wait_for_unloaded() {
+  local service_target="$1"
+  local max_attempts=50
+  local attempt=0
+  while launchctl print "${service_target}" >/dev/null 2>&1; do
+    attempt=$((attempt + 1))
+    if (( attempt >= max_attempts )); then
+      break
+    fi
+    sleep 0.1
+  done
+}
+
 bootout_if_loaded() {
-  launchctl bootout "${SERVICE_ID}" >/dev/null 2>&1 || true
+  if launchctl print "${SERVICE_ID}" >/dev/null 2>&1; then
+    launchctl bootout "${SERVICE_ID}" >/dev/null 2>&1 || true
+    wait_for_unloaded "${SERVICE_ID}"
+  fi
 }
 
 bootout_rotate_if_loaded() {
-  launchctl bootout "${ROTATE_SERVICE_ID}" >/dev/null 2>&1 || true
+  if launchctl print "${ROTATE_SERVICE_ID}" >/dev/null 2>&1; then
+    launchctl bootout "${ROTATE_SERVICE_ID}" >/dev/null 2>&1 || true
+    wait_for_unloaded "${ROTATE_SERVICE_ID}"
+  fi
 }
 
 bootstrap() {
   bootout_if_loaded
   launchctl bootstrap "gui/$(id -u)" "${PLIST_TARGET}"
-  launchctl kickstart -k "${SERVICE_ID}"
 }
 
 bootstrap_rotate() {
   bootout_rotate_if_loaded
   launchctl bootstrap "gui/$(id -u)" "${ROTATE_PLIST_TARGET}"
-  launchctl kickstart -k "${ROTATE_SERVICE_ID}"
 }
 
 print_status() {
