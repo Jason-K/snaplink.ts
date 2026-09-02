@@ -145,13 +145,11 @@ The direct remap and tap-hold paths use `mapSimultaneous` (`src/engine/karabiner
 
 Multi-tap chords use `sim_tap_${label}` as the first-tap tracking variable (e.g., label `"jk"` → `sim_tap_jk`). This namespacing avoids collisions with single-key multi-tap rules, which use `multi_tap_${key}`.
 
-### Conflict Detection
-
-Two validation checks run before generating rules:
+### Conflict Detection & Coexistence
 
 1. **Duplicate chords** (order-aware): Two entries are duplicates when their normalized key representation AND `key_down_order` setting match. `key_down_order: "insensitive"` (or absent) normalizes by sorting keys; `"strict"` or `"strict_inverse"` preserves array order. Entries with different order modes are never flagged — they represent distinct behavioral contracts.
 
-2. **Tap-hold overlap**: Any key appearing in a simultaneous chord that also appears as a bare (no-modifier) tap-hold key throws an error. Modifier-prefixed tap-hold entries like `"cmd+j"` are not flagged.
+2. **Tap-hold coexistence**: A key appearing in a simultaneous chord can also appear as a bare or modifier-prefixed tap-hold key. Because `buildRules()` emits chords ahead of everything else, Karabiner evaluates chords first within its simultaneous detection window (~50 ms). If the chord is not triggered, the event falls through to the downstream tap-hold rule (~250 ms threshold). The two mechanisms operate on distinct timing windows without conflict.
 
 ### Layer suppression
 

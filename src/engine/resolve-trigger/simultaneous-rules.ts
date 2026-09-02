@@ -1,12 +1,12 @@
 import type { Rule } from "../../types/karabiner";
 import type { Binding } from "../../data";
-import { defineBindings, resolveModifiers } from "../emit-manipulators/compile-binding";
+import { defineBindings } from "../emit-manipulators/compile-binding";
 
 export function generateSimultaneousRules(
   bindings: Binding[],
-  tapHoldBindings: Binding[],
+  _tapHoldBindings?: Binding[],
 ): Rule[] {
-  validateSimultaneousBindings(bindings, tapHoldBindings);
+  validateSimultaneousBindings(bindings);
   return defineBindings(bindings);
 }
 
@@ -20,7 +20,6 @@ function normalizedChordKey(keys: string[], keyDownOrder?: string): string {
 
 function validateSimultaneousBindings(
   bindings: Binding[],
-  tapHoldBindings: Binding[],
 ): void {
   for (const b of bindings) {
     const keys = "keys" in b.trigger ? b.trigger.keys : [];
@@ -50,27 +49,5 @@ function validateSimultaneousBindings(
     }
     seen.set(key, label);
   }
-
-  // Check 2: tap-hold key overlap
-  const bareHoldKeys = new Set(
-    tapHoldBindings
-      .filter((b) => {
-        if (!("keys" in b.trigger)) return false;
-        const { mandatory, optional } = resolveModifiers(b.trigger.modifiers);
-        return mandatory.length === 0 && optional.length === 0;
-      })
-      .flatMap((b) => (b.trigger as { keys: string[] }).keys),
-  );
-  for (const b of bindings) {
-    const keys = "keys" in b.trigger ? b.trigger.keys : [];
-    const label = b.description ?? keys.join("+");
-    for (const key of keys) {
-      if (bareHoldKeys.has(key)) {
-        throw new Error(
-          `Simultaneous chord "${label}" conflict: key "${key}" is also defined as a bare tap-hold key. ` +
-            `Add a modifier prefix to the tap-hold entry (e.g., "cmd+${key}") to resolve the ambiguity.`,
-        );
-      }
-    }
-  }
 }
+

@@ -34,6 +34,46 @@
         ]
       },
       {
+        "description": "[Q]+[R]:\n---\n\tOn Tap:\n\t\tAlways:\tRun command 'get recent items from script'",
+        "manipulators": [
+          {
+            "type": "basic",
+            "from": {
+              "simultaneous": [
+                {
+                  "key_code": "q"
+                },
+                {
+                  "key_code": "r"
+                }
+              ],
+              "modifiers": {
+                "optional": [
+                  "any"
+                ]
+              }
+            },
+            "parameters": {
+              "basic.to_if_alone_timeout_milliseconds": 300,
+              "basic.to_if_held_down_threshold_milliseconds": 300
+            },
+            "to_if_alone": [
+              {
+                "shell_command": "$HOME'/Scripts/filesystem/recent_changes/recent_dl.sh' -a"
+              }
+            ],
+            "to_delayed_action": {
+              "to_if_invoked": [],
+              "to_if_canceled": [
+                {
+                  "shell_command": "$HOME'/Scripts/filesystem/recent_changes/recent_dl.sh' -a"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
         "description": "[CAPS] layer:\n---\n\tOn Tap:\n\t\tAlways:\tEmit ⌘⌥⌃⇧ + 'F15'\n\tOn Hold:\n\t\tAlone:\tEmit ⌘⌥⌃⇧ + key\n\t\tWith ⇧:\tEmit ⌘⌥⌃ + key\n\t\tWith ⌃:\tEmit ⌘⌥⇧ + key\n\t\tWith ⌥:\tEmit ⌘⌃⇧ + key\n\t\tWith ⌘:\tEmit ⌥⌃⇧ + key\n\t\t(the held modifier is consumed by the layer; two of them fall through)\n\t\t(where a rule already exists for that combination, it runs instead)",
         "manipulators": [
           {

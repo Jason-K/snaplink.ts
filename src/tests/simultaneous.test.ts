@@ -271,25 +271,30 @@ test("conflict 1: same keys with different key_down_order are NOT duplicates", (
   );
 });
 
-// ── Conflict check 2: tap-hold key overlap ────────────────────────────────────
+// ── Tap-hold key overlap ──────────────────────────────────────────────────────
 
-test("conflict 2: throws when a simultaneous key matches a bare tap-hold key", () => {
+test("tap-hold overlap: simultaneous chord key can match a bare tap-hold key without conflict", () => {
   const jBare: Binding[] = [
     bind("j", to(hold(key("j")))),
   ];
-  assert.throws(
-    () =>
-      generateSimultaneousRules(
-        [
-          bind(simultaneous("j", "k"), to(release(key("escape"))), options({ description: "J+K" })),
-        ],
-        jBare,
-      ),
-    /conflict/i,
+  assert.doesNotThrow(() =>
+    generateSimultaneousRules(
+      [
+        bind(simultaneous("j", "k"), to(release(key("escape"))), options({ description: "J+K" })),
+      ],
+      jBare,
+    ),
   );
+  const rules = generateSimultaneousRules(
+    [
+      bind(simultaneous("j", "k"), to(release(key("escape"))), options({ description: "J+K" })),
+    ],
+    jBare,
+  );
+  assert.equal(rules.length, 1);
 });
 
-test("conflict 2: modifier-prefixed tap-hold key does NOT conflict", () => {
+test("tap-hold overlap: modifier-prefixed tap-hold key does NOT conflict", () => {
   const jModded: Binding[] = [
     bind(from("j", ["left_command"]), to(hold(key("f1")))),
   ];
