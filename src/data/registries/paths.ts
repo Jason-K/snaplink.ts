@@ -75,7 +75,7 @@ const SCRIPT_FILES = {
   recentDls: script("filesystem/recent_changes/recent_dl.sh", "recent Dls script"),
   stringThings: script("strings/text_processor/interfaces/cli.py", "text processor cli entrypoint"),
   lastTypinatorRule: script(
-    "apps/Typinator/Edit_Last_Typinator_Expansion.applescript",
+    "apps/Typinator/edit_last_rule/Edit_Last_Typinator_Expansion.applescript",
     "edit last Typinator expansion",
   ),
   newTypinatorRule: script("apps/Typinator/new_rule/new_rule.py", "create new Typinator rule"),

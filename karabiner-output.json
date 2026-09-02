@@ -20183,7 +20183,7 @@
                 }
               },
               {
-                "shell_command": "osascript $HOME'/Scripts/apps/Typinator/Edit_Last_Typinator_Expansion.applescript'"
+                "shell_command": "osascript $HOME'/Scripts/apps/Typinator/edit_last_rule/Edit_Last_Typinator_Expansion.applescript'"
               }
             ]
           },
@@ -23067,7 +23067,7 @@
             "to_if_held_down": [
               {
                 "halt": true,
-                "shell_command": "osascript $HOME'/Scripts/apps/Typinator/Edit_Last_Typinator_Expansion.applescript'"
+                "shell_command": "osascript $HOME'/Scripts/apps/Typinator/edit_last_rule/Edit_Last_Typinator_Expansion.applescript'"
               }
             ],
             "to_delayed_action": {
@@ -23637,7 +23637,7 @@
             },
             "to": [
               {
-                "shell_command": "osascript $HOME'/Scripts/apps/Typinator/Edit_Last_Typinator_Expansion.applescript'"
+                "shell_command": "osascript $HOME'/Scripts/apps/Typinator/edit_last_rule/Edit_Last_Typinator_Expansion.applescript'"
               }
             ]
           }
@@ -24143,7 +24143,7 @@
             "to_if_held_down": [
               {
                 "halt": true,
-                "shell_command": "osascript $HOME'/Scripts/apps/Typinator/Edit_Last_Typinator_Expansion.applescript'"
+                "shell_command": "osascript $HOME'/Scripts/apps/Typinator/edit_last_rule/Edit_Last_Typinator_Expansion.applescript'"
               }
             ],
             "to_delayed_action": {
