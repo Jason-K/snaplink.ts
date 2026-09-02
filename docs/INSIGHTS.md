@@ -4,7 +4,7 @@ Manipulator semantics as they bear on *this* engine — why the pipeline is
 shaped the way it is, and the failure modes it exists to prevent.
 
 General Karabiner behaviour with upstream citations lives in
-[karabiner-gotchas.md](./karabiner_docs/karabiner-gotchas.md); where the two
+[karabiner-gotchas.md](./karabiner_refs/karabiner-gotchas.md); where the two
 overlap, that file is authoritative because its claims are sourced. This file
 keeps only what is specific to the code here.
 

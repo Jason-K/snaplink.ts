@@ -1,4 +1,4 @@
-# Karabiner Config
+# SnapLink Config
 
 Personal Karabiner-Elements configuration, written in TypeScript and compiled to
 `~/.config/karabiner/karabiner.json`.
@@ -35,45 +35,45 @@ To change a binding, edit a file in `src/definitions/` and run `npm run build`.
 
 ## Layout
 
-| Path | Role |
-| --- | --- |
-| `src/definitions/` | **The edit surface.** One `Binding[]` per concern: single keys, modified keys, caps lock, mouse, guards, disabled hotkeys, chords. |
-| `src/data/` | Registries and constants. `primitives/` are the type definitions; `registries/` are the lookup tables (apps, commands, paths, URLs, devices, hotkey combos); `constants/` are fixed values (keys, timings, mouse buttons). |
-| `src/engine/` | Rule generation. The only layer that constructs manipulators. |
-| `src/types/` | The Karabiner-Elements JSON schema, plus shared type utilities. |
-| `src/config.ts` | Assembles every binding set into the ordered rule list. Pure. |
-| `src/index.ts` | Build entry point: resolve profile, compile, write. |
-| `src/explain.ts` | `--explain` CLI (see below). |
-| `src/tests/` | Engine tests over synthetic fixtures, plus output invariants and the golden file. |
+| Path               | Role                                                                                                                                                                                                                       |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/definitions/` | **The edit surface.** One `Binding[]` per concern: single keys, modified keys, caps lock, mouse, guards, disabled hotkeys, chords.                                                                                         |
+| `src/data/`        | Registries and constants. `primitives/` are the type definitions; `registries/` are the lookup tables (apps, commands, paths, URLs, devices, hotkey combos); `constants/` are fixed values (keys, timings, mouse buttons). |
+| `src/engine/`      | Rule generation. The only layer that constructs manipulators.                                                                                                                                                              |
+| `src/types/`       | The Karabiner-Elements JSON schema, plus shared type utilities.                                                                                                                                                            |
+| `src/config.ts`    | Assembles every binding set into the ordered rule list. Pure.                                                                                                                                                              |
+| `src/index.ts`     | Build entry point: resolve profile, compile, write.                                                                                                                                                                        |
+| `src/explain.ts`   | `--explain` CLI (see below).                                                                                                                                                                                               |
+| `src/tests/`       | Engine tests over synthetic fixtures, plus output invariants and the golden file.                                                                                                                                          |
 
 Inside `src/engine/`, each pass gets a directory:
 
-| Path | Pass |
-| --- | --- |
-| `resolve-trigger/` | `Trigger` → `from` event (keys, chords, tap-hold, devices) |
-| `resolve-to-action/` | `ActionSpec` → `to` events. `action-handlers.ts` is the registry. |
-| `resolve-conditions/` | `Condition` → Karabiner condition. `condition-handlers.ts` is the registry. |
-| `resolve-cases/` | Group cases by condition into manipulators |
-| `resolve-description/` | Synthesize human-readable rule descriptions |
-| `emit-manipulators/` | Assemble the final `Manipulator[]` for one binding |
-| `emit-rules/` | Group bindings into rules and order them (see below) |
-| `analyze-conflicts/` | Detect rules that other rules make unreachable |
-| `analyze-bindings/` | Gesture lint: the failure modes inside one binding |
-| `caps-layer.ts` | The caps lock modifier layer (see below) |
-| `modal-layer.ts` | Leader-key modal layers (see below) |
-| `config-writer.ts` | The single atomic writer for `karabiner.json` |
+| Path                   | Pass                                                                        |
+| ---------------------- | --------------------------------------------------------------------------- |
+| `resolve-trigger/`     | `Trigger` → `from` event (keys, chords, tap-hold, devices)                  |
+| `resolve-to-action/`   | `ActionSpec` → `to` events. `action-handlers.ts` is the registry.           |
+| `resolve-conditions/`  | `Condition` → Karabiner condition. `condition-handlers.ts` is the registry. |
+| `resolve-cases/`       | Group cases by condition into manipulators                                  |
+| `resolve-description/` | Synthesize human-readable rule descriptions                                 |
+| `emit-manipulators/`   | Assemble the final `Manipulator[]` for one binding                          |
+| `emit-rules/`          | Group bindings into rules and order them (see below)                        |
+| `analyze-conflicts/`   | Detect rules that other rules make unreachable                              |
+| `analyze-bindings/`    | Gesture lint: the failure modes inside one binding                          |
+| `caps-layer.ts`        | The caps lock modifier layer (see below)                                    |
+| `modal-layer.ts`       | Leader-key modal layers (see below)                                         |
+| `config-writer.ts`     | The single atomic writer for `karabiner.json`                               |
 
 ## Authoring a binding
 
 ```ts
 bind(
-  from("q"),                                    // trigger
+  from("q"), // trigger
   to(
-    release(key("q", { halt: true })),          // tap
-    hold(openApp(APP_ID.qspace)),               // hold
+    release(key("q", { halt: true })), // tap
+    hold(openApp(APP_ID.qspace)), // hold
   ),
-  when(condApp(APP_ID.finder)),                 // conditions (optional)
-  options({ timing: { holdMs: 200 } }),         // options (optional)
+  when(condApp(APP_ID.finder)), // conditions (optional)
+  options({ timing: { holdMs: 200 } }), // options (optional)
 );
 ```
 
@@ -93,9 +93,9 @@ actions — you only set `description` to override.
 ### Timing: pick a feel, not four numbers
 
 ```ts
-options({ timing: { aloneMs: 200, holdMs: 200 } })   // explicit
-timing("snappy")                                      // the same thing, named
-timing("deliberate", { delayedMs: 300 })              // profile plus one override
+options({ timing: { aloneMs: 200, holdMs: 200 } }); // explicit
+timing("snappy"); // the same thing, named
+timing("deliberate", { delayedMs: 300 }); // profile plus one override
 ```
 
 Karabiner's four thresholds are independent, and one combination fails
@@ -109,13 +109,13 @@ Every profile in `TIMING_PROFILES` sets `aloneMs === holdMs`, which is the only
 relation with neither a dead zone nor a double-fire zone, and what upstream's
 own tap-hold examples do:
 
-| Profile | tap / hold | double-tap window | For |
-| --- | --- | --- | --- |
-| `instant` | 120 ms | 200 ms | Keys never typed in prose — mouse buttons, keypad, function keys |
-| `snappy` | 200 ms | 250 ms | Letter and symbol keys that keep their normal meaning on tap |
-| `balanced` | 300 ms | 300 ms | A hold disruptive enough that a stray one is worse than a late tap |
-| `relaxed` | 500 ms | 350 ms | Holds that launch or switch something |
-| `deliberate` | 800 ms | 450 ms | Destructive holds. Pair with `guard()` |
+| Profile      | tap / hold | double-tap window | For                                                                |
+| ------------ | ---------- | ----------------- | ------------------------------------------------------------------ |
+| `instant`    | 120 ms     | 200 ms            | Keys never typed in prose — mouse buttons, keypad, function keys   |
+| `snappy`     | 200 ms     | 250 ms            | Letter and symbol keys that keep their normal meaning on tap       |
+| `balanced`   | 300 ms     | 300 ms            | A hold disruptive enough that a stray one is worse than a late tap |
+| `relaxed`    | 500 ms     | 350 ms            | Holds that launch or switch something                              |
+| `deliberate` | 800 ms     | 450 ms            | Destructive holds. Pair with `guard()`                             |
 
 ### Scoping a block of bindings
 
@@ -135,7 +135,7 @@ of the block:
 ```
 
 `forApp` / `exceptInApp` / `whileVar` / `unlessVar` / `onDevice` / `scoped` add
-conditions; `withOptions` / `withTiming` supply option *defaults* that a
+conditions; `withOptions` / `withTiming` supply option _defaults_ that a
 binding's own settings override field-by-field; `group` merges a block into one
 row in the Karabiner GUI. Nesting composes, outermost condition first, and
 nothing mutates its input.
@@ -143,21 +143,21 @@ nothing mutates its input.
 ## The caps lock layer
 
 Caps lock is a modifier layer. It emits nothing while held; every non-modifier
-key pressed during the hold comes out with ⌘⌥⌃⇧ *minus* whichever single
+key pressed during the hold comes out with ⌘⌥⌃⇧ _minus_ whichever single
 left-side modifier is also held:
 
-| Held | Emitted | Example |
-| --- | --- | --- |
-| caps | ⌘⌥⌃⇧ + key | caps+A → ⌘⌥⌃⇧A |
-| caps + ⇧ | ⌘⌥⌃ + key | caps+⇧+A → ⌘⌥⌃A |
-| caps + ⌃ | ⌘⌥⇧ + key | caps+⌃+A → ⌘⌥⇧A |
-| caps + ⌥ | ⌘⌃⇧ + key | caps+⌥+A → ⌘⌃⇧A |
-| caps + ⌘ | ⌥⌃⇧ + key | caps+⌘+A → ⌥⌃⇧A |
+| Held     | Emitted    | Example         |
+| -------- | ---------- | --------------- |
+| caps     | ⌘⌥⌃⇧ + key | caps+A → ⌘⌥⌃⇧A  |
+| caps + ⇧ | ⌘⌥⌃ + key  | caps+⇧+A → ⌘⌥⌃A |
+| caps + ⌃ | ⌘⌥⇧ + key  | caps+⌃+A → ⌘⌥⇧A |
+| caps + ⌥ | ⌘⌃⇧ + key  | caps+⌥+A → ⌘⌃⇧A |
+| caps + ⌘ | ⌥⌃⇧ + key  | caps+⌘+A → ⌥⌃⇧A |
 
 Tapping caps — releasing it without any key having gone through the layer —
 emits ⌘⌥⌃⇧+F15 instead. Right-side modifiers and `fn` are not layer selectors;
 they pass through untouched, and pressing one does not count as using the layer.
-Holding *two* of the four selectors is deliberately unhandled: no state claims
+Holding _two_ of the four selectors is deliberately unhandled: no state claims
 the event and the key falls through unchanged.
 
 A `from.any` catch-all sits last in the layer and is what makes "unhandled" safe.
@@ -173,7 +173,7 @@ matches them too, and `caps → ⇧ → release` has to stay a tap.
 non-modifier key goes down is read — which is why the layer cannot be built the
 obvious way, by having caps hold ⌘⌥⌃⇧ down for the duration of its press. That
 fixes the emitted set at caps' key-down, so pressing ⇧ afterwards changes
-nothing. Reading the state at the *translated* key means every key needs its own
+nothing. Reading the state at the _translated_ key means every key needs its own
 manipulator; `capsLayer()` in `src/engine/caps-layer.ts` generates them, one per
 (key × layer state). `CAPS_LAYER_KEYS` is the list it covers: letters, digits,
 symbols, F1–F24, the navigation block and the keypad. The hand-written parts of
@@ -181,7 +181,7 @@ that list carry a `satisfies StandardKeyCode[]`, because Karabiner rejects a
 whole config over one unknown key code rather than skipping the key.
 
 The keypad is covered despite `DEVICE_CONFIGS` remapping several of its keys
-per-device: simple modifications run *before* complex modifications, so a
+per-device: simple modifications run _before_ complex modifications, so a
 remapped key reaches the layer already rewritten and the layer only ever sees
 the post-remap code.
 
@@ -191,17 +191,17 @@ Two mechanisms carry the state, and the split is deliberate:
   — the key emits nothing, so there is no modifier flag to match on. A second
   variable (`caps_lock_used`) distinguishes a tap from a hold that translated
   something; it is read back on key-up through a per-event `to.conditions` gate,
-  because `to_if_alone` is cancelled by *any* intervening key-down, a modifier
+  because `to_if_alone` is cancelled by _any_ intervening key-down, a modifier
   press included.
 - **The layer selectors** are `from.modifiers.mandatory`, not variables.
   Karabiner matches mandatory modifiers against the held set regardless of press
-  order, and *removes* them from the emitted event — order-independence and
+  order, and _removes_ them from the emitted event — order-independence and
   modifier consumption both come free. A variable could give neither: the
   physical ⇧ would still be down, so the emitted key would carry a ⇧ the layer
   is supposed to have eaten.
 
 **Existing rules are adopted, not shadowed.** Karabiner does not feed its own
-output back through complex modifications, so a layer that merely *emits*
+output back through complex modifications, so a layer that merely _emits_
 ⌘⌥⌃⇧+E could never reach a rule bound to ⌘⌥⌃⇧+E — the combination never arrives
 as an input event. So the generator joins against the rest of the configuration
 at compile time: any binding whose trigger is exactly the combination a layer
@@ -217,7 +217,7 @@ Matching is side-insensitive, so `VMOD.COCS` and `["L.cmd","L.opt","L.ctrl","L.s
 both adopt. Adoption is additive — the source binding is untouched and still
 fires from a real modifier press — and it extends coverage past
 `CAPS_LAYER_KEYS`, so a binding on a key the grid does not list still reaches
-the layer. Where an adopted key *is* in the grid, the adoption replaces the
+the layer. Where an adopted key _is_ in the grid, the adoption replaces the
 generated emit rather than joining it. Add a `⌘⌥⌃+X` binding and it becomes
 caps+⇧+X automatically.
 
@@ -240,18 +240,18 @@ Three cases are left to emit the combination instead:
 
 ## Layers
 
-Karabiner has no concept of a layer. Every layer here is a *composition* of
+Karabiner has no concept of a layer. Every layer here is a _composition_ of
 `set_variable`, `variable_if`, `from.any`, `to_if_alone`, `to_after_key_up` and
 ordering — which is why the builders exist: the composition is where the silent
 failures live, not in any one manipulator.
 
 Three kinds, in increasing order of how much they can go wrong:
 
-| | Up while | Built by |
-| --- | --- | --- |
-| **Modifier layer** | its key is held; translates every key through a modifier set | `capsLayer()` — one layer only, see above |
-| **Momentary hold layer** | its trigger is held; chords fire directly | `holdLayer()` |
-| **Modal leader layer** | after its leader is released, until something closes it | `modalLayer()` |
+|                          | Up while                                                     | Built by                                  |
+| ------------------------ | ------------------------------------------------------------ | ----------------------------------------- |
+| **Modifier layer**       | its key is held; translates every key through a modifier set | `capsLayer()` — one layer only, see above |
+| **Momentary hold layer** | its trigger is held; chords fire directly                    | `holdLayer()`                             |
+| **Modal leader layer**   | after its leader is released, until something closes it      | `modalLayer()`                            |
 
 ### Momentary hold layers
 
@@ -265,7 +265,7 @@ Three kinds, in increasing order of how much they can go wrong:
 ```
 
 The trap it closes: a chord key cancels the trigger's `to_if_alone`, and the
-cancel fallback then *replays* the tap action on top of the chord. `holdLayer()`
+cancel fallback then _replays_ the tap action on top of the chord. `holdLayer()`
 sets `suppressCancelFallback: true`; the `hold-layer-leak` lint rule reports a
 hand-rolled layer that forgot to.
 
@@ -274,7 +274,7 @@ hand-rolled layer that forgot to.
 ```ts
 const nav = modalLayer({
   leader: "spacebar",
-  enterOn: "hold",                       // a tap still types a space
+  enterOn: "hold", // a tap still types a space
   mappings: { q: APPS.qspace },
   sublayers: {
     w: { description: "Windows", sticky: true, mappings: { h: URLS.hsWinLeftTop } },
@@ -286,7 +286,7 @@ The layer outlives the keypress that opened it, which is what makes it useful
 and what makes it dangerous — a stuck modal layer eats everything you type
 afterwards. `modalLayer()` owns four of the five obligations: clearing the
 leader's own output on entry, handing off root → sublayer in one `to` array,
-clearing *every* variable on *every* exit path, and swallowing unmapped keys
+clearing _every_ variable on _every_ exit path, and swallowing unmapped keys
 behind a `from.any` catch-all that `compareTriggerSortKeys` already orders last.
 
 The fifth is yours, because only you know what "everything else" is:
@@ -294,7 +294,7 @@ The fifth is yours, because only you know what "everything else" is:
 ```ts
 export const MODAL_LAYER_SET = { name: "nav-layer", bindings: nav.bindings };
 export const BINDING_SETS = [
-  { name: "tap-hold", bindings: nav.suppress(tapHoldBindings) },   // ← gate the rest
+  { name: "tap-hold", bindings: nav.suppress(tapHoldBindings) }, // ← gate the rest
 ];
 export function rulePlan(): RulePlan[] {
   return [...planRules([MODAL_LAYER_SET]), ...planRules(BINDING_SETS)];
@@ -306,11 +306,11 @@ are all explicit — a mapping fires, escape, the leader again, or (with
 `onUnmapped: "exit"`) any unmapped key. There is deliberately no timeout:
 `to_delayed_action` is the only timer Karabiner offers, it is scoped to one
 manipulator, and it is cancelled by the next key press — precisely the event
-that should *not* end a leader sequence.
+that should _not_ end a leader sequence.
 
 ## Rule emission
 
-A *manipulator* is what fires; a *rule* is what the Karabiner-Elements GUI shows
+A _manipulator_ is what fires; a _rule_ is what the Karabiner-Elements GUI shows
 and the user enables or disables. The two are not one-to-one, and how bindings
 are folded into rules is what makes the generated list navigable.
 
@@ -353,16 +353,16 @@ manipulator that matches. A rule is therefore **dead** if an earlier rule
 matches strictly more inputs under strictly weaker conditions.
 
 `buildRules()` checks every ordered pair before emitting anything — over the
-*planned* order above, not the declaration order — so an unreachable binding
+_planned_ order above, not the declaration order — so an unreachable binding
 fails the build rather than sitting silently dead in your config. Conflicts are
 classified, not merely detected:
 
-| Kind | Meaning | Result |
-| --- | --- | --- |
-| `duplicate` | Same input domain, same conditions | **build fails** |
-| `shadowed` | An earlier, broader rule covers this one entirely | **build fails** |
-| `chord-member` | A single-key rule precedes a chord using that key | warning |
-| `narrowing` | Overlapping inputs, more specific rule ordered first | fine, not reported |
+| Kind           | Meaning                                              | Result             |
+| -------------- | ---------------------------------------------------- | ------------------ |
+| `duplicate`    | Same input domain, same conditions                   | **build fails**    |
+| `shadowed`     | An earlier, broader rule covers this one entirely    | **build fails**    |
+| `chord-member` | A single-key rule precedes a chord using that key    | warning            |
+| `narrowing`    | Overlapping inputs, more specific rule ordered first | fine, not reported |
 
 `chord-member` is a warning rather than an error because reachability there
 depends on press timing and the simultaneous threshold, which static analysis
@@ -374,23 +374,23 @@ is why plain signature-equality checking is not enough.
 
 ## Gesture lint
 
-Conflict detection answers *can this rule be reached*. Gesture lint answers the
-other half — *will a rule that is reached do what it says* — over the same
+Conflict detection answers _can this rule be reached_. Gesture lint answers the
+other half — _will a rule that is reached do what it says_ — over the same
 planned order, and reports rather than throws, because unlike an unreachable
 rule these can each be deliberate:
 
-| Rule | What the compiled output does |
-| --- | --- |
-| `tap-hold-dead-zone` | A window between the two thresholds where the key emits nothing |
-| `hold-layer-leak` | A hold layer replays its tap action when you use the layer |
-| `multi-tap-ignores-hold-ms` | `holdMs` set on a path that reads `aloneMs ?? heldThresholdMs` |
-| `chord-ignores-hold-ms` | The same, for a simultaneous trigger |
-| `multi-tap-passthrough-drops-tap` | `allowPassThrough` overwrites the single-tap action |
-| `hold-reemits-trigger-modifier` | A hold event the emitter filters out to avoid a stuck modifier |
-| `gate-var-never-set` | A binding gated on a variable nothing writes — it can never fire |
-| `layer-var-never-read` | A hold layer whose variable gates nothing |
-| `timing-without-gesture` | Tap/hold thresholds on a binding with no tap or hold channel |
-| `simultaneous-ms-without-chord` | A chord window on a single-input trigger |
+| Rule                              | What the compiled output does                                    |
+| --------------------------------- | ---------------------------------------------------------------- |
+| `tap-hold-dead-zone`              | A window between the two thresholds where the key emits nothing  |
+| `hold-layer-leak`                 | A hold layer replays its tap action when you use the layer       |
+| `multi-tap-ignores-hold-ms`       | `holdMs` set on a path that reads `aloneMs ?? heldThresholdMs`   |
+| `chord-ignores-hold-ms`           | The same, for a simultaneous trigger                             |
+| `multi-tap-passthrough-drops-tap` | `allowPassThrough` overwrites the single-tap action              |
+| `hold-reemits-trigger-modifier`   | A hold event the emitter filters out to avoid a stuck modifier   |
+| `gate-var-never-set`              | A binding gated on a variable nothing writes — it can never fire |
+| `layer-var-never-read`            | A hold layer whose variable gates nothing                        |
+| `timing-without-gesture`          | Tap/hold thresholds on a binding with no tap or hold channel     |
+| `simultaneous-ms-without-chord`   | A chord window on a single-input trigger                         |
 
 Every rule is derived from a specific line of the emitter and names it. Each
 finding carries the concrete edit that resolves it. The build prints the report;
@@ -407,7 +407,7 @@ npm run explain -- --conflicts  # full conflict report
 npm run explain -- --lint       # full gesture-lint report
 ```
 
-The first *reachable* rule in the list is the one that fires.
+The first _reachable_ rule in the list is the one that fires.
 
 ## Safety
 
@@ -456,15 +456,16 @@ without stating how conflict analysis should treat it.
 
 ## Documentation
 
-| Document | Answers |
-|----------|---------|
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How a `Binding` becomes a Karabiner rule; what each layer may and may not do |
-| [docs/CONVENTIONS.md](docs/CONVENTIONS.md) | The rules for changing the code, and the byte-identical gate every refactor must pass |
-| [docs/INSIGHTS.md](docs/INSIGHTS.md) | Karabiner manipulator semantics as they bear on this engine |
-| [docs/MISSING_FEATURES.md](docs/MISSING_FEATURES.md) | What Karabiner can do that this config cannot yet emit, and how to wire each one |
-| [docs/SCHEMA.md](docs/SCHEMA.md) | The rule schema, the validator, and how both hook into the build |
-| [docs/COMMAND_SERVER_GUIDE.md](docs/COMMAND_SERVER_GUIDE.md) | The user-command IPC subsystem |
-| [docs/karabiner_docs/](docs/karabiner_docs/) | Mirrored upstream documentation, plus `karabiner-gotchas.md` — 80+ behaviours, each cited |
+| Document                                                     | Answers                                                                                                                                        |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)                 | How a `Binding` becomes a Karabiner rule; what each layer may and may not do                                                                   |
+| [docs/CONVENTIONS.md](docs/CONVENTIONS.md)                   | The rules for changing the code, and the byte-identical gate every refactor must pass                                                          |
+| [docs/INSIGHTS.md](docs/INSIGHTS.md)                         | Karabiner manipulator semantics as they bear on this engine                                                                                    |
+| [docs/MISSING_FEATURES.md](docs/MISSING_FEATURES.md)         | What Karabiner can do that this config cannot yet emit, and how to wire each one                                                               |
+| [docs/SCHEMA.md](docs/SCHEMA.md)                             | The rule schema, the validator, and how both hook into the build                                                                               |
+| [docs/COMMAND_SERVER_GUIDE.md](docs/COMMAND_SERVER_GUIDE.md) | The user-command IPC subsystem                                                                                                                 |
+| [docs/karabiner_docs/](docs/karabiner_docs/)                 | Mirrored upstream documentation from                                                                                                           |
+| [docs/karabiner_refs/](docs/karabiner_refs/)                 | Two documents. First, excellent primer; second, internal reference `karabiner-gotchas.md`, which documents 80+ behaviours, each with citations |
 
 Two checks keep these honest, both in `npm run check`:
 `src/tests/docs-paths.test.ts` fails on a stale `src/` path or a broken link, and

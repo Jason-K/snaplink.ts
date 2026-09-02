@@ -11,7 +11,7 @@ wrapper. Re-run it after any upstream refresh
 
 **60 of 70 schema features reachable** as of 2026-08-14.
 
-Parenthesised numbers cite [karabiner-gotchas.md](./karabiner_docs/karabiner-gotchas.md).
+Parenthesised numbers cite [karabiner-gotchas.md](./karabiner_refs/karabiner-gotchas.md).
 
 ---
 
@@ -283,5 +283,5 @@ Start from `src/engine/caps-layer.ts` and the choreography table in item 5.
 ## Reference
 
 - [SCHEMA.md](./SCHEMA.md) — the schema, the validator, and the build integration
-- [karabiner-gotchas.md](./karabiner_docs/karabiner-gotchas.md) — the numbered citations above
+- [karabiner-gotchas.md](./karabiner_refs/karabiner-gotchas.md) — the numbered citations above
 - [Karabiner-Elements release notes](https://karabiner-elements.pqrs.org/docs/releasenotes/)

@@ -28,6 +28,5 @@ _to_delete/
 *.swp
 *.tmp
 
-# Ignore node_modules except for karabiner.ts/dist
-!node_modules/karabiner.ts/dist/
+# Ignore everything in node_modules
 node_modules/

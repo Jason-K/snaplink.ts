@@ -19,12 +19,14 @@
     "lint": "eslint src --max-warnings=50",
     "validate": "make -C schema validate-output",
     "verify": "npm run generate && npm run validate",
+    "docs:pull": "tsx scripts/pull-karabiner-docs.ts",
     "check": "npm run codegen:check && npm run typecheck && npm run lint && npm run test && npm run verify"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@types/node": "^20",
     "eslint": "^9.39.1",
+    "prettier": "^3.9.6",
     "tsx": "^4",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.47.0"

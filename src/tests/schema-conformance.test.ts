@@ -1,5 +1,5 @@
 /**
- * Drift guard between the hand-written AST in `src/types/karabiner.ts` and
+ * Drift guard between the hand-written AST in `src/types/snaplink.ts` and
  * `schema/karabiner-rule.schema.json`.
  *
  * The types cannot express everything the schema does (clamps, cross-field
@@ -22,9 +22,7 @@ const REPO = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 type SchemaDef = { properties?: Record<string, unknown> };
 type Schema = { $defs: Record<string, SchemaDef> };
 
-const schema = JSON.parse(
-  readFileSync(join(REPO, "schema", "karabiner-rule.schema.json"), "utf8"),
-) as Schema;
+const schema = JSON.parse(readFileSync(join(REPO, "schema", "karabiner-rule.schema.json"), "utf8")) as Schema;
 
 function allowedKeys(def: string): Set<string> {
   const properties = schema.$defs[def]?.properties;
@@ -48,10 +46,7 @@ test("every manipulator key we emit is known to the schema", () => {
       assert.ok(def, `unknown manipulator type "${manipulator.type}" in "${rule.description}"`);
       const allowed = allowedKeys(def);
       for (const key of Object.keys(manipulator)) {
-        assert.ok(
-          allowed.has(key),
-          `unknown ${manipulator.type} key "${key}" in rule "${rule.description}"`,
-        );
+        assert.ok(allowed.has(key), `unknown ${manipulator.type} key "${key}" in rule "${rule.description}"`);
       }
     }
   }

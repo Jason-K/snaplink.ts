@@ -8,14 +8,14 @@ Written against the tree as it stands; every path here is checked by
 
 ## Layers
 
-| Layer | Holds | May not |
-|-------|-------|---------|
-| `src/definitions/` | Behaviour as data: `Binding[]`, one export per file | Build manipulators, import `src/types/karabiner` for anything but a raw escape hatch |
-| `src/data/` | Vocabulary and registries: apps, paths, devices, timings, key aliases, virtual modifiers | Contain logic |
-| `src/engine/` | Every transformation from `Binding[]` to `Manipulator[]` | Touch the filesystem, the clock, or the environment |
-| `src/types/` | The Karabiner JSON AST, plus the generated key tables | Contain anything hand-written that could be derived |
-| `src/config.ts` | Assembles the binding sets and runs the pipeline | Do I/O — it is imported by tests |
-| `src/index.ts` | The only module that reads the environment and writes files | — |
+| Layer              | Holds                                                                                    | May not                                                                              |
+| ------------------ | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `src/definitions/` | Behaviour as data: `Binding[]`, one export per file                                      | Build manipulators, import `src/types/karabiner` for anything but a raw escape hatch |
+| `src/data/`        | Vocabulary and registries: apps, paths, devices, timings, key aliases, virtual modifiers | Contain logic                                                                        |
+| `src/engine/`      | Every transformation from `Binding[]` to `Manipulator[]`                                 | Touch the filesystem, the clock, or the environment                                  |
+| `src/types/`       | The Karabiner JSON AST, plus the generated key tables                                    | Contain anything hand-written that could be derived                                  |
+| `src/config.ts`    | Assembles the binding sets and runs the pipeline                                         | Do I/O — it is imported by tests                                                     |
+| `src/index.ts`     | The only module that reads the environment and writes files                              | —                                                                                    |
 
 The purity rule is what lets `src/tests/golden-output.test.ts` compile the real
 configuration and diff it against the committed output with no mocks.
@@ -44,7 +44,7 @@ src/engine/emit-manipulators/
 Manipulator[]  →  Rule[]  →  karabiner-output.json + ~/.config/karabiner/karabiner.json
 ```
 
-`src/engine/analyze-conflicts/` runs over the *planned* order, not declaration
+`src/engine/analyze-conflicts/` runs over the _planned_ order, not declaration
 order, and throws rather than warns: a binding an earlier rule makes unreachable
 fails the build instead of sitting dead in the config.
 
@@ -55,10 +55,10 @@ one rule.
 
 ```ts
 type Binding = {
-  description: string;          // also the rule-partition key
-  trigger: Trigger;             // keys / pointer / any
+  description: string; // also the rule-partition key
+  trigger: Trigger; // keys / pointer / any
   timing?: { aloneMs?; heldThresholdMs?; delayedMs?; simultaneousMs? };
-  conditions?: Condition[];     // hoisted onto every case
+  conditions?: Condition[]; // hoisted onto every case
   cases: Case[];
   eventOptions?: { halt?; repeat? };
   multiTap?: { allowPassThrough?; mods? };
@@ -66,10 +66,10 @@ type Binding = {
 };
 
 type Case = {
-  tapCount?: number;            // default 1; 2 = double-tap (framework-managed state)
-  phase?: "press" | "release" | "hold";   // → to / to_if_alone / to_if_held_down
+  tapCount?: number; // default 1; 2 = double-tap (framework-managed state)
+  phase?: "press" | "release" | "hold"; // → to / to_if_alone / to_if_held_down
   conditions?: Condition[];
-  do: ActionSpec[];             // { type: "noop" } swallows the key
+  do: ActionSpec[]; // { type: "noop" } swallows the key
 };
 ```
 
@@ -77,7 +77,7 @@ type Case = {
 during manipulator generation, not at construction. See `TriggerKey` in
 `src/data/constants/keys.ts` for the three vocabularies it accepts.
 
-`to_delayed_action` is deliberately *not* a phase. Every use is
+`to_delayed_action` is deliberately _not_ a phase. Every use is
 framework-internal: the multi-tap variable dance and tap-on-interrupt
 responsiveness.
 
@@ -102,10 +102,10 @@ wire it properly instead.
 
 Three behaviours do not decompose into cases and build their own manipulators:
 
-| Shape | Where | Why it is special |
-|-------|-------|-------------------|
-| caps-lock layer | `src/engine/caps-layer.ts` | Variants change the *trigger*, not the action. Adopts bindings whose mandatory modifiers match what a layer state emits. It takes every other binding as input and returns `Binding[]`, which is the model to copy for any future layer. |
-| double-tap guard | `buildGuard()` in `src/engine/emit-manipulators/binding/builders.ts` | The second tap fires on press, not release. |
+| Shape            | Where                                                                | Why it is special                                                                                                                                                                                                                        |
+| ---------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| caps-lock layer  | `src/engine/caps-layer.ts`                                           | Variants change the _trigger_, not the action. Adopts bindings whose mandatory modifiers match what a layer state emits. It takes every other binding as input and returns `Binding[]`, which is the model to copy for any future layer. |
+| double-tap guard | `buildGuard()` in `src/engine/emit-manipulators/binding/builders.ts` | The second tap fires on press, not release.                                                                                                                                                                                              |
 
 ## Adding a behaviour
 

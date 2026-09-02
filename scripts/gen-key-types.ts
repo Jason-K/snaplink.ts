@@ -5,7 +5,7 @@
  * The key-name tables and the modifier enum are the only parts of the Karabiner
  * AST that are pure data, and they are the only parts that go stale when
  * Karabiner ships a release. Everything structural stays hand-written in
- * `src/types/karabiner.ts`, where the gotcha citations live.
+ * `src/types/snaplink.ts`, where the gotcha citations live.
  *
  *   npm run codegen         rewrite
  *   npm run codegen:check   exit 1 if stale

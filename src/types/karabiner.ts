@@ -3,7 +3,7 @@
  *
  * Structure and cross-field rules mirror `schema/karabiner-rule.schema.json`.
  * Parenthesised references (3.4, 5.13, ...) point at numbered entries in
- * `docs/karabiner_docs/karabiner-gotchas.md`.
+ * `docs/karabiner_refs/karabiner-gotchas.md`.
  *
  * Key-name unions come from `./keys.generated` — regenerate with `npm run codegen`.
  */
@@ -45,9 +45,7 @@ export type ExactlyOne<T> = {
 }[keyof T];
 
 /** At least one key of `T` present; the rest stay optional. */
-export type AtLeastOne<T, K extends keyof T = keyof T> = K extends unknown
-  ? Required<Pick<T, K>> & Omit<T, K>
-  : never;
+export type AtLeastOne<T, K extends keyof T = keyof T> = K extends unknown ? Required<Pick<T, K>> & Omit<T, K> : never;
 
 // ============================================================================
 // MODIFIERS
@@ -655,10 +653,7 @@ export type MouseMotionToScrollManipulator = {
  * Unknown keys are ignored at file and rule level, but inside `manipulators`
  * they are hard errors. (10.5)
  */
-export type Manipulator =
-  | BasicManipulator
-  | MouseBasicManipulator
-  | MouseMotionToScrollManipulator;
+export type Manipulator = BasicManipulator | MouseBasicManipulator | MouseMotionToScrollManipulator;
 
 // ============================================================================
 // FILE STRUCTURE

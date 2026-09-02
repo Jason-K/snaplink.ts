@@ -8,7 +8,7 @@
  *
  * `exactOptionalPropertyTypes` draws a distinction between "absent" and
  * "present but undefined". That distinction is exactly what we want for the
- * Karabiner AST in `types/karabiner.ts` — an `undefined`-valued key there would
+ * Karabiner AST in `types/snaplink.ts` — an `undefined`-valued key there would
  * be a schema error. It is *not* what we want for the engine's internal option
  * bags, where callers routinely forward a value that may or may not be set:
  *
