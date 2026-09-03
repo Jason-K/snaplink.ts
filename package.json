@@ -20,7 +20,8 @@
     "validate": "make -C schema validate-output",
     "verify": "npm run generate && npm run validate",
     "docs:pull": "tsx scripts/pull-karabiner-docs.ts",
-    "check": "npm run codegen:check && npm run typecheck && npm run lint && npm run test && npm run verify"
+    "check": "npm run codegen:check && npm run typecheck && npm run lint && npm run test && npm run verify",
+    "update": "npm run docs:pull && npm run codegen && npm run typecheck && npm run lint && npm run test && npm run verify"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
