@@ -68,14 +68,13 @@ const letterBindings: Binding[] = [
     c: app(APPS.claude, "shell"),
     d: key("f1", VM.CO_S),
     f: actHere("qspace"),
-    g: COMBOS.showGlyphlow,
     h: URLS.rayHere2There,
     j: URLS.rayRecentDownloads,
     k: APPS.kitty,
     m: COMBOS.restoreMinimizedWindow,
     n: CMDS.neruHints,
     o: URLS.csxOcrNoLinebreaks,
-    p: COMBOS.showPopclip,
+    p: COMBOS.showPaletro,
     q: APPS.qspace,
     r: CMDS.recentFiles,
     s: URLS.csxArea,
@@ -282,7 +281,7 @@ const modifierKeyBindings: Binding[] = [
     when(condNotVar(capsVars.pressed, 1)),
     options({ multiTap: { allowPassThrough: true, mods: [] } }),
   ),
-  ...(["L.shift", "R.shift"] as const).map((shiftKey) =>
+  ...(["L.shift", "R.shift"] as const).map(shiftKey =>
     bind(
       from(shiftKey),
       to(release(key(shiftKey)), hold(key(shiftKey)), release(URLS.rayClipboard).withTapCount(2)),

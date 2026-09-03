@@ -26063,45 +26063,6 @@
         ]
       },
       {
-        "description": "[G]:\n---\n\tOn Hold:\n\t\tAlways:\tmap 'show glyphlow'",
-        "manipulators": [
-          {
-            "type": "basic",
-            "from": {
-              "key_code": "g"
-            },
-            "to_if_alone": [
-              {
-                "halt": true,
-                "key_code": "g"
-              }
-            ],
-            "to_if_held_down": [
-              {
-                "halt": true,
-                "repeat": false,
-                "key_code": "g",
-                "modifiers": [
-                  "command",
-                  "option",
-                  "control",
-                  "shift"
-                ]
-              }
-            ],
-            "to_delayed_action": {
-              "to_if_invoked": [],
-              "to_if_canceled": [
-                {
-                  "halt": true,
-                  "key_code": "g"
-                }
-              ]
-            }
-          }
-        ]
-      },
-      {
         "description": "[~]:\n---\n\tOn Hold:\n\t\tAlways:\tmap 'show showPopclip'",
         "manipulators": [
           {
@@ -27009,7 +26970,7 @@
         ]
       },
       {
-        "description": "[P]:\n---\n\tOn Tap:\n\t\tRight command held:\topen Proton Mail\n\tOn Hold:\n\t\tAlways:\tmap 'show showPopclip'",
+        "description": "[P]:\n---\n\tOn Tap:\n\t\tRight command held:\topen Proton Mail\n\tOn Hold:\n\t\tAlways:\tmap 'show Paletro'",
         "manipulators": [
           {
             "type": "basic",
@@ -27049,7 +27010,7 @@
               {
                 "halt": true,
                 "repeat": false,
-                "key_code": "f9",
+                "key_code": "p",
                 "modifiers": [
                   "command",
                   "option",

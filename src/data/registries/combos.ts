@@ -95,7 +95,7 @@ const OTHER_HKS = {
     app: "com.busymac.busycal-setapp",
     options: { repeat: false },
   }),
-  showGlyphlow: mapSpec("g", VM.COCS, "show glyphlow", { app: "glyphlow", options: { repeat: false } }),
+  showPaletro: mapSpec("p", VM.COCS, "show Paletro", { app: "io.appmakes.Paletro-setapp", options: { repeat: false } }),
   showKittyQuakeTerm: mapSpec("f11", VM._OCS, "show kitty quake terminal", {
     app: APPS.kitty,
     options: { repeat: false },
