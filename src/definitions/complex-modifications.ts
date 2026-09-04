@@ -64,9 +64,7 @@ const numpadAndNumberBindings: Binding[] = [
 const letterBindings: Binding[] = [
   // Bare letter hold actions (tap passes through)
   ...bindTable("hold", {
-    a: key("f18", VM.COCS),
     c: app(APPS.claude, "shell"),
-    d: key("f1", VM.CO_S),
     f: actHere("qspace"),
     h: URLS.rayHere2There,
     j: URLS.rayRecentDownloads,
@@ -79,7 +77,7 @@ const letterBindings: Binding[] = [
     r: CMDS.recentFiles,
     s: URLS.csxArea,
     t: COMBOS.showKittyQuakeTerm,
-    v: URLS.rayClipboard,
+    v: COMBOS.showPasteDaemon,
     x: actHere("copy"),
     y: actHere("copy"),
     z: URLS.rayZoxideSearchDirs,
@@ -240,7 +238,6 @@ const functionKeyBindings: Binding[] = [
     f2: key("display_brightness_increment", { repeat: true }),
     f3: key("mission_control"),
     f4: key("launchpad"),
-    f5: key("f5", VM.COC_),
     f7: key("rewind", { repeat: true }),
     f8: key("play_or_pause"),
     f9: key("fastforward", { repeat: true }),

@@ -25291,7 +25291,7 @@
         ]
       },
       {
-        "description": "[A]:\n---\n\tOn Tap:\n\t\tRight command held:\topen Antinote\n\tOn Hold:\n\t\tAlways:\tEmit ⌘⌥⌃⇧ + 'F18'",
+        "description": "[A]:\n---\n\tOn Tap:\n\t\tRight command held:\topen Antinote",
         "manipulators": [
           {
             "type": "basic",
@@ -25315,40 +25315,6 @@
                 }
               }
             ]
-          },
-          {
-            "type": "basic",
-            "from": {
-              "key_code": "a"
-            },
-            "to_if_alone": [
-              {
-                "halt": true,
-                "key_code": "a"
-              }
-            ],
-            "to_if_held_down": [
-              {
-                "halt": true,
-                "repeat": false,
-                "key_code": "f18",
-                "modifiers": [
-                  "command",
-                  "option",
-                  "control",
-                  "shift"
-                ]
-              }
-            ],
-            "to_delayed_action": {
-              "to_if_invoked": [],
-              "to_if_canceled": [
-                {
-                  "halt": true,
-                  "key_code": "a"
-                }
-              ]
-            }
           }
         ]
       },
@@ -25429,44 +25395,6 @@
                 {
                   "halt": true,
                   "key_code": "c"
-                }
-              ]
-            }
-          }
-        ]
-      },
-      {
-        "description": "[D]:\n---\n\tOn Hold:\n\t\tAlways:\tEmit ⌘⌥⇧ + 'F1'",
-        "manipulators": [
-          {
-            "type": "basic",
-            "from": {
-              "key_code": "d"
-            },
-            "to_if_alone": [
-              {
-                "halt": true,
-                "key_code": "d"
-              }
-            ],
-            "to_if_held_down": [
-              {
-                "halt": true,
-                "repeat": false,
-                "key_code": "f1",
-                "modifiers": [
-                  "command",
-                  "option",
-                  "shift"
-                ]
-              }
-            ],
-            "to_delayed_action": {
-              "to_if_invoked": [],
-              "to_if_canceled": [
-                {
-                  "halt": true,
-                  "key_code": "d"
                 }
               ]
             }
@@ -25820,44 +25748,6 @@
                 {
                   "halt": true,
                   "key_code": "f4"
-                }
-              ]
-            }
-          }
-        ]
-      },
-      {
-        "description": "[F5]:\n---\n\tOn Hold:\n\t\tAlways:\tEmit ⌘⌥⌃ + 'F5'",
-        "manipulators": [
-          {
-            "type": "basic",
-            "from": {
-              "key_code": "f5"
-            },
-            "to_if_alone": [
-              {
-                "halt": true,
-                "key_code": "f5"
-              }
-            ],
-            "to_if_held_down": [
-              {
-                "halt": true,
-                "repeat": false,
-                "key_code": "f5",
-                "modifiers": [
-                  "command",
-                  "option",
-                  "control"
-                ]
-              }
-            ],
-            "to_delayed_action": {
-              "to_if_invoked": [],
-              "to_if_canceled": [
-                {
-                  "halt": true,
-                  "key_code": "f5"
                 }
               ]
             }
@@ -27536,7 +27426,7 @@
         ]
       },
       {
-        "description": "[V]:\n---\n\tOn Tap:\n\t\tRight command held:\topen Code\n\tOn Hold:\n\t\tAlways:\tCall 'open Raycast clipboard manager'",
+        "description": "[V]:\n---\n\tOn Tap:\n\t\tRight command held:\topen Code\n\tOn Hold:\n\t\tAlways:\tmap 'show Paste Daemon'",
         "manipulators": [
           {
             "type": "basic",
@@ -27575,7 +27465,12 @@
             "to_if_held_down": [
               {
                 "halt": true,
-                "shell_command": "open -u 'raycast-x://extensions/raycast/clipboard-history/clipboard-history'"
+                "repeat": false,
+                "key_code": "c",
+                "modifiers": [
+                  "command",
+                  "option"
+                ]
               }
             ],
             "to_delayed_action": {

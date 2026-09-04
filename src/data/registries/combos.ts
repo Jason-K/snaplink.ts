@@ -106,6 +106,7 @@ const OTHER_HKS = {
     options: { repeat: false },
   }),
   showSidenotes: mapSpec("f10", VM.CO_S, "show sidenotes", { app: APPS.sidenotes }),
+  showPasteDaemon: mapSpec("c", VM.CO__, "show Paste Daemon", { options: { repeat: false } }),
   wordPrint: mapSpec("p", ["left_command"], "print in word", {
     app: APPS.word,
     activeAppOnly: true,
