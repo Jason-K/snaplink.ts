@@ -20,6 +20,7 @@
  *   npm run docs:pull
  */
 
+import { execSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, rmdirSync, statSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -266,29 +267,77 @@ function parseIncludeImagesFlag(): boolean {
   return false;
 }
 
+let cachedGitHubToken: string | null | undefined;
+let tokenSource: string | undefined;
+
+function getGitHubToken(): string | undefined {
+  if (cachedGitHubToken !== undefined) {
+    return cachedGitHubToken ?? undefined;
+  }
+  let token = process.env.GITHUB_TOKEN;
+  if (token) {
+    tokenSource = "process.env.GITHUB_TOKEN";
+  } else if (process.env.GH_TOKEN) {
+    token = process.env.GH_TOKEN;
+    tokenSource = "process.env.GH_TOKEN";
+  } else {
+    try {
+      token = execSync("gh auth token", {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      }).trim();
+      if (token) {
+        tokenSource = "gh auth token";
+      }
+    } catch {
+      // gh CLI not installed or not authenticated
+    }
+  }
+  cachedGitHubToken = token || null;
+  return cachedGitHubToken ?? undefined;
+}
+
+function getRequestHeaders(extraHeaders?: Record<string, string>): Record<string, string> {
+  const headers: Record<string, string> = {
+    "User-Agent": "Snaplink-Docs-Sync/1.0",
+    ...extraHeaders,
+  };
+  const token = getGitHubToken();
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
+function checkRateLimitError(response: Response, url: string): void {
+  if (!response.ok) {
+    const rateLimitRemaining = response.headers.get("x-ratelimit-remaining");
+    const rateLimitReset = response.headers.get("x-ratelimit-reset");
+    let extra = "";
+    if (response.status === 403 && rateLimitRemaining === "0") {
+      const resetDate = rateLimitReset ? new Date(Number(rateLimitReset) * 1000).toLocaleTimeString() : "later";
+      extra = ` (GitHub API rate limit exceeded. Reset at ${resetDate}. Set GITHUB_TOKEN or run 'gh auth login' to authenticate with 5,000 req/hr)`;
+    }
+    throw new Error(`Failed to fetch ${url}: HTTP ${response.status} ${response.statusText}${extra}`);
+  }
+}
+
 async function fetchBuffer(url: string): Promise<Buffer> {
   const response = await fetch(url, {
-    headers: {
-      "User-Agent": "Snaplink-Docs-Sync/1.0",
-    },
+    headers: getRequestHeaders(),
   });
-  if (!response.ok) {
-    throw new Error(`Failed to fetch ${url}: HTTP ${response.status} ${response.statusText}`);
-  }
+  checkRateLimitError(response, url);
   const arrayBuffer = await response.arrayBuffer();
   return Buffer.from(arrayBuffer);
 }
 
 async function fetchJson<T>(url: string): Promise<T> {
   const response = await fetch(url, {
-    headers: {
-      "User-Agent": "Snaplink-Docs-Sync/1.0",
+    headers: getRequestHeaders({
       Accept: "application/vnd.github+json",
-    },
+    }),
   });
-  if (!response.ok) {
-    throw new Error(`Failed to fetch JSON ${url}: HTTP ${response.status} ${response.statusText}`);
-  }
+  checkRateLimitError(response, url);
   return (await response.json()) as T;
 }
 
@@ -409,6 +458,11 @@ function computeSimpleDiff(oldStr: string, newStr: string): string {
 
 async function syncDocs(includeImages: boolean): Promise<FileChange[]> {
   const changes: FileChange[] = [];
+
+  const token = getGitHubToken();
+  if (token) {
+    console.log(`   (Using GitHub authentication via ${tokenSource})`);
+  }
 
   if (!includeImages) {
     removeImagesRecursively(DOCS_KARABINER_DIR);
