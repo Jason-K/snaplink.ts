@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "target": "ES2024",
+    "lib": ["ES2024"],
+
+    "strict": true,
+    // The codebase already writes `keys[0]!` as if this were on; turning it on
+    // makes those assertions meaningful rather than decorative.
+    "noUncheckedIndexedAccess": true,
+    // Objects are built with `...(x ? { k: x } : {})` specifically to keep
+    // undefined-valued keys out of the emitted Karabiner JSON. Enforce it.
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "sourceMap": true,
+
+    "allowJs": true,
+    "types": ["node"]
+  },
+  "include": ["src", "eslint.config.mjs", "scripts"],
+  "exclude": ["node_modules", "**/node_modules/*", "docs", "docs/**", "schema", "schema/**", "ref", "ref/**"]
+}

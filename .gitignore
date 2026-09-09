@@ -1,0 +1,32 @@
+# System files
+.DS_Store
+Thumbs.db
+
+# Cache files
+.cache/
+.mypy_cache/
+
+# Log files
+logs/
+*.log
+
+# Environment files and secrets
+.env
+
+# Settings
+.vscode/
+.github/
+.superpowers/
+.claude/
+
+# Backup files
+*.bak
+backups/
+_to_delete/
+
+# Temporary files
+*.swp
+*.tmp
+
+# Ignore everything in node_modules
+node_modules/
