@@ -30,3 +30,7 @@ _to_delete/
 
 # Ignore everything in node_modules
 node_modules/
+
+# Doc Diffs
+docs/karabiner_docs_updates/*.md
+!docs/karabiner_docs_updates/README.md
