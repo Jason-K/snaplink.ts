@@ -264,6 +264,7 @@ const modifierKeyBindings: Binding[] = [
       a: APPS.antinote,
       b: APPS.brave,
       c: APPS.claude,
+      e: APPS.edge,
       m: APPS.messages,
       o: APPS.msOutlook,
       p: APPS.protonMail,
@@ -282,7 +283,7 @@ const modifierKeyBindings: Binding[] = [
   ...(["L.shift", "R.shift"] as const).map(shiftKey =>
     bind(
       from(shiftKey),
-      to(release(key(shiftKey)), hold(key(shiftKey)), release(URLS.rayClipboard).withTapCount(2)),
+      to(release(key(shiftKey)), hold(key(shiftKey)), release(COMBOS.showZmina).withTapCount(2)),
       when(condNotVar(capsVars.pressed, 1)),
       options({ multiTap: { allowPassThrough: true, mods: [] } }),
     ),

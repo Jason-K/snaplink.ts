@@ -29,6 +29,7 @@ export const APPS = {
   calendar: app("com.busymac.busycal-setapp", "BusyCal"),
   claude: app("com.anthropic.claudefordesktop", "Claude"),
   code: app("com.microsoft.VSCode", "Code"),
+  edge: app("com.microsoft.edgemac", "Edge"),
   excel: app("com.microsoft.Excel", "Microsoft Excel"),
   myFinder: app("com.jinghaoshe.qspace.pro", "QSpace"),
   helium: app("net.imput.helium", "Helium"),
