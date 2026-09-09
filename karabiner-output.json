@@ -25598,7 +25598,7 @@
         ]
       },
       {
-        "description": "[C]:\n---\n\tOn Tap:\n\t\tRight command held:\topen Claude\n\tOn Hold:\n\t\tAlways:\topen-shell Claude",
+        "description": "[C]:\n---\n\tOn Tap:\n\t\tRight command held:\topen Claude\n\tOn Hold:\n\t\tAlways:\tmap 'show Zmina'",
         "manipulators": [
           {
             "type": "basic",
@@ -25637,7 +25637,13 @@
             "to_if_held_down": [
               {
                 "halt": true,
-                "shell_command": "\"/Users/jason/.local/bin/open-app\" -b 'com.anthropic.claudefordesktop'"
+                "repeat": false,
+                "key_code": "v",
+                "modifiers": [
+                  "option",
+                  "control",
+                  "shift"
+                ]
               }
             ],
             "to_delayed_action": {
@@ -26197,6 +26203,42 @@
                 {
                   "halt": true,
                   "key_code": "f12"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "description": "[G]:\n---\n\tOn Hold:\n\t\tAlways:\topen Claude",
+        "manipulators": [
+          {
+            "type": "basic",
+            "from": {
+              "key_code": "g"
+            },
+            "to_if_alone": [
+              {
+                "halt": true,
+                "key_code": "g"
+              }
+            ],
+            "to_if_held_down": [
+              {
+                "halt": true,
+                "software_function": {
+                  "open_application": {
+                    "bundle_identifier": "com.anthropic.claudefordesktop"
+                  }
+                }
+              }
+            ],
+            "to_delayed_action": {
+              "to_if_invoked": [],
+              "to_if_canceled": [
+                {
+                  "halt": true,
+                  "key_code": "g"
                 }
               ]
             }
@@ -27834,7 +27876,7 @@
         ]
       },
       {
-        "description": "[Z]:\n---\n\tOn Hold:\n\t\tAlways:\tCall 'search directories using zoxide'",
+        "description": "[Z]:\n---\n\tOn Hold:\n\t\tAlways:\tmap 'show Zmina'",
         "manipulators": [
           {
             "type": "basic",
@@ -27850,7 +27892,13 @@
             "to_if_held_down": [
               {
                 "halt": true,
-                "shell_command": "open -u 'raycast-x://extensions/mrpunkin/raycast-zoxide/search-directories'"
+                "repeat": false,
+                "key_code": "v",
+                "modifiers": [
+                  "option",
+                  "control",
+                  "shift"
+                ]
               }
             ],
             "to_delayed_action": {

@@ -103,6 +103,8 @@ const SHOW_APP_HKS = {
   showPasteDaemon: mapSpec("c", VM.CO__, "show Paste Daemon", { options: { repeat: false } }),
   showPopclip: mapSpec("f9", VM.COCS, "show showPopclip", { options: { repeat: false } }),
   showSidenotes: mapSpec("f10", VM.CO_S, "show sidenotes", { options: { repeat: false } }),
+  showZmina: mapSpec("v", VM._OCS, "show Zmina", { options: { repeat: false } }),
+  showZminaHistory: mapSpec("h", VM._OCS, "show Zmina History", { options: { repeat: false } }),
 };
 
 const OTHER_HKS = {

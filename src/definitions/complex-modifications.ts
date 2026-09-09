@@ -2,7 +2,6 @@ import { APPS, CMDS, COMBOS, STATE_GROUPS, URLS, VARS, VM } from "../data";
 import { IGNORE_IDS } from "../data/registries/apps";
 import {
   actHere,
-  app,
   appHistory,
   bind,
   bindTable,
@@ -64,8 +63,9 @@ const numpadAndNumberBindings: Binding[] = [
 const letterBindings: Binding[] = [
   // Bare letter hold actions (tap passes through)
   ...bindTable("hold", {
-    c: app(APPS.claude, "shell"),
+    c: COMBOS.showZmina,
     f: actHere("qspace"),
+    g: APPS.claude,
     h: URLS.rayHere2There,
     j: URLS.rayRecentDownloads,
     k: APPS.kitty,
@@ -80,7 +80,7 @@ const letterBindings: Binding[] = [
     v: COMBOS.showPasteDaemon,
     x: COMBOS.showDefaultFolderX,
     y: actHere("copy"),
-    z: URLS.rayZoxideSearchDirs,
+    z: COMBOS.showZminaHistory,
   }),
 
   // Shift + letter hold actions
