@@ -190,7 +190,7 @@ const nonCharBindings: Binding[] = [
         hold(key("f2")).when(APPS.excel),
       ],
     },
-    options({ timing: { aloneMs: 200, holdMs: 200 } }),
+    options({ timing: { aloneMs: 300, holdMs: 300 } }),
   ),
 
   // Escape variations

@@ -26585,8 +26585,8 @@
               "key_code": "keypad_enter"
             },
             "parameters": {
-              "basic.to_if_alone_timeout_milliseconds": 200,
-              "basic.to_if_held_down_threshold_milliseconds": 200
+              "basic.to_if_alone_timeout_milliseconds": 300,
+              "basic.to_if_held_down_threshold_milliseconds": 300
             },
             "to_if_alone": [
               {
@@ -26627,8 +26627,8 @@
               "key_code": "keypad_enter"
             },
             "parameters": {
-              "basic.to_if_alone_timeout_milliseconds": 200,
-              "basic.to_if_held_down_threshold_milliseconds": 200
+              "basic.to_if_alone_timeout_milliseconds": 300,
+              "basic.to_if_held_down_threshold_milliseconds": 300
             },
             "to_if_alone": [
               {
@@ -26757,7 +26757,8 @@
                   "open_application": {
                     "frontmost_application_history_index": 1,
                     "frontmost_application_history_exclusion_bundle_identifiers": [
-                      "com.knollsoft.Hookshot"
+                      "com.knollsoft.Hookshot",
+                      "app.loshadki.OpenIn"
                     ]
                   }
                 }
@@ -27305,8 +27306,8 @@
               "key_code": "return_or_enter"
             },
             "parameters": {
-              "basic.to_if_alone_timeout_milliseconds": 200,
-              "basic.to_if_held_down_threshold_milliseconds": 200
+              "basic.to_if_alone_timeout_milliseconds": 300,
+              "basic.to_if_held_down_threshold_milliseconds": 300
             },
             "to_if_alone": [
               {
@@ -27347,8 +27348,8 @@
               "key_code": "return_or_enter"
             },
             "parameters": {
-              "basic.to_if_alone_timeout_milliseconds": 200,
-              "basic.to_if_held_down_threshold_milliseconds": 200
+              "basic.to_if_alone_timeout_milliseconds": 300,
+              "basic.to_if_held_down_threshold_milliseconds": 300
             },
             "to_if_alone": [
               {

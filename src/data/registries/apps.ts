@@ -44,6 +44,7 @@ export const APPS = {
   numi: app("com.nikolaeu.numi-setapp", "Numi"),
   onePiece: app("jp.fuji.1Piece", "1Piece"),
   onePiecePrefs: app("jp.fuji.1PiecePreferences", "1Piece Preferences"),
+  openIn: app("app.loshadki.OpenIn", "OpenIn"),
   outlook: app("com.microsoft.Outlook", "Microsoft Outlook"),
   processSpy: app("com.itone.ProcessSpy", "Process Spy"),
   protonMail: app("ch.protonmail.desktop", "Proton Mail"),
@@ -78,4 +79,4 @@ export const PW_IDS: AppSpec[] = [
   APPS.macConsole,
 ];
 
-export const IGNORE_IDS: AppSpec[] = [APPS.rectPro];
+export const IGNORE_IDS: AppSpec[] = [APPS.rectPro, APPS.openIn];
