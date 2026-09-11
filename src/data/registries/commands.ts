@@ -81,7 +81,7 @@ const Typinator_Scripts = {
 
 const Spotify = {
   spotifyToggle: cmdEntry(
-    `if pgrep -x 'Spotify' > /dev/null; then open '${URLS.raySpotifyPlayPause.url}'; else '${PATHS.binAppOpen.path}' -b 'com.spotify.client'; fi; echo 'Spotify toggled'`,
+    `if pgrep -x 'Spotify' > /dev/null ; then open '${URLS.raySpotifyPlayPause.url}'; else '${PATHS.binAppOpen.path}' -b 'com.spotify.client'; fi; echo 'Spotify toggled'`,
     "open Spotify or toggle play/pause",
   ),
 };

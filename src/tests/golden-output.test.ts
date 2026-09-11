@@ -54,10 +54,15 @@ test("compiled rules match the committed karabiner-output.json golden file", () 
     const a = JSON.stringify(actualRules[i]);
     const e = JSON.stringify(expectedRules[i]);
     if (a !== e) {
+      let diffIndex = 0;
+      while (diffIndex < a.length && diffIndex < e.length && a[diffIndex] === e[diffIndex]) {
+        diffIndex++;
+      }
+      const start = Math.max(0, diffIndex - 30);
       assert.fail(
-        `rule ${i} ("${expectedRules[i]?.description?.split("\n")[0]}") changed.\n` +
-          `  expected: ${e.slice(0, 400)}\n` +
-          `  actual:   ${a.slice(0, 400)}\n` +
+        `rule ${i} ("${expectedRules[i]?.description?.split("\n")[0]}") changed at pos ${diffIndex}.\n` +
+          `  expected around diff: ...${e.slice(start, diffIndex + 60)}...\n` +
+          `  actual around diff:   ...${a.slice(start, diffIndex + 60)}...\n` +
           "Re-run with UPDATE_GOLDEN=1 if intentional.",
       );
     }

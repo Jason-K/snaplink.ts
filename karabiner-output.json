@@ -25205,7 +25205,7 @@
             },
             "to_if_alone": [
               {
-                "shell_command": "if pgrep -x 'Spotify' > \"/dev/null;\" then open 'raycast-x://extensions/mattisssa/spotify-player/togglePlayPause'; else $HOME'/.local/bin/open-app' -b 'com.spotify.client'; fi; echo 'Spotify toggled'"
+                "shell_command": "if pgrep -x 'Spotify' > \"/dev/null\" ; then open 'raycast-x://extensions/mattisssa/spotify-player/togglePlayPause'; else $HOME'/.local/bin/open-app' -b 'com.spotify.client'; fi; echo 'Spotify toggled'"
               }
             ],
             "to_if_held_down": [
@@ -25218,7 +25218,7 @@
               "to_if_invoked": [],
               "to_if_canceled": [
                 {
-                  "shell_command": "if pgrep -x 'Spotify' > \"/dev/null;\" then open 'raycast-x://extensions/mattisssa/spotify-player/togglePlayPause'; else $HOME'/.local/bin/open-app' -b 'com.spotify.client'; fi; echo 'Spotify toggled'"
+                  "shell_command": "if pgrep -x 'Spotify' > \"/dev/null\" ; then open 'raycast-x://extensions/mattisssa/spotify-player/togglePlayPause'; else $HOME'/.local/bin/open-app' -b 'com.spotify.client'; fi; echo 'Spotify toggled'"
                 }
               ]
             }
