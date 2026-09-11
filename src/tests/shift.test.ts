@@ -3,7 +3,6 @@ import test from "node:test";
 import { singleKeyTapHoldBindings } from "../definitions/complex-modifications";
 import { defineBindings } from "../engine";
 
-const RAYCAST_CLIPBOARD_HISTORY_URL = "raycast-x://extensions/raycast/clipboard-history/clipboard-history";
 const DOUBLE_TAP_THRESHOLD_MS = 300;
 
 function toRule(input: any): any {
@@ -36,11 +35,11 @@ function toIfAlone(manip: any): any[] {
   return manip.to_if_alone ?? [];
 }
 
-function shellCommands(manip: any): string[] {
-  return toIfAlone(manip)
-    .filter((e: any) => typeof e.shell_command === "string")
-    .map((e: any) => e.shell_command);
-}
+// function shellCommands(manip: any): string[] {
+//   return toIfAlone(manip)
+//     .filter((e: any) => typeof e.shell_command === "string")
+//     .map((e: any) => e.shell_command);
+// }
 
 function aloneKeyCodes(manip: any): string[] {
   return toIfAlone(manip)
