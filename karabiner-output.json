@@ -24942,7 +24942,7 @@
             ],
             "to": [
               {
-                "shell_command": "$HOME'/Scripts/apps/privileges/add-priv.sh' 'fill password' && '/opt/homebrew/bin/SendKeys' --initial-delay 0 --delay 0.005 --characters '<c:/:command,option,control,shift> <c:/:command,option,control,shift>'"
+                "shell_command": "$HOME'/Scripts/apps/privileges/call_priv.sh' 'fill password' && '/opt/homebrew/bin/SendKeys' --initial-delay 0 --delay 0.005 --characters '<c:/:command,option,control,shift> <c:/:command,option,control,shift>'"
               }
             ]
           },
@@ -24982,7 +24982,7 @@
             ],
             "to": [
               {
-                "shell_command": "$HOME'/Scripts/apps/privileges/add-priv.sh' 'fill username and password' && '/opt/homebrew/bin/SendKeys' --initial-delay 0 --delay 0.005 --characters '<c:a:command>Jason<c:tab><c:/:command,option,control,shift>'"
+                "shell_command": "$HOME'/Scripts/apps/privileges/call_priv.sh' 'fill username and password' && '/opt/homebrew/bin/SendKeys' --initial-delay 0 --delay 0.005 --characters '<c:a:command>Jason<c:tab><c:/:command,option,control,shift>'"
               }
             ]
           },

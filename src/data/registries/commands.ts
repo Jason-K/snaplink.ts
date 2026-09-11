@@ -1,5 +1,5 @@
-import { PATHS } from "./paths";
 import type { CommandSpec } from "../primitives/commands";
+import { PATHS } from "./paths";
 import { URLS } from "./urls";
 
 // ---------------------------------------------------------
@@ -56,8 +56,8 @@ const neru = (action: string, desc: string): CommandSpec => cmdEntry(`${PATHS.bi
 
 const Passwords_Privileges = {
   getPrivileges: cmdEntry(`${getPriv}`, "get privileges"),
-  fillPw: cmdEntry(`${getPriv} 'fill password' && ${fillPw}`, "fill password"),
-  fillUnPw: cmdEntry(`${getPriv} 'fill username and password' && ${fillUnAndPw}`, "fill username and password"),
+  fillPw: cmdEntry(`${getPriv} '-a' && ${fillPw}`, "fill password"),
+  fillUnPw: cmdEntry(`${getPriv} '-a' && ${fillUnAndPw}`, "fill username and password"),
 };
 
 const Kill_Apps = {
