@@ -25,4 +25,9 @@ npm run typecheck
 npm test
 npm run verify
 
+echo "==> [Jules] Resetting working tree to ensure clean git status..."
+git checkout -- . 2>/dev/null || true
+git clean -fd 2>/dev/null || true
+git reset --hard HEAD 2>/dev/null || true
+
 echo "==> [Jules] Environment setup successfully verified!"
