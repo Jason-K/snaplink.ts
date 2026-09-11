@@ -20,24 +20,18 @@ const path = (pathStr: string, refDesc: string): PathSpec => ({
 // ---------------------------------------------------------
 // Environment helpers (kept at top of registry section)
 // ---------------------------------------------------------
-const runtimeProcess = globalThis as {
-  process?: {
-    env?: Record<string, string | undefined>;
-  };
-};
-
 const ENV_DIRS = {
-  xdgConfig: path(`${runtimeProcess.process?.env?.XDG_CONFIG_HOME ?? "$HOME/.config"}`, "XDG Config dir"),
-  xdgData: path(`${runtimeProcess.process?.env?.XDG_DATA_HOME ?? "$HOME/.local/share"}`, "XDG Data dir"),
-  xdgCache: path(`${runtimeProcess.process?.env?.XDG_CACHE_HOME ?? "$HOME/.cache"}`, "XDG Cache dir"),
-  xdgBin: path(`${runtimeProcess.process?.env?.XDG_BIN_HOME ?? "$HOME/.local/bin"}`, "XDG Bin dir"),
-  xdgState: path(`${runtimeProcess.process?.env?.XDG_STATE_HOME ?? "$HOME/.local/state"}`, "XDG State dir"),
-  zDotDir: path(`${runtimeProcess.process?.env?.ZDOTDIR ?? "$HOME/.config/zsh"}`, "ZSH home dir"),
+  xdgConfig: path("$HOME/.config", "XDG Config dir"),
+  xdgData: path("$HOME/.local/share", "XDG Data dir"),
+  xdgCache: path("$HOME/.cache", "XDG Cache dir"),
+  xdgBin: path("$HOME/.local/bin", "XDG Bin dir"),
+  xdgState: path("$HOME/.local/state", "XDG State dir"),
+  zDotDir: path("$HOME/.config/zsh", "ZSH home dir"),
   chezmoiDir: path("$HOME/.local/share/chezmoi", "chezmoi"),
-  brewDir: path(`/opt/homebrew`, "Brew home dir"),
+  brewDir: path("/opt/homebrew", "Brew home dir"),
   scriptsDir: path("$HOME/Scripts", "Scripts folder"),
   dlsDir: path("$HOME/Downloads", "DLs"),
-  appsDir: path(`/Applications`, "Global applications folder"),
+  appsDir: path("/Applications", "Global applications folder"),
   onedriveWork: path("$HOME/Library/CloudStorage/OneDrive-BoxerandGerson,LLP", "work OneDrive"),
   onedrivePersonal: path("$HOME/Library/CloudStorage/OneDrive-Personal", "my OneDrive"),
   sharedVenv: path("$HOME/Scripts/.venv/shared_venv", "shared venv"),

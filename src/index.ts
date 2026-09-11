@@ -15,6 +15,7 @@
  */
 
 import { writeFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { join } from "node:path";
 
 import {
@@ -40,7 +41,18 @@ const isCI = process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true";
 const isDarwin = process.platform === "darwin";
 const dryRun = !isDarwin || isCI;
 
-const configPath = PATHS.configKE.path;
+function expandHome(pathStr: string): string {
+  const home = process.env.HOME || homedir();
+  if (pathStr.startsWith("$HOME")) {
+    return pathStr.replace(/^\$HOME/, home);
+  }
+  if (pathStr.startsWith("~/")) {
+    return pathStr.replace(/^~/, home);
+  }
+  return pathStr;
+}
+
+const configPath = expandHome(PATHS.configKE.path);
 
 function main(): void {
   // Compiling inside main() keeps conflict errors on the same reporting path as

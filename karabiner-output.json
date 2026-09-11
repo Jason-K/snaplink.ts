@@ -24942,7 +24942,7 @@
             ],
             "to": [
               {
-                "shell_command": "$HOME'/Scripts/apps/privileges/call_priv.sh' 'fill password' && '/opt/homebrew/bin/SendKeys' --initial-delay 0 --delay 0.005 --characters '<c:/:command,option,control,shift> <c:/:command,option,control,shift>'"
+                "shell_command": "$HOME'/Scripts/apps/privileges/call_priv.sh' '-a' && '/opt/homebrew/bin/SendKeys' --initial-delay 0 --delay 0.005 --characters '<c:/:command,option,control,shift> <c:/:command,option,control,shift>'"
               }
             ]
           },
@@ -24982,7 +24982,7 @@
             ],
             "to": [
               {
-                "shell_command": "$HOME'/Scripts/apps/privileges/call_priv.sh' 'fill username and password' && '/opt/homebrew/bin/SendKeys' --initial-delay 0 --delay 0.005 --characters '<c:a:command>Jason<c:tab><c:/:command,option,control,shift>'"
+                "shell_command": "$HOME'/Scripts/apps/privileges/call_priv.sh' '-a' && '/opt/homebrew/bin/SendKeys' --initial-delay 0 --delay 0.005 --characters '<c:a:command>Jason<c:tab><c:/:command,option,control,shift>'"
               }
             ]
           },
@@ -25205,7 +25205,7 @@
             },
             "to_if_alone": [
               {
-                "shell_command": "if pgrep -x 'Spotify' > \"/dev/null;\" then open 'raycast-x://extensions/mattisssa/spotify-player/togglePlayPause'; else '/Users/jason/.local/bin/open-app' -b 'com.spotify.client'; fi; echo 'Spotify toggled'"
+                "shell_command": "if pgrep -x 'Spotify' > \"/dev/null;\" then open 'raycast-x://extensions/mattisssa/spotify-player/togglePlayPause'; else $HOME'/.local/bin/open-app' -b 'com.spotify.client'; fi; echo 'Spotify toggled'"
               }
             ],
             "to_if_held_down": [
@@ -25218,7 +25218,7 @@
               "to_if_invoked": [],
               "to_if_canceled": [
                 {
-                  "shell_command": "if pgrep -x 'Spotify' > \"/dev/null;\" then open 'raycast-x://extensions/mattisssa/spotify-player/togglePlayPause'; else '/Users/jason/.local/bin/open-app' -b 'com.spotify.client'; fi; echo 'Spotify toggled'"
+                  "shell_command": "if pgrep -x 'Spotify' > \"/dev/null;\" then open 'raycast-x://extensions/mattisssa/spotify-player/togglePlayPause'; else $HOME'/.local/bin/open-app' -b 'com.spotify.client'; fi; echo 'Spotify toggled'"
                 }
               ]
             }
@@ -25689,7 +25689,7 @@
               },
               {
                 "halt": true,
-                "shell_command": "'/Users/jason/.local/bin/uv' --directory $HOME'/Scripts/strings/text_processor' run python $HOME'/Scripts/strings/text_processor/interfaces/cli.py' quick_date --source cut --dest paste"
+                "shell_command": "$HOME'/.local/bin/uv' --directory $HOME'/Scripts/strings/text_processor' run python $HOME'/Scripts/strings/text_processor/interfaces/cli.py' quick_date --source cut --dest paste"
               }
             ],
             "to_delayed_action": {
@@ -25742,7 +25742,7 @@
                 }
               },
               {
-                "shell_command": "\"/Users/jason/.local/bin/kill-app\""
+                "shell_command": "$HOME'/.local/bin/kill-app'"
               }
             ],
             "to_delayed_action": {
@@ -25803,7 +25803,7 @@
                 }
               },
               {
-                "shell_command": "\"/Users/jason/.local/bin/kill-app\" --foreground"
+                "shell_command": "$HOME'/.local/bin/kill-app' --foreground"
               }
             ],
             "to_delayed_action": {
@@ -26697,7 +26697,7 @@
               },
               {
                 "halt": true,
-                "shell_command": "'/Users/jason/.local/bin/uv' --directory $HOME'/Scripts/strings/text_processor' run python $HOME'/Scripts/strings/text_processor/interfaces/cli.py' quick_date --source cut --dest paste"
+                "shell_command": "$HOME'/.local/bin/uv' --directory $HOME'/Scripts/strings/text_processor' run python $HOME'/Scripts/strings/text_processor/interfaces/cli.py' quick_date --source cut --dest paste"
               }
             ],
             "to_delayed_action": {
