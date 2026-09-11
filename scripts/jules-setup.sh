@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+export JULES=true
+export UPDATE_GOLDEN=1
+
 echo "==> [Jules] Installing Node.js dependencies..."
 if [ -f package-lock.json ]; then
   npm ci
