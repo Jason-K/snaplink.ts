@@ -75,7 +75,7 @@ Upstream documentation pulled from [pqrs.org docs/json](https://github.com/pqrs-
   - [multitouch-extension.md](./karabiner_docs/extra/multitouch-extension.md)
   - [virtual-modifier.md](./karabiner_docs/extra/virtual-modifier.md)
 
-## Recent Changes as of 2026-09-08 15:07:13 UTC
+## Recent Changes as of 2026-09-12 17:34:35 UTC
 
 ### 🟢 New Documents
 

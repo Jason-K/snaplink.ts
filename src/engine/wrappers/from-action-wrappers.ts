@@ -1,5 +1,4 @@
 import {
-  type KeyCode,
   type PointerButtonAlias,
   type TriggerKey,
   type SimOrder,

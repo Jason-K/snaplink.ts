@@ -34,7 +34,7 @@
         ]
       },
       {
-        "description": "[E]+[K]:\n---\n\tOn Tap:\n\t\tAlways:\topen Karabiner Settings",
+        "description": "[E]+[K]:\n---\n\tOn Hold:\n\t\tAlways:\topen Karabiner Settings",
         "manipulators": [
           {
             "type": "basic",
@@ -57,9 +57,11 @@
               }
             },
             "parameters": {
-              "basic.simultaneous_threshold_milliseconds": 30
+              "basic.simultaneous_threshold_milliseconds": 30,
+              "basic.to_if_alone_timeout_milliseconds": 300,
+              "basic.to_if_held_down_threshold_milliseconds": 300
             },
-            "to": [
+            "to_if_held_down": [
               {
                 "software_function": {
                   "open_application": {
@@ -67,12 +69,16 @@
                   }
                 }
               }
-            ]
+            ],
+            "to_delayed_action": {
+              "to_if_invoked": [],
+              "to_if_canceled": []
+            }
           }
         ]
       },
       {
-        "description": "[E]+[V]:\n---\n\tOn Tap:\n\t\tAlways:\topen Karabiner EventViewer",
+        "description": "[E]+[V]:\n---\n\tOn Hold:\n\t\tAlways:\topen Karabiner EventViewer",
         "manipulators": [
           {
             "type": "basic",
@@ -95,9 +101,11 @@
               }
             },
             "parameters": {
-              "basic.simultaneous_threshold_milliseconds": 30
+              "basic.simultaneous_threshold_milliseconds": 30,
+              "basic.to_if_alone_timeout_milliseconds": 300,
+              "basic.to_if_held_down_threshold_milliseconds": 300
             },
-            "to": [
+            "to_if_held_down": [
               {
                 "software_function": {
                   "open_application": {
@@ -105,12 +113,16 @@
                   }
                 }
               }
-            ]
+            ],
+            "to_delayed_action": {
+              "to_if_invoked": [],
+              "to_if_canceled": []
+            }
           }
         ]
       },
       {
-        "description": "[Q]+[R]:\n---\n\tOn Tap:\n\t\tAlways:\tRun command 'get recent items from script'",
+        "description": "[Q]+[R]:\n---\n\tOn Hold:\n\t\tAlways:\tRun command 'get recent items from script'",
         "manipulators": [
           {
             "type": "basic",
@@ -133,18 +145,24 @@
               }
             },
             "parameters": {
-              "basic.simultaneous_threshold_milliseconds": 30
+              "basic.simultaneous_threshold_milliseconds": 30,
+              "basic.to_if_alone_timeout_milliseconds": 300,
+              "basic.to_if_held_down_threshold_milliseconds": 300
             },
-            "to": [
+            "to_if_held_down": [
               {
                 "shell_command": "$HOME'/Scripts/filesystem/recent_changes/recent_dl.sh' -a"
               }
-            ]
+            ],
+            "to_delayed_action": {
+              "to_if_invoked": [],
+              "to_if_canceled": []
+            }
           }
         ]
       },
       {
-        "description": "[R]+[W]:\n---\n\tOn Tap:\n\t\tAlways:\tCall 'show recent documents'",
+        "description": "[R]+[W]:\n---\n\tOn Hold:\n\t\tAlways:\tCall 'show recent documents'",
         "manipulators": [
           {
             "type": "basic",
@@ -167,13 +185,19 @@
               }
             },
             "parameters": {
-              "basic.simultaneous_threshold_milliseconds": 30
+              "basic.simultaneous_threshold_milliseconds": 30,
+              "basic.to_if_alone_timeout_milliseconds": 300,
+              "basic.to_if_held_down_threshold_milliseconds": 300
             },
-            "to": [
+            "to_if_held_down": [
               {
                 "shell_command": "open -u 'raycast-x://extensions/jason/recents/recentDocuments'"
               }
-            ]
+            ],
+            "to_delayed_action": {
+              "to_if_invoked": [],
+              "to_if_canceled": []
+            }
           }
         ]
       },

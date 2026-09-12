@@ -1,6 +1,6 @@
 # Karabiner Documentation Sync & Diff Summary
 
-**Generated at:** `2026-09-08T15:07:13.163Z`  
+**Generated at:** `2026-09-12T17:34:35.639Z`  
 **Include Images:** `false`  
 **Prettier Formatted:** `true`  
 **Sources:**
