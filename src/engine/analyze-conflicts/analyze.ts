@@ -47,7 +47,9 @@ export type ConflictKind =
   /** A single-key rule precedes a chord that includes that key. */
   | "chord-member"
   /** Overlapping inputs, but the earlier rule is the more specific one. */
-  | "narrowing";
+  | "narrowing"
+  /** Overlapping chords that specify different simultaneous_options. */
+  | "chord-options-overlap";
 
 export type ConflictSeverity = "error" | "warning" | "info";
 
@@ -69,6 +71,7 @@ const SEVERITY: Record<ConflictKind, ConflictSeverity> = {
   // static analysis cannot decide. Report it, do not fail the build on it.
   "chord-member": "warning",
   narrowing: "info",
+  "chord-options-overlap": "warning",
 };
 
 /** Short label for a binding, for use in diagnostics. */
@@ -221,6 +224,15 @@ function messageFor(
       );
     case "narrowing":
       return `${a} narrows ${b}; the more specific rule is correctly ordered first.`;
+    case "chord-options-overlap": {
+      const keysA = earlier.domain.kind === "chord" ? earlier.domain.keys : [];
+      const keysB = later.domain.kind === "chord" ? later.domain.keys : [];
+      const overlapKeys = keysA.filter(k => keysB.includes(k));
+      return (
+        `Ambiguous simultaneous options: ${a} and ${b} share chord member(s) '${overlapKeys.join("', '")}' ` +
+        `but define different simultaneous_options. Karabiner's behavior is undefined when overlapping chords have conflicting options.`
+      );
+    }
   }
 }
 
