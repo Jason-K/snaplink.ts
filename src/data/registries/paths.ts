@@ -74,7 +74,7 @@ const SCRIPT_FILES = {
   ),
   newTypinatorRule: script("apps/Typinator/new_rule/new_rule.py", "create new Typinator rule"),
   getDocPath: path(
-    `${HOME}/Scripts/apps/karabiner/snaplink.ts/scripts/applescripts/get-word-document-path.applescript`,
+    `${HOME}/Developer/snaplink.ts/scripts/applescripts/get-word-document-path.applescript`,
     "get path to active word document",
   ),
 };
