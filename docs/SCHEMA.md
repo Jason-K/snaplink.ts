@@ -176,7 +176,7 @@ repos:
     hooks:
       - id: karabiner-schema
         name: karabiner schema
-        entry: python3 ~/Scripts/apps/karabiner/snaplink.ts/schema/validate_karabiner.py --node output
+        entry: python3 ~/Developer/snaplink.ts/schema/validate_karabiner.py --node output
         language: system
         files: ^karabiner-output\.json$
         pass_filenames: true

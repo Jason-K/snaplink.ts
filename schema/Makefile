@@ -1,6 +1,6 @@
 # Karabiner schema validation
 #
-# Lives in ~/Scripts/apps/karabiner/snaplink.ts/schema/.
+# Lives in ~/Developer/snaplink.ts/schema/.
 # Validates the TypeScript build output and the live karabiner.json against
 # karabiner-rule.schema.json.
 #
