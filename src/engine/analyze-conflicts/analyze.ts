@@ -13,12 +13,8 @@
  */
 
 import type { Binding, Condition, Trigger } from "../../data";
-import {
-  conditionsImply,
-  conditionsProvablyDisjoint,
-  sameConditions,
-} from "./condition-logic";
 import { isModifierKey } from "../utils";
+import { conditionsImply, conditionsProvablyDisjoint, sameConditions } from "./condition-logic";
 import {
   describeInputDomain,
   inputDomainContains,
@@ -49,7 +45,7 @@ export type ConflictKind =
   /** Overlapping inputs, but the earlier rule is the more specific one. */
   | "narrowing"
   /** Same input domain, overlapping conditions, but neither implies the other — evaluation order silent swallows one. */
-  | "ambiguous-overlap";
+  | "ambiguous-overlap"
   /** Overlapping chords that specify different simultaneous_options. */
   | "chord-options-overlap";
 
