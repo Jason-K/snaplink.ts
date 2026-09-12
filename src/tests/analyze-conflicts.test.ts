@@ -124,6 +124,17 @@ test("a broader modifier domain shadows a narrower one that follows it", () => {
   assert.equal(report.errors[0]?.kind, "shadowed");
 });
 
+test("detects an ambiguous overlap when conditions intersect without containment", () => {
+  const report = analyzeConflicts([
+    set("first", [bind(from("h", ["L.cmd"]), to(press(key("x"))), when(condApp(appA)))]),
+    set("second", [bind(from("h", ["L.cmd"]), to(press(key("y"))), when(condVar(flag, 1)))]),
+  ]);
+
+  assert.equal(report.errors.length, 1);
+  assert.equal(report.errors[0]?.kind, "ambiguous-overlap");
+  assert.match(report.errors[0]?.message ?? "", /Ambiguous double-fire/);
+});
+
 // ---------------------------------------------------------------------------
 // Condition disjointness — the false-positive guard
 // ---------------------------------------------------------------------------
